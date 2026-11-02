@@ -17,7 +17,7 @@ import { type Theme, themeCss } from '../../src/ui/theme/model';
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
 
 const HELP = `npm run theme -- <command>   (the editors' Theme page makes the same edits)
-  list [group] [--json]          every token: path, value (group: colour, type, legacy.root…)
+  list [group] [--json]          every token: path, value (group: colour, type, harbour…)
   set <token> <value>            one token, e.g. set colour.sage "#4a6d41", set duration.base 200
   check                          the theme's rules (also part of npm run check)
   export [--css] [--out file]    the theme file (or, with --css, the custom properties it makes)

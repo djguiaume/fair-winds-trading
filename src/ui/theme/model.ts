@@ -39,12 +39,6 @@ export interface Theme {
   /** The harbour screen's sizes (issue #443): the port strip, the ledger's margin, rows, panes. */
   harbour: Record<string, number>;
   edges: Record<string, Edge>;
-  /** Style E (decision 0220): the tokens of the screens not rebuilt yet, by surface. */
-  legacy: {
-    root: Record<string, string>;
-    night: Record<string, string>;
-    'on-paper': Record<string, string>;
-  };
 }
 
 export const SHIPPED_THEME: Theme = THEME_JSON;
@@ -152,17 +146,12 @@ export function dayTokens(theme: Theme): Record<string, string> {
     vars[`--ui-edge-${name}-width`] = `${edge.slice}px`;
   }
   Object.assign(vars, roles(0));
-  for (const [key, value] of Object.entries(theme.legacy.root)) vars[`--${key}`] = value;
-  for (const [key, value] of Object.entries(theme.legacy['on-paper']))
-    vars[`--on-paper-${key}`] = value;
   return vars;
 }
 
 /** What changes when the scene is dark (`data-night`, decision 0220 and issue #326). */
-export function nightTokens(theme: Theme): Record<string, string> {
-  const vars = roles(1);
-  for (const [key, value] of Object.entries(theme.legacy.night)) vars[`--${key}`] = value;
-  return vars;
+export function nightTokens(): Record<string, string> {
+  return roles(1);
 }
 
 /** The theme as a stylesheet. */
@@ -171,7 +160,7 @@ export function themeCss(theme: Theme, scope: ThemeScope = PAGE_SCOPE): string {
     `${selector} {\n${declare(vars)}\n}\n`;
   return (
     block(scope.root, dayTokens(theme)) +
-    block(scope.night, nightTokens(theme)) +
+    block(scope.night, nightTokens()) +
     block(scope.forcedDay, roles(0)) +
     block(scope.forcedNight, roles(1))
   );

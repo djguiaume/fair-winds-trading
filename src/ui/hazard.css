@@ -20,7 +20,7 @@
 }
 .hazard-name {
   fill: #fff;
-  font-family: var(--display);
+  font-family: var(--ui-font-text);
   font-weight: 700;
   paint-order: stroke;
   stroke: rgba(6, 20, 28, 0.85);

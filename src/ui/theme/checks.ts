@@ -130,9 +130,6 @@ function shapeProblems(theme: Theme): string[] {
     ['font', theme.font],
     ['elevation', theme.elevation],
     ['easing', theme.easing],
-    ['legacy.root', theme.legacy.root],
-    ['legacy.night', theme.legacy.night],
-    ['legacy.on-paper', theme.legacy['on-paper']],
   ];
   for (const [group, values] of texts)
     for (const [key, value] of Object.entries(values))

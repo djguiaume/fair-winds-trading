@@ -1,6 +1,6 @@
 # 0279. Remaining v1.5 screens on the components, old menu styles removed
 
-**Status:** Proposed (2026-11-02).
+**Status:** Accepted (2026-11-02), with the v1.5 release ([0281](0281-version-15-release-a-real-game.md)).
 
 ## Context
 

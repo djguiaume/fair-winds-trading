@@ -1,3 +1,4 @@
+import './questTestBar.css';
 import type { QuestBook } from '../sim/quests';
 
 /*

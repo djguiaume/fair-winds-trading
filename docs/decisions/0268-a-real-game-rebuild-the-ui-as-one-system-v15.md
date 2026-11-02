@@ -1,6 +1,6 @@
 # 0268. A real game: rebuild the UI as one system (v1.5)
 
-**Status:** Proposed (2026-11-01). Becomes Accepted when Guillaume OKs the [v1.5 brief](../v1.5/brief.md) and the identity mockup is chosen.
+**Status:** Accepted (2026-11-02). Guillaume OK'd the [v1.5 brief](../v1.5/brief.md) and chose the identity (the chart table, round 3 D, title 6); the release is [0281](0281-version-15-release-a-real-game.md).
 
 ## Context
 

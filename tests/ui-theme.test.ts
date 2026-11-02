@@ -25,16 +25,12 @@ describe('UI theme', () => {
     expect(day['--ui-touch-target']).toBe('44px');
     expect(day['--ui-paper-night-fill']).toBe('rgb(185 171 138 / 0.8)');
     expect(day['--ui-edge-torn-day']).toMatch(/^url\("data:image\/svg\+xml,/);
-    // Style E keeps its names and values until the screens are rebuilt.
-    expect(day['--brass']).toBe('#e8c46a');
-    expect(day['--on-paper-green']).toBe('#2f7a3a');
   });
 
   it('dims the paper and the torn edge at night', () => {
-    const night = nightTokens(SHIPPED_THEME);
+    const night = nightTokens();
     expect(night['--ui-surface']).toBe('var(--ui-paper-night-fill)');
     expect(night['--ui-edge-torn']).toBe('var(--ui-edge-torn-night)');
-    expect(night['--paper']).toBe('#a59d86');
   });
 
   it('scopes its CSS to the page or a preview box', () => {
@@ -111,7 +107,6 @@ describe('theme edits (Theme page and npm run theme)', () => {
     expect(list.find((t) => t.path === 'about')).toBeUndefined();
     expect(findToken(SHIPPED_THEME, 'colour.sage')).toMatchObject({ kind: 'colour' });
     expect(findToken(SHIPPED_THEME, 'duration.base')).toMatchObject({ kind: 'number', value: 200 });
-    expect(findToken(SHIPPED_THEME, 'legacy.root.brass')).toMatchObject({ kind: 'colour' });
     expect(findToken(SHIPPED_THEME, 'edges.torn.path')).toMatchObject({ kind: 'text' });
   });
 

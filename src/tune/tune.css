@@ -10,7 +10,7 @@
   --t-dim: rgba(238, 243, 244, 0.66);
   --t-green: #59d36b;
   --t-red: #ff6a55;
-  font-family: 'Barlow', 'Trebuchet MS', sans-serif;
+  font-family: 'Trebuchet MS', sans-serif;
   color: var(--t-ink);
   z-index: 60;
 }
@@ -52,8 +52,8 @@
 }
 .tune-title {
   font:
-    700 19px/1 'Barlow Condensed',
-    'Arial Narrow',
+    700 19px/1 'Arial Narrow',
+    'Roboto Condensed',
     sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -100,8 +100,8 @@
   border-radius: 8px;
   background: transparent;
   font:
-    700 13px/1 'Barlow Condensed',
-    'Arial Narrow',
+    700 13px/1 'Arial Narrow',
+    'Roboto Condensed',
     sans-serif !important;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -131,8 +131,8 @@
 .tune-h {
   margin: 6px 0 4px;
   font:
-    700 13px/1.2 'Barlow Condensed',
-    'Arial Narrow',
+    700 13px/1.2 'Arial Narrow',
+    'Roboto Condensed',
     sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -461,8 +461,8 @@
   border-radius: 19px;
   background: var(--t-navy);
   font:
-    700 14px/1 'Barlow Condensed',
-    'Arial Narrow',
+    700 14px/1 'Arial Narrow',
+    'Roboto Condensed',
     sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;

@@ -1,6 +1,6 @@
 # 0269. UI foundation: theme as data, components, screen stack and motion
 
-**Status:** Accepted (2026-11-01), part of v1.5 "A real game" (#438). Follows decision 0268.
+**Status:** Accepted (2026-11-01), part of v1.5 "A real game" (#438). Follows decision 0268. Its `legacy` style E group was removed in v1.5 ([0281](0281-version-15-release-a-real-game.md)).
 
 ## Context
 

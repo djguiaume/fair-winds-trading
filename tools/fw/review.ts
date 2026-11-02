@@ -59,7 +59,7 @@ async function composeSheets(islands: IslandDef[], dir: string, night: boolean) 
       const html = join(dir, `${island.id}.html`);
       writeFileSync(
         html,
-        `<style>body{margin:0;background:#0d2a3a;color:#fff;font:600 14px Barlow,sans-serif}
+        `<style>body{margin:0;background:#0d2a3a;color:#fff;font:600 14px 'Alegreya Sans',sans-serif}
         .row{display:flex}figure{margin:0;flex:1}img{width:100%;display:block}
         figcaption{padding:4px 8px}</style>
         <div class="row">${img(shot('high'), `${island.id}: High`)}${img(shot('low'), 'Low')}</div>

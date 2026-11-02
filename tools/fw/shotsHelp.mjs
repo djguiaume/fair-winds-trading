@@ -79,7 +79,7 @@ Output
                                 from there (e.g. --script a test save's set-up, then --save-link)
   --splash [--progress 0.55]    the loading screen, the boat at that place on the wave
   --portrait-gate               the page a phone held upright gets (sizes default to portrait)
-  --sizes desktop,landscape,portrait,tv   (default desktop; tv = Xbox Edge at 1080p)
+  --sizes desktop,landscape,portrait,tv   (default desktop,landscape; tv = Xbox Edge at 1080p)
   --name name                   file name, written as <name>-<size>.png (default: from the scene)
   --list shots.json             a JSON list of shots; each entry takes the options above as keys
                                 (at: [x, y], sizes: [...]); options on the line are the defaults

@@ -1,11 +1,6 @@
 [
-  { "name": "1-sea-day", "sizes": ["desktop", "landscape"] },
-  { "name": "2-sea-night", "night": true, "sizes": ["desktop"] },
-  {
-    "name": "3-port-saltmere",
-    "port": "saltmere",
-    "tab": "market",
-    "sizes": ["desktop", "landscape"]
-  },
-  { "name": "4-chart", "chart": true, "charted": true, "sizes": ["desktop"] }
+  { "name": "1-sea-day" },
+  { "name": "2-sea-night", "night": true },
+  { "name": "3-port-saltmere", "port": "saltmere", "tab": "market" },
+  { "name": "4-chart", "chart": true, "charted": true }
 ]

@@ -20,7 +20,7 @@ const clock = (hour: number) => `${pad2(hour)}:${pad2((hour % 1) * 60)}`;
 
 export function shellHtml(): string {
   return `
-    <aside class="bl-slots on-paper ${PAPER} fs-side">
+    <aside class="bl-slots ${PAPER} fs-side">
       <h2 class="bl-title" id="fs-title">${t('free.title')}</h2>
       <p class="fs-note">${t('free.note')}</p>
       <h3 class="fs-head">${t('free.place')}</h3>
@@ -34,7 +34,7 @@ export function shellHtml(): string {
         <button type="button" class="bl-round" data-turn="1" title="${t('customise.turnRight')}" aria-label="${t('customise.turnRight')}">⟳</button>
       </div>
     </section>
-    <aside class="bl-items on-paper ${PAPER} fs-side">
+    <aside class="bl-items ${PAPER} fs-side">
       <div class="bl-items-head">
         <h3 class="fs-head">${t('free.ship')}</h3>
         <button type="button" class="ui-header-exit ui-pressable bl-close" data-pad-close title="${t('customise.close')}" aria-label="${t('customise.close')}">${icon('close')}</button>
