@@ -86,6 +86,7 @@ const ROLES: Record<string, [day: string, night: string]> = {
   '--ui-face': ['var(--ui-paper)', 'var(--ui-paper-night)'],
   '--ui-face-off': ['var(--ui-paper-off)', 'var(--ui-paper-night-off)'],
   '--ui-muted': ['var(--ui-ink-muted)', 'var(--ui-ink-muted-night)'],
+  '--ui-tab-rest': ['var(--ui-tab-paper)', 'var(--ui-tab-paper-night)'],
   '--ui-wash': ['var(--ui-sage-wash)', 'var(--ui-sage-wash-night)'],
   '--ui-edge-torn': ['var(--ui-edge-torn-day)', 'var(--ui-edge-torn-night)'],
   '--ui-edge-brushed': ['var(--ui-edge-brushed-day)', 'var(--ui-edge-brushed-night)'],

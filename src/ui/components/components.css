@@ -62,12 +62,13 @@
   outline-offset: 2px;
 }
 
-/* --- Tab bar: paper tabs with an ink edge; the chosen one is sage wash with ink text ------------- */
-/* Every tab keeps one box and one weight, so choosing a tab only changes colours. */
+/* --- Tab bar: index tabs on a rule, like the tabs of a chart book (issue #457) ------------------ */
+/* A tab keeps one box and one weight chosen or not, so choosing only changes paper and the bar. */
 .ui-tabs {
   display: flex;
   align-items: flex-end;
   gap: var(--ui-tabs-gap);
+  padding: var(--ui-tabs-badge) var(--ui-space-2) 0 0;
   overflow-x: auto;
   scrollbar-width: none;
   border-bottom: var(--ui-tabs-edge) solid var(--ui-ink);
@@ -76,26 +77,39 @@
   display: none;
 }
 .ui-tab {
+  position: relative;
   display: flex;
   flex: none;
   align-items: center;
   gap: var(--ui-space-2);
-  min-height: var(--ui-touch-target);
-  margin-bottom: calc(-1 * var(--ui-tabs-edge));
+  height: calc(var(--ui-tabs-height) - var(--ui-tabs-rest-drop));
   padding: 0 var(--ui-tabs-pad-x);
-  border: var(--ui-tabs-edge) solid var(--ui-ink);
-  border-radius: var(--ui-radius-m) var(--ui-radius-m) 0 0;
-  background: var(--ui-face-off);
-  color: var(--ui-muted);
-  font-family: var(--ui-font-text);
+  border: var(--ui-tabs-edge) solid var(--ui-ink-soft);
+  border-bottom: 0;
+  border-radius: var(--ui-tabs-radius) var(--ui-tabs-radius) 0 0;
+  background: var(--ui-tab-rest);
+  color: var(--ui-ink);
+  font-family: var(--ui-font-title);
   font-size: var(--fs-lead);
-  font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
 }
+/* The finger's zone is 44 px tall though the tab is shorter. */
+.ui-tab::after {
+  content: '';
+  position: absolute;
+  inset: -4px 0 0;
+}
 .ui-tab[aria-selected='true'] {
+  height: var(--ui-tabs-height);
+  margin-bottom: calc(-1 * var(--ui-tabs-edge));
+  border-color: var(--ui-ink);
+  background: var(--ui-face);
+  box-shadow: inset 0 var(--ui-tabs-bar) 0 var(--ui-sage);
+}
+.ui-tab:not([aria-selected='true']):hover,
+.ui-tab:not([aria-selected='true']):focus-visible {
   background: var(--ui-wash);
-  color: var(--ui-ink);
 }
 .ui-tab-icon {
   display: flex;
@@ -107,21 +121,21 @@
   height: 100%;
 }
 .ui-tab-badge {
-  display: inline-grid;
+  position: absolute;
+  top: calc(-1 * var(--ui-tabs-badge) / 4);
+  right: calc(-1 * var(--ui-tabs-badge) / 4);
+  display: grid;
   place-items: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 var(--ui-space-1);
+  min-width: var(--ui-tabs-badge);
+  height: var(--ui-tabs-badge);
+  padding: 0 2px;
   border-radius: var(--ui-radius-pill);
-  background: var(--ui-ink);
-  color: var(--ui-paper);
-  font-size: var(--fs-note);
-  font-weight: 700;
-  line-height: 1;
-}
-.ui-tab-badge--sage {
   background: var(--ui-sage);
   color: var(--ui-on-sage);
+  font-family: var(--ui-font-text);
+  font-size: var(--fs-small);
+  font-weight: 700;
+  line-height: 1;
 }
 .ui-tabs .pad-key {
   flex: none;
@@ -131,7 +145,12 @@
   color: var(--ui-ink);
 }
 :root[data-layout='phone'] .ui-tab {
+  height: calc(var(--ui-tabs-height-phone) - var(--ui-tabs-rest-drop));
   padding: 0 var(--ui-tabs-pad-x-phone);
+  font-size: var(--fs-body);
+}
+:root[data-layout='phone'] .ui-tab[aria-selected='true'] {
+  height: var(--ui-tabs-height-phone);
 }
 :root[data-layout='phone'] .ui-tab-icon {
   width: var(--ui-tabs-icon-phone);
@@ -330,8 +349,8 @@ button.ui-row {
   width: var(--ui-touch-target);
   height: var(--ui-touch-target);
   padding: 0;
-  border: 1px solid var(--ui-rule);
-  border-radius: var(--ui-radius-pill);
+  border: var(--ui-tabs-edge) solid var(--ui-ink);
+  border-radius: var(--ui-radius-s);
   background: var(--ui-face);
   color: var(--ui-ink);
   cursor: pointer;

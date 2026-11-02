@@ -13,8 +13,6 @@ export interface Tab {
   label: string;
   /** A small count after the label (open orders, new faces); nothing when 0 or left out. */
   badge?: number;
-  /** `sage` for people waiting, `ink` (default) for things to do. */
-  badgeTone?: 'ink' | 'sage';
   /** Inline SVG markup for the icon slot. */
   icon?: string;
 }
@@ -38,7 +36,7 @@ export class TabBar {
       if (tab.icon)
         b.insertAdjacentHTML('beforeend', `<span class="ui-tab-icon">${tab.icon}</span>`);
       b.append(el('span', 'ui-tab-label', tab.label));
-      if (tab.badge) b.append(tabBadge(tab.badge, tab.badgeTone));
+      if (tab.badge) b.append(tabBadge(tab.badge));
       b.type = 'button';
       b.setAttribute('role', 'tab');
       b.dataset.tab = tab.id;
@@ -82,6 +80,6 @@ export class TabBar {
   }
 }
 
-function tabBadge(n: number, tone: Tab['badgeTone'] = 'ink'): HTMLElement {
-  return el('span', `ui-tab-badge ui-tab-badge--${tone}`, String(n));
+function tabBadge(n: number): HTMLElement {
+  return el('span', 'ui-tab-badge', String(n));
 }
