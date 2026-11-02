@@ -16,7 +16,7 @@ export interface Edge {
 export interface Theme {
   about: string;
   colour: Record<string, string>;
-  night: { 'paper-opacity': number };
+  night: { 'paper-opacity': number; 'ledger-opacity': number };
   font: Record<string, string>;
   type: Record<string, number>;
   space: Record<string, number>;
@@ -32,6 +32,8 @@ export interface Theme {
   hud: Record<string, number>;
   /** The one tab bar's sizes (issue #457): edge width, gap, side padding, icon. */
   tabs: Record<string, number>;
+  /** The harbour screen's sizes (issue #443): the port strip, the ledger's margin, rows, panes. */
+  harbour: Record<string, number>;
   edges: Record<string, Edge>;
   /** Style E (decision 0220): the tokens of the screens not rebuilt yet, by surface. */
   legacy: {
@@ -58,6 +60,7 @@ const CSS_GROUPS: Record<string, { prefix: string; unit?: string }> = {
   touch: { prefix: '--ui-touch-', unit: 'px' },
   hud: { prefix: '--ui-hud-', unit: 'px' },
   tabs: { prefix: '--ui-tabs-', unit: 'px' },
+  harbour: { prefix: '--ui-harbour-', unit: 'px' },
 };
 
 /**
@@ -125,6 +128,9 @@ export function dayTokens(theme: Theme): Record<string, string> {
   const c = theme.colour;
   const opacity = theme.night['paper-opacity'];
   vars['--ui-paper-night-fill'] = withOpacity(c['paper-night'] ?? '#000000', opacity);
+  // Under a panel's fill, so the two together make a ledger's night paper (#443).
+  const under = 1 - (1 - theme.night['ledger-opacity']) / (1 - Math.min(opacity, 0.99));
+  vars['--ui-paper-night-ledger'] = withOpacity(c['paper-night'] ?? '#000000', Math.max(0, under));
   const fills: Record<string, [string, string, number]> = {
     torn: [c.paper ?? '', c['paper-night'] ?? '', opacity],
     brushed: [c['sage-wash'] ?? '', c['sage-wash-night'] ?? '', 1],

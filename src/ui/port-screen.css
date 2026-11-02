@@ -1,31 +1,13 @@
 /*
- * Full-screen port (decision 0049): the trade panel in the "instrument" style. Header with the
- * port, what it makes and wants, gold and hold; tabs Market / Orders / Shipyard; one row per good
- * with the price on its Buy and Sell buttons; actions along the bottom. Tokens come from
- * sea-hud.css; older trade rules in hud.css still apply to Kids mode.
+ * The old full-screen port's frame (decision 0049), kept for the chart's header and tabs, which
+ * still wear it (index.html). The harbour itself moved to the v1.5 paper in issue #443
+ * (src/ui/harbour/harbour.css); the overlay below still holds the harbour and the home island.
  */
 
 .trade-panel-overlay {
   place-items: stretch;
   padding: 0;
   background: rgba(6, 18, 27, 0.6);
-}
-.trade-modal.port-screen {
-  width: 100%;
-  max-width: none;
-  height: 100%;
-  max-height: none;
-  padding: 0;
-  gap: 0;
-  border: 0;
-  border-radius: 0;
-  background: var(--planks);
-  box-shadow: none;
-  color: var(--leather-ink);
-  font-family: var(--body);
-  text-shadow: none;
-  /* The pad's focus scrolls into view clear of the sticky header and footer (decision 0192). */
-  scroll-padding: 84px 0 96px;
 }
 
 /* --- Header ---------------------------------------------------------------------------- */
@@ -40,68 +22,17 @@
     max(16px, var(--safe-right, env(safe-area-inset-right))) 10px
     max(16px, var(--safe-left, env(safe-area-inset-left)));
 }
-.port-screen .port-title-area {
-  display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 14px;
-  min-width: 0;
-}
 .port-screen .port-name {
   margin: 0;
   color: var(--leather-ink);
   font: 900 var(--fs-display)/1 var(--serif);
   text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5);
 }
-.port-screen .port-roles-summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0;
-}
-.port-screen .role-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  height: 30px;
-  padding: 0 10px;
-  border: 1px solid var(--paper-edge);
-  border-radius: 4px;
-  background: var(--paper-card);
-  color: var(--paper-ink);
-  font: 700 var(--fs-text)/1 var(--serif);
-}
-.port-screen .role-tag small {
-  margin-right: 4px;
-  font-size: inherit;
-}
 .port-screen .icon {
   width: 1.25em;
   height: 1.25em;
   flex: none;
   vertical-align: middle;
-}
-.port-screen .header-controls {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  width: auto;
-}
-.port-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 40px;
-  padding: 0 12px;
-  font: 700 var(--fs-head)/1 var(--display);
-  white-space: nowrap;
-}
-.port-chip .icon {
-  width: 24px;
-  height: 24px;
 }
 .port-screen .close-btn {
   width: 46px;
@@ -151,369 +82,11 @@
   font-size: var(--fs-note);
   vertical-align: 2px;
 }
-.lot-picker {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: auto;
-  padding-bottom: 5px;
-}
-.lot-picker small {
-  margin-right: 2px;
-  color: var(--leather-ink);
-  font: 700 var(--fs-text) var(--display);
-}
-.lot-btn {
-  min-width: 44px;
-  height: 36px;
-  border: 1.5px solid var(--paper-edge);
-  border-radius: 6px;
-  background: var(--paper-2);
-  color: var(--paper-ink);
-  font: 700 var(--fs-lead)/1 var(--display);
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.lot-btn[aria-pressed='true'] {
-  border-color: var(--outline);
-  background: var(--brass);
-  color: var(--on-gold);
-}
 
-/* --- Chunky buttons ------------------------------------------------------------------- */
-.port-btn,
-.port-screen .sell-all-btn,
-.port-screen .upgrade-btn,
-.port-screen .ship-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 46px;
-  padding: 0 16px;
-  border: 2px solid;
-  box-shadow:
-    inset 0 -3px 0 var(--lo),
-    0 2px 0 rgba(58, 42, 29, 0.6);
-  font-size: var(--fs-lead);
-  line-height: 1;
-  white-space: nowrap;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.port-btn.green,
-.port-screen .sell-all-btn {
-  --lo: #2f9c41;
-  background: linear-gradient(#7fe08c, #49c45c);
-  color: var(--on-green);
-}
-.port-btn .icon {
-  width: 20px;
-  height: 20px;
-}
-.port-btn .coin {
-  width: 17px;
-  height: 17px;
-}
-.port-btn:not(:disabled, [aria-disabled='true']):active,
-.port-screen .sell-all-btn:not(:disabled, [aria-disabled='true']):active,
-.port-screen .upgrade-btn:not(:disabled, [aria-disabled='true']):active,
-.port-screen .ship-btn:not(:disabled, [aria-disabled='true']):active {
-  transform: translateY(2px);
-  box-shadow: inset 0 -1px 0 var(--lo);
-}
-.port-btn:is(:disabled, [aria-disabled='true']),
-.port-screen .sell-all-btn:is(:disabled, [aria-disabled='true']),
-.port-screen .upgrade-btn:is(:disabled, [aria-disabled='true']),
-.port-screen .ship-btn:is(:disabled, [aria-disabled='true']) {
-  border-color: var(--disabled-line);
-  background: var(--paper-shade);
-  box-shadow: none;
-  color: var(--ink-dim);
-  cursor: default;
-  opacity: 1;
-}
-.port-btn:focus-visible,
-.lot-btn:focus-visible,
 .port-screen .tab-btn:focus-visible,
 .port-screen .close-btn:focus-visible {
   outline: 2px solid var(--brass-hi);
   outline-offset: 2px;
-}
-
-/* --- Market: one row per good, side panel -------------------------------------------- */
-.port-screen .trade-content {
-  flex: 1;
-  background: var(--paper);
-  box-shadow: inset 0 0 38px var(--paper-shade);
-  padding: 8px max(16px, var(--safe-right, env(safe-area-inset-right))) 12px
-    max(16px, var(--safe-left, env(safe-area-inset-left)));
-}
-.port-screen .market-section.adult-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 270px);
-  align-items: start;
-  gap: 14px;
-}
-.goods-list {
-  display: flex;
-  flex-direction: column;
-}
-.good-row {
-  display: grid;
-  grid-template-areas: 'icon text hold buy sell';
-  grid-template-columns: 40px minmax(0, 1fr) 48px 128px 128px;
-  align-items: center;
-  column-gap: 10px;
-  row-gap: 6px;
-  padding: 8px;
-}
-.good-row:nth-child(even) {
-  background: var(--paper-shade);
-}
-.good-icon {
-  grid-area: icon;
-  display: grid;
-  place-items: center;
-}
-.port-screen .good-icon .icon {
-  width: 34px;
-  height: 34px;
-}
-.good-text {
-  grid-area: text;
-  min-width: 0;
-}
-.good-row .good-name {
-  display: block;
-  font-size: var(--fs-sub);
-  font-weight: 600;
-}
-.good-note {
-  display: block;
-  color: var(--ink-dim);
-  font-size: var(--fs-body);
-  font-weight: 600;
-}
-.good-row.wants .good-note {
-  color: var(--brass);
-}
-.good-best {
-  display: none;
-  grid-area: best;
-  font-size: var(--fs-text);
-}
-.good-best small,
-.good-hold small {
-  display: block;
-  color: var(--ink-dim);
-  font: 700 var(--fs-small)/1.2 var(--display);
-}
-.good-hold {
-  grid-area: hold;
-  min-width: 44px;
-  text-align: center;
-}
-.good-hold b {
-  font: 700 var(--fs-title)/1 var(--display);
-}
-.good-row .buy-btn {
-  grid-area: buy;
-}
-.good-row .sell-btn {
-  grid-area: sell;
-}
-.port-screen .good-row .trade-act-btn {
-  flex: none;
-  width: 100%;
-  min-width: 0;
-  margin: 0;
-}
-.good-row .trade-act-btn small {
-  font-size: var(--fs-text);
-}
-.good-row .trade-act-btn b {
-  font-size: var(--fs-title);
-}
-
-.port-side {
-  position: sticky;
-  top: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.side-card {
-  padding: 10px 14px 12px;
-  border: 1.5px solid var(--paper-edge);
-  border-radius: 6px;
-  background: var(--navy);
-  box-shadow: 2px 3px 0 rgba(58, 42, 29, 0.35);
-}
-.side-card h3,
-.port-screen .contracts-title,
-.port-screen .section-title h3 {
-  margin: 0 0 6px;
-  color: var(--brass);
-  font: 700 var(--fs-sub)/1.2 var(--serif);
-}
-.side-card ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.side-card li {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--fs-text);
-  line-height: 1.7;
-}
-.side-card p {
-  margin: 0 0 8px;
-  font-size: var(--fs-text);
-}
-.side-card .order-line {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: var(--fs-lead);
-}
-.side-card .deliver-btn {
-  width: 100%;
-}
-/* A help order from a neglected town (decision 0069). */
-.side-card .order-help {
-  color: var(--amber-ink);
-  font-weight: 700;
-  font-size: var(--fs-body);
-}
-
-/* A load on credit (decision 0200): the harbour office's offer, then what she owes. */
-.side-card.credit-card {
-  border-color: var(--brass);
-}
-.side-card.credit-card.owed {
-  border-style: dashed;
-}
-.side-card.credit-card.owed p {
-  margin: 0;
-  font-size: var(--fs-body);
-}
-.credit-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.credit-actions .port-btn {
-  flex: 1 1 auto;
-}
-.credit-actions .port-btn.later {
-  border-color: var(--brass-line);
-  background: transparent;
-  box-shadow: none;
-  color: var(--brass);
-}
-
-/* --- Orders tab ------------------------------------------------------------------------ */
-.port-screen .contracts {
-  max-width: 720px;
-  font-size: var(--fs-lead);
-  opacity: 1;
-}
-.port-screen .contract-line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 0;
-}
-.port-screen .contract-list {
-  margin: 8px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.port-screen .contract-list li {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 0;
-  border-top: 1px solid rgba(238, 243, 244, 0.12);
-}
-.port-screen .contracts .coin {
-  width: 16px;
-  height: 16px;
-}
-
-/* --- Shipyard tab: same panels and buttons ---------------------------------------------- */
-.port-screen .trade-content.tab-shipyard {
-  padding-bottom: 24px;
-}
-.port-screen .upgrade-card,
-.port-screen .ship-card {
-  border: 1.5px solid var(--paper-edge);
-  border-radius: 6px;
-  background: var(--navy);
-  box-shadow: 2px 3px 0 rgba(58, 42, 29, 0.35);
-}
-.port-screen .ship-card.active-ship {
-  border-color: var(--green);
-}
-.port-screen .track-name,
-.port-screen .ship-card-header h4 {
-  font: 700 var(--fs-sub)/1.2 var(--serif);
-}
-.port-screen .track-pip.filled {
-  background: var(--brass);
-}
-.port-screen .upgrade-btn,
-.port-screen .ship-btn {
-  width: 100%;
-  min-height: 44px;
-  font-size: var(--fs-text);
-  white-space: normal;
-}
-.port-screen .upgrades-grid {
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-}
-.port-screen .upgrade-card {
-  padding: 12px;
-  gap: 8px;
-}
-.port-screen .upgrade-btn {
-  margin-top: auto;
-}
-.port-screen .upgrade-btn.maxed {
-  color: var(--green-ink);
-}
-
-/* --- Status and actions along the bottom ------------------------------------------- */
-.port-screen .trade-status {
-  margin: 0;
-  padding: 0 max(16px, var(--safe-right, env(safe-area-inset-right))) 4px;
-  color: var(--leather-ink);
-  font-size: var(--fs-text);
-  text-align: right;
-}
-.port-screen .trade-footer {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  padding: 10px max(16px, var(--safe-right, env(safe-area-inset-right)))
-    max(10px, var(--safe-bottom, env(safe-area-inset-bottom)))
-    max(16px, var(--safe-left, env(safe-area-inset-left)));
-  background: var(--planks);
-}
-.footer-gap {
-  flex: 1;
-}
-.port-screen .undock-btn {
-  min-width: 150px;
 }
 
 /* --- Sizes ----------------------------------------------------------------------------- */
@@ -525,62 +98,18 @@
   .port-screen .port-name {
     font-size: var(--fs-big);
   }
-  .port-chip {
-    height: 36px;
-    font-size: var(--fs-sub);
-  }
   .port-screen .tab-btn {
     min-height: 40px;
   }
-  .good-row {
-    padding: 4px 8px;
-  }
-  .port-btn,
-  .port-screen .sell-all-btn {
-    min-height: 42px;
-  }
-  .port-screen .shipyard-section .section-title .small {
-    display: none;
-  }
-  .port-screen .trade-footer {
-    padding-top: 6px;
-    padding-bottom: max(6px, var(--safe-bottom, env(safe-area-inset-bottom)));
-  }
 }
 
-/* Large screens: room for where each good sells best, right in its row. */
-@media (min-width: 1100px) {
-  .good-row {
-    grid-template-areas: 'icon text best hold buy sell';
-    grid-template-columns: 40px minmax(0, 1fr) minmax(160px, auto) 52px 150px 150px;
-  }
-  .good-best {
-    display: block;
-  }
-  .port-screen .market-section.adult-layout {
-    grid-template-columns: minmax(0, 1fr) 320px;
-  }
-}
-
-/* Portrait phones: the side panel first, Buy and Sell under each good, actions stacked. */
+/* Portrait phones. */
 @media (max-width: 640px) {
   .port-screen .trade-header {
     align-items: flex-start;
   }
   .port-screen .trade-header {
     gap: 8px;
-  }
-  .port-screen .header-controls {
-    gap: 6px;
-  }
-  .port-chip {
-    height: 34px;
-    padding: 0 8px;
-    font-size: var(--fs-lead);
-  }
-  .port-chip .icon {
-    width: 20px;
-    height: 20px;
   }
   .port-screen .close-btn {
     width: 40px;
@@ -589,210 +118,12 @@
   .port-screen .port-name {
     font-size: var(--fs-title);
   }
-  .port-screen .role-tag {
-    height: 26px;
-    padding: 0 7px;
-    font-size: var(--fs-note);
-  }
   /* The lot size gets its own line under the tabs. */
   .port-screen .trade-tabs {
     flex-wrap: wrap;
   }
-  .lot-picker {
-    order: 1;
-    width: 100%;
-    justify-content: flex-end;
-    padding: 6px 0;
-  }
-  .port-screen .market-section.adult-layout {
-    grid-template-columns: 1fr;
-  }
-  .port-side {
-    position: static;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    order: -1;
-  }
-  .good-row {
-    grid-template-areas:
-      'icon text text hold'
-      'buy buy sell sell';
-    grid-template-columns: 36px 1fr 1fr auto;
-  }
-  .port-screen .good-row .trade-act-btn {
-    min-width: 0;
-  }
-  .lot-picker small {
-    display: none;
-  }
   .port-screen .tab-btn {
     padding: 0 6px;
     font-size: var(--fs-text);
-  }
-  .port-screen #tp-repair {
-    width: 100%;
-  }
-  .port-screen .trade-footer .footer-gap {
-    display: none;
-  }
-  .port-screen #tp-sell-all,
-  .port-screen .undock-btn {
-    flex: 1;
-    min-width: 0;
-  }
-}
-
-/* With a controller the A / B pill stays up in the footer's middle (0192): the quay hint stops short. */
-@media (min-width: 641px) {
-  html[data-input='pad'] .port-screen .quay-hint {
-    max-width: calc(50% - 150px);
-  }
-}
-
-/* Phones: the quay hint on its own row, so Set sail and Sell all stay whole (0163, 0211). */
-@media (max-width: 640px) {
-  .port-screen .quay-hint {
-    flex-basis: 100%;
-  }
-}
-
-/* --- The port's picture (decision 0211) ------------------------------------------------- */
-/* The real town at its level behind the header, the panel's navy over its left side so the name,
- * chips and gold stay readable, and the port's signature colour as a line under it. */
-.port-screen .trade-header.has-view {
-  flex-shrink: 0;
-  min-height: clamp(96px, 19vh, 150px);
-  align-items: flex-start;
-  border-bottom: 4px solid var(--port-accent, var(--leather-deep));
-}
-/* The pad's focus scrolls into view clear of the taller header. */
-.trade-modal.port-screen:has(.has-view) {
-  scroll-padding-top: calc(clamp(96px, 19vh, 150px) + 20px);
-}
-.port-screen .trade-header:not(.has-view) {
-  border-bottom-color: var(--port-accent, var(--leather-deep));
-}
-.port-screen .port-view {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: var(--leather-deep) center 62% / cover no-repeat;
-}
-.port-screen .port-view::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    var(--leather) 0%,
-    rgba(58, 42, 29, 0.86) 22%,
-    rgba(58, 42, 29, 0) 45%
-  );
-}
-.port-screen .trade-header.has-view {
-  isolation: isolate;
-}
-
-/* The keeper under the Market rows (decision 0211): their portrait framed like the Quay's, one
- * line in their voice, the town's level and what it grows into next. */
-.keeper-card {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 4px 18px;
-  margin: 18px 0 8px;
-  padding: 12px 16px;
-  border: 1.5px solid var(--paper-edge);
-  border-radius: 6px;
-  background: var(--navy);
-  box-shadow: 2px 3px 0 rgba(58, 42, 29, 0.35);
-}
-.keeper-card.no-keeper {
-  grid-template-columns: 1fr;
-}
-.keeper-body p {
-  margin: 0;
-}
-.keeper-name b {
-  color: var(--ink);
-  font: 700 var(--fs-title)/1.1 var(--serif);
-}
-.keeper-name small {
-  margin-left: 8px;
-  color: var(--brass);
-  font: 700 var(--fs-text)/1 var(--serif);
-}
-.keeper-line {
-  margin-top: 6px !important;
-  color: var(--ink);
-  font-size: var(--fs-lead);
-  line-height: 1.4;
-}
-.keeper-town {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 12px;
-  margin-top: 8px !important;
-  color: var(--ink-dim);
-  font: 600 var(--fs-text)/1.2 var(--body);
-}
-.keeper-town .icon {
-  width: 18px;
-  height: 18px;
-  vertical-align: -4px;
-}
-.keeper-growth {
-  padding: 3px 8px;
-  border: 1px solid var(--brass-line);
-  border-radius: 6px;
-  color: var(--ink);
-}
-
-/* The Quay with nobody on it shows the quay itself. */
-.quay-empty.has-view {
-  display: grid;
-  gap: 12px;
-  padding: 16px 22px;
-}
-.quay-view {
-  aspect-ratio: 1440 / 300;
-  border: 1.5px solid var(--paper-edge);
-  border-radius: 6px;
-  background: var(--leather-deep) center / cover no-repeat;
-}
-
-/* Short landscape screens and portrait phones: a strip, the picture behind the name and chips. */
-@media (max-height: 480px), (max-width: 640px) {
-  .port-screen .trade-header.has-view {
-    min-height: auto;
-  }
-  .trade-modal.port-screen:has(.has-view) {
-    scroll-padding-top: 84px;
-  }
-}
-@media (max-width: 640px) {
-  .port-screen .port-view::after {
-    background: linear-gradient(
-      90deg,
-      #0b2230 0%,
-      rgba(11, 34, 48, 0.8) 40%,
-      rgba(11, 34, 48, 0.2) 75%
-    );
-  }
-  .keeper-card {
-    gap: 4px 12px;
-    padding: 10px 12px;
-  }
-  .keeper-card .quay-face {
-    position: static;
-  }
-  .keeper-card .quay-face svg {
-    width: 64px;
-    height: 64px;
-  }
-  .keeper-name small {
-    display: block;
-    margin: 4px 0 0;
   }
 }

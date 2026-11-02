@@ -65,6 +65,9 @@ function colourProblems(theme: Theme): string[] {
   }
   const opacity = theme.night['paper-opacity'];
   if (!(opacity > 0 && opacity <= 1)) out.push(`night.paper-opacity must be over 0, at most 1`);
+  const ledger = theme.night['ledger-opacity'];
+  if (!(ledger >= opacity && ledger <= 1))
+    out.push(`night.ledger-opacity must be at least night.paper-opacity, at most 1`);
   return out;
 }
 
@@ -77,10 +80,10 @@ function sizeProblems(theme: Theme): string[] {
   if (target < MIN_TOUCH) out.push(`touch.target is ${target}px, under ${MIN_TOUCH}px`);
   if (rowMin < target) out.push(`touch.row-min (${rowMin}px) is under touch.target`);
   if (rowMax < rowMin) out.push(`touch.row-max (${rowMax}px) is under touch.row-min`);
-  for (const [key, px] of Object.entries(theme.tabs))
-    if (!Number.isInteger(px) || px <= 0) out.push(`tabs.${key} must be whole pixels, over 0`);
-  for (const [key, px] of Object.entries(theme.hud))
-    if (!Number.isInteger(px) || px <= 0) out.push(`hud.${key} must be whole pixels, over 0`);
+  for (const group of ['hud', 'harbour', 'tabs'] as const)
+    for (const [key, px] of Object.entries(theme[group]))
+      if (!Number.isInteger(px) || px <= 0)
+        out.push(`${group}.${key} must be whole pixels, over 0`);
   for (const key of ['margin', 'margin-phone'])
     if (!((theme.hud[key] ?? 0) >= MIN_HUD_MARGIN))
       out.push(`hud.${key} must be ${MIN_HUD_MARGIN}px or more (the HUD's safe margin)`);

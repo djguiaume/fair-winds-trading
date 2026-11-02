@@ -25,11 +25,11 @@ import {
   quoteBuy,
   quoteSell,
   setMarketLevel,
-  stepMarket,
   takeStock,
   trades,
   workshopReceives,
 } from './market';
+import { stepMarketsLogged } from './priceLog';
 import { createRng } from './rng';
 import {
   type LevelUp,
@@ -531,7 +531,7 @@ export function flushEconomy(trade: TradeState, map: MapDef): DockEvent[] {
   const dt = trade.economyPending ?? 0;
   trade.economyPending = 0;
   const events: DockEvent[] = [];
-  for (const market of Object.values(trade.markets)) stepMarket(market, dt);
+  stepMarketsLogged(trade, dt);
   stepContracts(trade.contracts, dt);
   // Towns that got enough goods grow a level: deeper demand from now on (decision 0059), and a
   // new town's specialty opens a market at the ports that buy it (0063).
