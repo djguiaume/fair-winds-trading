@@ -99,9 +99,16 @@ html[data-night] .hb-sheet {
   color: var(--ui-muted);
   font-size: var(--fs-body);
 }
+.hb-head {
+  flex-wrap: wrap;
+}
+/* The tabs take their own row under the name, and the rule runs the page's width. */
 .hb-head .ui-tabs {
-  flex: 1;
-  justify-content: center;
+  order: 1;
+  flex: 1 0 100%;
+}
+.hb-head .hb-wallet {
+  margin-inline-start: auto;
 }
 .hb-head .ui-header-exit {
   flex: none;
@@ -308,6 +315,11 @@ html[data-layout='phone'] .hb-chip {
 html[data-layout='phone'] .hb-pane {
   gap: var(--ui-space-3);
   padding-block: var(--ui-space-1) var(--ui-space-2);
+}
+/* The list scrolls on a phone: its foot fades out as a hint that more rows wait below. */
+html[data-layout='phone'] .hb-list {
+  padding-bottom: var(--ui-space-5);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--ui-space-5)), transparent);
 }
 html[data-layout='phone'] .hb-detail {
   width: var(--ui-harbour-detail-phone);

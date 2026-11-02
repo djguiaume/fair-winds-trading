@@ -36,10 +36,9 @@ dialog.chart::backdrop {
   pointer-events: none;
 }
 
-/* Torn paper for the cartouche, the key, the zoom and the pad bar. */
+/* Torn paper for the cartouche, the key and the pad bar. */
 .chart-cartouche,
 .chart-keystrip,
-.chart-zoom-btn,
 .chart-padbar {
   border: var(--ui-edge-torn-width) solid transparent;
   border-image: var(--ui-edge-torn) var(--ui-edge-torn-slice) fill / var(--ui-edge-torn-width) round;
@@ -108,15 +107,18 @@ dialog.chart::backdrop {
   z-index: 1;
   inset: 0 0 auto;
   display: flex;
-  align-items: center;
-  gap: var(--ui-space-3);
+  align-items: flex-end;
   height: var(--chart-bar);
   padding: 0 var(--ui-space-4);
-  border-bottom: 1px solid var(--ui-rule);
   background: var(--ui-paper);
 }
+.chart-top .ui-tabs {
+  flex: 1;
+}
+/* The close ends the rule, drawn like the tabs (a square ink keycap). */
 .chart-close {
-  margin-left: auto;
+  margin-bottom: var(--ui-tabs-edge);
+  margin-left: var(--ui-space-2);
 }
 
 /* --- The rose and its key, bottom left ---------------------------------------------------- */
@@ -173,23 +175,24 @@ dialog.chart::backdrop {
   bottom: var(--ui-space-3);
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-1);
+  gap: 1px;
 }
+/* Square paper keycaps with an ink outline, drawn like the tabs and the close. */
 .chart-zoom-btn {
   display: grid;
-  border-width: 4px;
-  border-image-width: 14px;
   place-items: center;
-  width: 52px;
-  height: 52px;
+  width: var(--ui-touch-target);
+  height: var(--ui-touch-target);
   padding: 0;
-  background: none;
+  border: var(--ui-tabs-edge) solid var(--ui-ink);
+  border-radius: var(--ui-radius-s);
+  background: var(--ui-paper);
   color: var(--ui-ink);
-  font-family: var(--ui-font-text);
-  font-size: var(--fs-big);
-  font-weight: 700;
-  line-height: 1;
   cursor: pointer;
+}
+.chart-zoom-btn .icon {
+  width: 22px;
+  height: 22px;
 }
 .chart-zoom-btn:disabled {
   color: var(--ui-muted);
@@ -320,11 +323,6 @@ html[data-input='pad'] .chart[data-tab='map'] .chart-cross {
 :root[data-layout='phone'] .chart-zoom {
   flex-direction: row;
   bottom: var(--ui-space-2);
-}
-:root[data-layout='phone'] .chart-zoom-btn {
-  width: 44px;
-  height: 44px;
-  font-size: var(--fs-head);
 }
 :root[data-layout='phone'] .chart-padbar {
   gap: var(--ui-space-2);

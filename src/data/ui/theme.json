@@ -14,7 +14,10 @@
     "sage-wash-night": "#a3ad8c",
     "on-sage": "#efe6d1",
     "danger": "#7a2a1e",
-    "rule": "#8c8270"
+    "rule": "#8c8270",
+    "tab-paper": "#dccfb1",
+    "tab-paper-night": "#aa9d7f",
+    "ink-soft": "#747876"
   },
   "night": {
     "paper-opacity": 0.8,
@@ -95,6 +98,20 @@
     "speed-phone": 58,
     "tape": 420,
     "tape-phone": 240
+  },
+  "tabs": {
+    "edge": 2,
+    "gap": 4,
+    "pad-x": 18,
+    "pad-x-phone": 12,
+    "height": 40,
+    "height-phone": 34,
+    "radius": 6,
+    "bar": 3,
+    "rest-drop": 3,
+    "badge": 16,
+    "icon": 22,
+    "icon-phone": 18
   },
   "chart": {
     "land": "#c4cf9f",

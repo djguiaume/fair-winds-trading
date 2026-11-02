@@ -137,11 +137,13 @@ export function buildChart(dialog: HTMLDialogElement, onTab: (tab: ChartTab) => 
   compass.append(dial, wind, keyStrip());
 
   const zoom = el('div', 'chart-zoom');
-  const zoomIn = button('chart-zoom-in', 'chart-zoom-btn', '+', { 'aria-label': 'chart.zoomIn' });
-  const zoomOut = button('chart-zoom-out', 'chart-zoom-btn', '−', {
+  const zoomIn = button('chart-zoom-in', 'chart-zoom-btn', icon('plus'), {
+    'aria-label': 'chart.zoomIn',
+  });
+  const zoomOut = button('chart-zoom-out', 'chart-zoom-btn', icon('minus'), {
     'aria-label': 'chart.zoomOut',
   });
-  const fit = button('chart-fit', 'chart-zoom-btn', '⤢', {
+  const fit = button('chart-fit', 'chart-zoom-btn', icon('fullscreen'), {
     'aria-label': 'chart.fit',
     title: 'chart.fit',
   });

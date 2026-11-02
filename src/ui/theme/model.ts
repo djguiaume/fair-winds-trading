@@ -30,6 +30,8 @@ export interface Theme {
   breakpoints: { 'phone-max-height': number; 'desktop-min-width': number };
   /** The sea HUD's sizes (issue #441): its safe margin, the compass, the speed digits, the tape. */
   hud: Record<string, number>;
+  /** The one tab bar's sizes (issue #457): edge width, gap, side padding, icon. */
+  tabs: Record<string, number>;
   /** The sea chart's own inks and washes (issue #444): land, shoals, uncharted paper, zones. */
   chart: Record<string, string>;
   /** The chart's sizes in screen pixels (art director, #444): its words, the rose, a crate. */
@@ -61,6 +63,7 @@ const CSS_GROUPS: Record<string, { prefix: string; unit?: string }> = {
   z: { prefix: '--ui-z-' },
   touch: { prefix: '--ui-touch-', unit: 'px' },
   hud: { prefix: '--ui-hud-', unit: 'px' },
+  tabs: { prefix: '--ui-tabs-', unit: 'px' },
   chart: { prefix: '--ui-chart-' },
   chartSize: { prefix: '--ui-chart-size-', unit: 'px' },
   harbour: { prefix: '--ui-harbour-', unit: 'px' },
@@ -92,6 +95,7 @@ const ROLES: Record<string, [day: string, night: string]> = {
   '--ui-face': ['var(--ui-paper)', 'var(--ui-paper-night)'],
   '--ui-face-off': ['var(--ui-paper-off)', 'var(--ui-paper-night-off)'],
   '--ui-muted': ['var(--ui-ink-muted)', 'var(--ui-ink-muted-night)'],
+  '--ui-tab-rest': ['var(--ui-tab-paper)', 'var(--ui-tab-paper-night)'],
   '--ui-wash': ['var(--ui-sage-wash)', 'var(--ui-sage-wash-night)'],
   '--ui-edge-torn': ['var(--ui-edge-torn-day)', 'var(--ui-edge-torn-night)'],
   '--ui-edge-brushed': ['var(--ui-edge-brushed-day)', 'var(--ui-edge-brushed-night)'],

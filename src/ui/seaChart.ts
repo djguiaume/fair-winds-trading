@@ -293,7 +293,7 @@ export class SeaChart {
     const entries = this.quests?.journal() ?? [];
     p.book.tab('journal')!.hidden = entries.length === 0;
     if (!entries.length && this.tab === 'journal') this.setTab('map');
-    p.book.setBadge('journal', entries.filter((e) => e.state === 'offered').length, 'sage');
+    p.book.setBadge('journal', entries.filter((e) => e.state === 'offered').length);
     this.journal.render(entries);
   }
 
