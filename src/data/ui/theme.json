@@ -17,7 +17,8 @@
     "rule": "#8c8270"
   },
   "night": {
-    "paper-opacity": 0.8
+    "paper-opacity": 0.8,
+    "ledger-opacity": 0.95
   },
   "font": {
     "title": "'IM Fell English', Georgia, serif",
@@ -106,14 +107,17 @@
     "detail-phone": 280,
     "people": 330,
     "people-phone": 220,
-    "yard": 900,
+    "yard": 920,
     "portrait": 120,
     "portrait-phone": 48,
     "looks-slots": 300,
     "looks-items": 380,
     "looks-slots-phone": 196,
     "looks-items-phone": 256,
-    "home-half": 560
+    "home-half": 560,
+    "sail-width": 200,
+    "sail-height": 64,
+    "sail-height-phone": 44
   },
   "edges": {
     "torn": {

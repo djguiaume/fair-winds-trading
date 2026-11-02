@@ -89,6 +89,7 @@ function goodRow(
   const best = bestSaleElsewhere(world, good);
   const trend = el('span', 'hb-c-trend');
   trend.innerHTML = sparkline(priceTrend(world.trade, market.portId, good), 96, 28);
+  if (!trend.innerHTML) trend.append(el('small', 'hb-muted', t('harbour.trendNone')));
   row.append(
     figure(String(world.trade.captain.cargo[good]), t('trade.hold'), 'hb-c-hold'),
     price(quoteBuy(market, good, 1), 'hb-c-buy'),

@@ -47,8 +47,17 @@ html[data-layout='phone'] .bl-slot-text b {
 html[data-layout='phone'] .bl-items-title {
   font-size: var(--fs-head);
 }
+/* Four small swatch cards a row, no names (the tried one is named below): no row clips. */
+html[data-layout='phone'] .bl-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ui-space-1);
+}
 html[data-layout='phone'] .bl-tile {
-  min-height: 72px;
+  min-height: 48px;
+  padding: var(--ui-space-1);
+}
+html[data-layout='phone'] .bl-tile-name {
+  display: none;
 }
 html[data-layout='phone'] .bl-pic {
   height: 36px;

@@ -65,6 +65,9 @@ function colourProblems(theme: Theme): string[] {
   }
   const opacity = theme.night['paper-opacity'];
   if (!(opacity > 0 && opacity <= 1)) out.push(`night.paper-opacity must be over 0, at most 1`);
+  const ledger = theme.night['ledger-opacity'];
+  if (!(ledger >= opacity && ledger <= 1))
+    out.push(`night.ledger-opacity must be at least night.paper-opacity, at most 1`);
   return out;
 }
 

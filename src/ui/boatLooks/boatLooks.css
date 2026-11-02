@@ -135,10 +135,7 @@
   font: 600 var(--fs-small) var(--ui-font-text);
 }
 .bl-slot-text b {
-  overflow: hidden;
   font: 400 var(--fs-head) / 1.15 var(--ui-font-title);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 /* Tried on, not in use yet. */
 .bl-changed {
@@ -203,8 +200,10 @@
   display: flex;
   gap: var(--ui-space-1);
   padding: var(--ui-space-1);
+  border: 1px solid var(--ui-rule);
   border-radius: var(--ui-radius-m);
-  background: rgb(35 48 58 / 0.82);
+  background: var(--ui-face);
+  box-shadow: var(--ui-shadow-2);
   transform: translateX(-50%);
 }
 .bl-compare button {
@@ -213,12 +212,13 @@
   border: 0;
   border-radius: var(--ui-radius-s);
   background: none;
-  color: var(--ui-paper);
+  color: var(--ui-muted);
   font: 400 var(--fs-head) var(--ui-font-title);
   white-space: nowrap;
 }
+/* The chosen one on the sage wash, as a chosen row or slot. */
 .bl-compare button[aria-pressed='true'] {
-  background: var(--ui-paper);
+  background: var(--ui-wash);
   color: var(--ui-ink);
 }
 .bl-view {

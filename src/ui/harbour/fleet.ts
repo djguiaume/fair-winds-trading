@@ -12,8 +12,8 @@ import { listRow } from '../components/listRow';
 import { coins } from './parts';
 
 /**
- * The fleet (decision 0048, issue #443): every ship class as a readable table, the starter first,
- * then each line's ships with where they are built; the picked one's Buy or Switch goes under the
+ * The fleet (decision 0048, issue #443): the ships she owns or can find as a readable table, the
+ * starter first, the ones of yards still off the chart as one line; the picked one's Buy or Switch goes under the
  * Shipyard's preview. Switching and upgrades happen at the home port only.
  */
 const STOCK = { sails: 1, hold: 1, hull: 1 } as const;
@@ -83,7 +83,8 @@ export function shipMove(world: World, offer: ShipOffer): ShipMove {
 
 /** The ship shown first: one she can buy or switch to here, else the next one not hers. */
 export function firstShip(world: World, offers: readonly ShipOffer[]): string {
-  const moves = offers.map((o) => [o, shipMove(world, o)] as const);
+  const known = offers.filter((o) => o.status !== 'undiscovered');
+  const moves = known.map((o) => [o, shipMove(world, o)] as const);
   const act = moves.find(([, m]) => m.kind === 'buy' || m.kind === 'switch');
   const other = moves.find(([, m]) => m.kind !== 'sailing');
   return (act ?? other ?? moves[0]!)[0].cls.id;
@@ -108,7 +109,11 @@ export function fleetTable(
     head.append(el('span', '', t(key)));
   head.append(el('span', ''));
   table.append(head);
-  for (const offer of offers) table.append(fleetRow(world, offer, offer.cls.id === selected, pick));
+  // Ships of yards not on the chart yet are one line, so the table stays readable (#443).
+  const known = offers.filter((o) => o.status !== 'undiscovered');
+  for (const offer of known) table.append(fleetRow(world, offer, offer.cls.id === selected, pick));
+  const more = offers.length - known.length;
+  if (more) table.append(el('p', 'hb-muted hb-fleet-more', t('harbour.fleetMore', { n: more })));
   table.append(
     el(
       'p',

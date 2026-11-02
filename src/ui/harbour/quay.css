@@ -194,9 +194,12 @@ html[data-layout='phone'] .hb-quay-card .quest-head h2 {
 html[data-layout='phone'] .hb-quay-card .quest-speech {
   font-size: var(--fs-text);
 }
+/* Three answers on one row, whole: smaller words, no wrapping. */
 html[data-layout='phone'] .hb-quay-card .quest-actions .ui-btn {
   min-height: var(--ui-touch-target);
-  font-size: var(--fs-head);
+  padding-inline: var(--ui-space-2);
+  font-size: var(--fs-text);
+  white-space: nowrap;
 }
 html[data-layout='phone'] .hb-quay-card .quest-tag,
 html[data-layout='phone'] .hb-quay-card .quest-reward {

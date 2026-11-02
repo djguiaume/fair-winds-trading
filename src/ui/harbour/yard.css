@@ -53,10 +53,7 @@
 .hb-upgrade .ui-card-text,
 .hb-upgrade-next {
   grid-column: 2;
-  overflow: hidden;
   font-size: var(--fs-note);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .hb-upgrade-next {
   color: var(--ui-sage-deep);
@@ -82,7 +79,10 @@
   column-gap: var(--ui-space-3);
 }
 .hb-ship {
-  min-height: 52px;
+  min-height: 44px;
+}
+.hb-fleet-more {
+  margin: var(--ui-space-1) 0 0;
 }
 .hb-num {
   font-size: var(--fs-lead);
@@ -174,12 +174,33 @@ html[data-layout='phone'] .hb-yard-side {
 html[data-layout='phone'] .hb-upgrade .ui-card-text {
   display: none;
 }
+html[data-layout='phone'] .hb-upgrade-next {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Three cards and the whole side fit the phone's page without scrolling (#443 review). */
 html[data-layout='phone'] .ui-card.hb-upgrade {
-  grid-template-columns: 22px minmax(0, 1fr) 96px;
+  grid-template-columns: 22px minmax(0, 1fr) 116px;
+  padding: var(--ui-space-1) var(--ui-space-2);
+}
+html[data-layout='phone'] .hb-upgrade .ui-btn {
+  min-height: 40px;
+  font-size: var(--fs-small);
+  line-height: 1.1;
+}
+html[data-layout='phone'] .hb-yard-side .ui-btn {
+  min-height: 36px;
+  font-size: var(--fs-note);
+}
+html[data-layout='phone'] .hb-preview span,
+html[data-layout='phone'] .hb-preview-turn {
+  display: none;
 }
 html[data-layout='phone'] .hb-upgrade .ui-card-title {
   font-size: var(--fs-text);
 }
 html[data-layout='phone'] .hb-preview {
-  min-height: 64px;
+  flex: none;
+  min-height: 48px;
 }

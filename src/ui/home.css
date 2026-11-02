@@ -36,9 +36,10 @@ html[data-layout='phone'] #hud .home-bar {
   }
 }
 
-/* No port picture here: the paper starts at the top; the sea HUD steps aside like at a port. */
+/* No port picture here: the paper stands on the footer with the island above it; the sea HUD
+   steps aside like at a port. */
 .hb-home .hb-sheet {
-  top: var(--hb-gap);
+  margin-top: auto;
 }
 html[data-screen='home'] #hud > :not(#home-ui) {
   visibility: hidden;
@@ -125,7 +126,7 @@ html[data-screen='home'] #hud > :not(#home-ui) {
   pointer-events: none;
 }
 .hb-home.is-half .hb-sheet {
-  right: auto;
+  align-self: flex-start;
   width: min(var(--ui-harbour-home-half), 48vw);
 }
 .hb-home.is-half .hb-sheet,
@@ -138,8 +139,7 @@ html[data-screen='home'] #hud > :not(#home-ui) {
 }
 @media (orientation: portrait) {
   .hb-home.is-half .hb-sheet {
-    top: 40%;
-    right: var(--hb-margin);
+    align-self: stretch;
     width: auto;
   }
 }

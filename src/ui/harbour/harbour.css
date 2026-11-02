@@ -1,7 +1,7 @@
 /*
- * The harbour screen (v1.5, issue #443, round 3 D and C): the port as a strip above one paper
- * ledger about 90% wide (Market, Orders, Quay), or the Shipyard's paper at about 65% beside the
- * live boat. Built from the v1.5 components and their `--ui-*` tokens only; sizes come from
+ * The harbour screen (v1.5, issue #443, round 3 D and C): one paper ledger about 90% wide
+ * (Market, Orders, Quay) as tall as its rows, standing on the footer, with the port's picture
+ * filling the room above it; or the Shipyard's paper at about 70% beside the live boat. Built from the v1.5 components and their `--ui-*` tokens only; sizes come from
  * theme.json › harbour (`--ui-harbour-*`). No CSS filters; the torn edge is the panel's 9-slice.
  */
 .hb-overlay:not([hidden]) {
@@ -17,11 +17,12 @@ html[data-screen='harbour'] #hud {
   --hb-margin: var(--ui-harbour-margin);
   --hb-strip: var(--ui-harbour-strip);
   --hb-gap: var(--ui-space-3);
+  --hb-sail: var(--ui-harbour-sail-height);
   position: absolute;
   inset: 0;
-  padding: max(var(--hb-gap), env(safe-area-inset-top))
-    max(var(--hb-gap), env(safe-area-inset-right)) max(var(--hb-gap), env(safe-area-inset-bottom))
-    max(var(--hb-gap), env(safe-area-inset-left));
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(var(--hb-sail) + var(--hb-gap) * 2 + env(safe-area-inset-bottom));
   color: var(--ui-ink);
   font-family: var(--ui-font-text);
 }
@@ -29,13 +30,13 @@ html[data-layout='phone'] .harbour {
   --hb-margin: var(--ui-harbour-margin-phone);
   --hb-strip: var(--ui-harbour-strip-phone);
   --hb-gap: var(--ui-space-2);
+  --hb-sail: var(--ui-harbour-sail-height-phone);
 }
 
-/* The port's own picture (decision 0211) as a strip above the ledger, fading into the scene. */
+/* The port's own picture (decision 0211) fills the room above the paper and fades into it. */
 .hb-strip {
-  position: absolute;
-  inset: 0 0 auto;
-  height: calc(var(--hb-strip) + var(--ui-space-7));
+  flex: 1 0 var(--hb-strip);
+  margin-bottom: calc(-1 * var(--ui-space-7));
   background: center 40% / cover no-repeat;
   mask-image: linear-gradient(to bottom, #000 70%, transparent);
   pointer-events: none;
@@ -44,25 +45,36 @@ html[data-layout='phone'] .harbour {
   display: none;
 }
 
-/* The paper: header and the tab's panes. It fills down to the footer, never a blank half. */
+/* The paper: header and the tab's panes, as tall as they are, never a blank lower third. */
 .hb-sheet {
-  position: absolute;
-  top: var(--hb-strip);
-  right: var(--hb-margin);
-  bottom: calc(var(--ui-touch-target) + var(--hb-gap) * 2);
-  left: var(--hb-margin);
+  position: relative;
   display: flex;
+  flex: 0 1 auto;
   flex-direction: column;
   min-height: 0;
+  margin-inline: max(var(--hb-margin), env(safe-area-inset-left))
+    max(var(--hb-margin), env(safe-area-inset-right));
+}
+/* At night the ledger's paper is nearly opaque (theme night › ledger-opacity): rows must read. */
+html[data-night] .hb-sheet {
+  background: var(--ui-paper-night-ledger) padding-box;
 }
 .hb-sheet > .hb-head,
 .hb-sheet > .hb-pane {
   padding-inline: var(--ui-space-5);
 }
 .hb-tab-shipyard .hb-sheet {
-  top: var(--hb-gap);
-  right: auto;
-  width: min(var(--ui-harbour-yard), 68vw);
+  flex: 1 1 auto;
+  align-self: flex-start;
+  width: min(var(--ui-harbour-yard), 72vw);
+  margin-top: max(var(--hb-gap), env(safe-area-inset-top));
+}
+/* Beside the boat the header closes up: a smaller name, gold only. */
+.hb-tab-shipyard .hb-head .ui-header-title {
+  font-size: var(--fs-display);
+}
+.hb-tab-shipyard .hb-chip:nth-child(2) {
+  display: none;
 }
 
 /* --- Header: the port's name and line, the tabs, gold and hold, close ---------------------- */
@@ -86,15 +98,6 @@ html[data-layout='phone'] .harbour {
   margin: var(--ui-space-1) 0 0;
   color: var(--ui-muted);
   font-size: var(--fs-body);
-}
-.hb-line::before {
-  content: '';
-  display: inline-block;
-  width: var(--ui-space-2);
-  height: var(--ui-space-2);
-  margin-right: var(--ui-space-2);
-  border-radius: var(--ui-radius-pill);
-  background: var(--port-accent, var(--ui-sage));
 }
 .hb-head .ui-tabs {
   flex: 1;
@@ -272,8 +275,10 @@ html[data-input='pad'] .hb-legend {
   gap: var(--ui-space-1);
 }
 .hb-foot .hb-sail {
+  justify-content: center;
+  min-width: var(--ui-harbour-sail-width);
+  min-height: var(--hb-sail);
   margin-left: auto;
-  min-height: 52px;
   padding-inline: var(--ui-space-5);
   font: 400 var(--fs-title) / 1 var(--ui-font-title);
 }
@@ -316,11 +321,8 @@ html[data-layout='phone'] .hb-list-title {
 html[data-layout='phone'] .hb-tab-shipyard .hb-sheet {
   width: 80vw;
 }
-html[data-layout='phone'] .hb-tab-shipyard .hb-chip:nth-child(2) {
-  display: none;
-}
 html[data-layout='phone'] .hb-foot .hb-sail {
-  min-height: var(--ui-touch-target);
+  min-width: 0;
   font-size: var(--fs-head);
 }
 html[data-layout='phone'] .hb-sheet {

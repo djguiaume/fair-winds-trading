@@ -43,10 +43,10 @@ describe("the harbour ledger's price line (#443)", () => {
     expect(priceTrend(world.trade, 'nowhere', good)).toEqual([]);
   });
 
-  it('draws one price as a flat dash and several as a line', () => {
+  it('draws no line before a day has closed (the ledger says so), then a line', () => {
     expect(sparkline([], 96, 28)).toBe('');
-    expect(sparkline([10], 96, 28)).toContain('stroke-dasharray');
+    expect(sparkline([10], 96, 28)).toBe('');
     expect(sparkline([10, 12, 9], 96, 28)).toContain('<polyline');
-    expect(trendWords([10])).toBe('First day on the books here.');
+    expect(trendWords([10])).toMatch(/^No history yet/);
   });
 });
