@@ -79,6 +79,18 @@ export function harbourPictureKey(portId: string, light: HarbourLight, look: str
 }
 
 /**
+ * The port's own banner art in this light (island file › `harbourView.art`, `nightArt` at night) as
+ * a URL, or null: render it.
+ */
+export function portArt(map: MapDef, portId: string, light: HarbourLight = 'day'): string | null {
+  const port = map.ports.find((p) => p.id === portId);
+  const island = port && map.islands.find((i) => i.id === port.islandId);
+  const view = island && designOf(island)?.harbourView;
+  const art = (light === 'night' && view?.nightArt) || view?.art;
+  return art ? `${import.meta.env.BASE_URL}${art}` : null;
+}
+
+/**
  * The port's signature colour, the accent line under the harbour screen's header: its island
  * file's `harbourView.accent`, else the first roof colour of its town style.
  */

@@ -79,6 +79,11 @@ export class FreeSetupScreen {
     return this.setup;
   }
 
+  /** The harbour's Shipyard refitted her (issue #464): the setup shows and sails that next. */
+  adopt(ship: string, upgrades: FreeSetup['upgrades']) {
+    this.setup = { ...this.setup, ship, upgrades: { ...upgrades } };
+  }
+
   open() {
     if (this.isOpen) return;
     this.root.innerHTML = shellHtml();

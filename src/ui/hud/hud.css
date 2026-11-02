@@ -6,6 +6,13 @@
  * are the game's reserved signals, for warnings only. Text sizes are the theme's type scale
  * (`--fs-*`), the margin and the big sizes its `hud` tokens. No blur, no filters (decision 0006).
  */
+:root {
+  /* The hard 1 px ink halo of text on the scene; the harbour's banner uses it too (#464). */
+  --hud-halo:
+    1px 0 0 var(--ui-ink), -1px 0 0 var(--ui-ink), 0 1px 0 var(--ui-ink), 0 -1px 0 var(--ui-ink),
+    1px 1px 0 var(--ui-ink), -1px -1px 0 var(--ui-ink), 1px -1px 0 var(--ui-ink),
+    -1px 1px 0 var(--ui-ink);
+}
 #hud {
   --top: max(var(--ui-hud-margin), var(--safe-top, env(safe-area-inset-top)));
   --bottom: max(var(--ui-hud-margin), var(--safe-bottom, env(safe-area-inset-bottom)));
@@ -13,10 +20,6 @@
   --right: max(var(--ui-hud-margin), var(--safe-right, env(safe-area-inset-right)));
   --hud-text: var(--ui-paper);
   --hud-sig: var(--ui-sage-wash);
-  --hud-halo:
-    1px 0 0 var(--ui-ink), -1px 0 0 var(--ui-ink), 0 1px 0 var(--ui-ink), 0 -1px 0 var(--ui-ink),
-    1px 1px 0 var(--ui-ink), -1px -1px 0 var(--ui-ink), 1px -1px 0 var(--ui-ink),
-    -1px 1px 0 var(--ui-ink);
   --hud-fade: 600ms;
   color: var(--hud-text);
   font-family: var(--ui-font-text);

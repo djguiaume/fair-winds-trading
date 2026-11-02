@@ -771,5 +771,6 @@
       [0.72, 0.5, 0.18]
     ],
     "density": 1.5
-  }
+  },
+  "harbourView": { "art": "art/ports/saltmere.jpg", "nightArt": "art/ports/saltmere-night.jpg" }
 }

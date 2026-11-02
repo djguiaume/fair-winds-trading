@@ -52,6 +52,7 @@ import type { FlagDef } from '../sim/regatta';
 import { smoothOutline } from '../sim/flowShapes';
 import { setNightPaper } from '../ui/nightPaper';
 import { designOf } from '../data/islands';
+import { PICTURE_GRADE, pictureUrl } from './pictureGrade';
 import {
   HARBOUR_VIEW,
   type HarbourLight,
@@ -728,15 +729,17 @@ export class GameView {
   private picturesLook = '';
   private pictureCamera?: THREE.PerspectiveCamera;
 
+  /** The light the harbour screen's picture is in now: the shown time of day's. */
+  get pictureLight(): HarbourLight {
+    return harbourLight(shownDaylightAt(this.dayNight, this.world.time));
+  }
+
   /**
    * The harbour screen's picture of a port (decision 0211): the real scene from a fixed camera off
    * its harbour, in the given light, with no fog, rain or storm, the sea's own tint kept. Taken once
    * and cached per port, light and town look, as a JPEG object URL; null if the port has no pier.
    */
-  harbourPicture(
-    portId: string,
-    light: HarbourLight = harbourLight(shownDaylightAt(this.dayNight, this.world.time)),
-  ): string | null {
+  harbourPicture(portId: string, light: HarbourLight = this.pictureLight): string | null {
     const look = `${this.townVersion}/${this.landVersion}/${this.level}`;
     // A town or the land changed: every picture is old. The screen may still be loading one, so
     // they are let go a little later.
@@ -818,25 +821,8 @@ export class GameView {
     fog.far = far;
     this.ocean.setFog(near, far);
 
-    // WebGL rows run bottom up; the supersampled picture is drawn down to its size, which smooths it.
-    const full = document.createElement('canvas');
-    full.width = w;
-    full.height = h;
-    const image = full.getContext('2d')!.createImageData(w, h);
-    for (let row = 0; row < h; row++)
-      image.data.set(pixels.subarray((h - 1 - row) * w * 4, (h - row) * w * 4), row * w * 4);
-    full.getContext('2d')!.putImageData(image, 0, 0);
-    const out = document.createElement('canvas');
-    out.width = pic.width;
-    out.height = pic.height;
-    const ctx = out.getContext('2d')!;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(full, 0, 0, pic.width, pic.height);
-    // An object URL keeps the screen's markup short; the cache lets it go when the towns change.
-    const data = atob(out.toDataURL('image/jpeg', pic.quality).split(',')[1]!);
-    const bytes = new Uint8Array(data.length);
-    for (let i = 0; i < data.length; i++) bytes[i] = data.charCodeAt(i);
-    const url = URL.createObjectURL(new Blob([bytes], { type: 'image/jpeg' }));
+    const warmth = light === 'night' ? PICTURE_GRADE.nightWarmth : 1;
+    const url = pictureUrl(pixels, { width: w, height: h }, pic, warmth);
     this.pictures.set(key, url);
     return url;
   }

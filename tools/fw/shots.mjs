@@ -424,7 +424,7 @@ async function dress(page, shot) {
   // The harbour screen's port picture (decision 0211) shows once the browser has decoded it.
   await page.evaluate(() =>
     Promise.all(
-      [...document.querySelectorAll('.port-view, .quay-view')].map((el) => {
+      [...document.querySelectorAll('.hb-banner, .port-view, .quay-view')].map((el) => {
         const url = window.getComputedStyle(el).backgroundImage.match(/url\("(.*)"\)/)?.[1];
         if (!url) return null;
         const image = new window.Image();

@@ -192,6 +192,13 @@ export interface HarbourViewDef {
   lookHeight?: number;
   /** The port's signature colour: the accent line under the header. */
   accent?: string;
+  /**
+   * The harbour banner's own art (issue #464), a file under `public/`, e.g. `art/ports/saltmere.jpg`;
+   * none: the game renders the port from the camera above, graded.
+   */
+  art?: string;
+  /** The same banner at night (the screen falls back to `art`, then the night render). */
+  nightArt?: string;
 }
 
 export interface HomeSpotDef {

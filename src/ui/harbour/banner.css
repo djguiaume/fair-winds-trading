@@ -1,0 +1,47 @@
+/*
+ * The port screen's banner (issue #464, decision 0280): the port's graded picture across the top
+ * with its name, line, gold, hold and close. Sizes from theme.json › harbour.
+ */
+/* The banner: the port's picture (decision 0211, or its own art), fading into the table at its
+   foot; the name, gold and close on it in paper with the HUD's ink halo, over an ink wash from
+   the top. A fixed strip (harbour.banner, at most a fifth of the height): the paper takes the
+   rest (Guillaume, #464 round 2). */
+.hb-banner {
+  position: relative;
+  display: flex;
+  flex: 0 0 var(--hb-banner);
+  align-items: flex-start;
+  box-sizing: border-box;
+  padding: max(var(--hb-gap), env(safe-area-inset-top))
+    max(var(--hb-margin), env(safe-area-inset-right)) 0
+    max(var(--hb-margin), env(safe-area-inset-left));
+  background: var(--ui-ink) center 55% / cover no-repeat;
+}
+.hb-banner::before {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, transparent 82%, var(--ui-ink)),
+    linear-gradient(to bottom, color-mix(in srgb, var(--ui-ink) 55%, transparent), transparent);
+  content: '';
+  pointer-events: none;
+}
+.hb-banner .hb-head {
+  position: relative;
+  flex: 1;
+  padding: 0;
+  color: var(--ui-paper);
+  text-shadow: var(--hud-halo);
+}
+.hb-banner .ui-header-exit {
+  text-shadow: none;
+}
+
+html[data-layout='phone'] .hb-banner {
+  padding-top: max(var(--ui-space-1), env(safe-area-inset-top));
+}
+/* A smaller close on a phone, so it stays inside the banner, clear of the paper. */
+html[data-layout='phone'] .hb-banner .ui-header-exit {
+  width: 40px;
+  height: 40px;
+}

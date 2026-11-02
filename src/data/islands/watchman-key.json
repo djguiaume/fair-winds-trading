@@ -221,5 +221,9 @@
     "size": 1.8,
     "margin": 0.0776,
     "spacing": 0.185
+  },
+  "harbourView": {
+    "art": "art/ports/watchman-key.jpg",
+    "nightArt": "art/ports/watchman-key-night.jpg"
   }
 }

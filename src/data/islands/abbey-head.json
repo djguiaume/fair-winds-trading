@@ -259,9 +259,11 @@
     "spacing": 0.185
   },
   "harbourView": {
-    "from": [0.35, 2.3],
+    "from": [0.6, 3.4],
     "look": [0, 0.6],
-    "height": 1,
-    "lookHeight": 0.1
+    "height": 1.6,
+    "lookHeight": 0.1,
+    "art": "art/ports/abbey-head.jpg",
+    "nightArt": "art/ports/abbey-head-night.jpg"
   }
 }

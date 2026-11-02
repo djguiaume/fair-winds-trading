@@ -1,0 +1,590 @@
+{
+ "abbey-head": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_mAg5kJzRfb3DKx7yg2k2iB9B",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "A wide panoramic picture of a small island harbour seen from the sea, for the game Fair Winds Trading Co. Style: a bright, low-poly storybook sea, smooth-shaded land and depth-blue water under flat-shaded houses, boats and trees, in clear sunny colours (match the first attached image exactly: same low-poly 3D look, same blue sea, soft warm afternoon light from above, coloured blue shadows, never grim, no pure white or black). The island is the one in the second attached image: keep its shape, its town and its landmarks. Camera low over the water from a boat offshore, the whole island in view. Composition: very wide; the island and its town in the centre and right; open sea and sky on the left third; everything that matters inside the middle horizontal band (the top and bottom quarters will be cropped). No boat in the foreground, no people close up, no text, no logo, no frame, no border. A small young settlement on a green headland with sandy shores: a few new houses, a boat shed and a shipyard slip by a short pier.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "src/ui/screens/art/title-key.jpg",
+   "docs/art/ports/ref/abbey-head.jpg"
+  ],
+  "output": "asset_CJxrsb1PpAB54pVMeFrY5XGd.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 160,
+   "height": 340
+  }
+ },
+ "abbey-head-night": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_Wi9jmVaHc4PVAgrnGGNHTzAV",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "The same picture at night: keep the island, the town, the camera, the composition and the low-poly 3D style of the first attached image exactly; only the light changes. A deep blue moonlit night, never black: the sky a deep moonlit blue with a few stars and a pale moon, the sea a deep night blue with soft silver moonlight on the waves, coloured blue shadows. Every house window lit warm yellow, lanterns glowing warm along the quay and the paths, a lighthouse lamp lit if there is one, a soft warm glow over the town. Match the second attached image's low-poly look. No text, no logo, no frame, no border.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "docs/art/ports/raw/abbey-head.jpg",
+   "src/ui/screens/art/title-key.jpg"
+  ],
+  "output": "asset_TkyrdWmb7DqqWwxod7y2Ta34.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 160,
+   "height": 340
+  }
+ },
+ "amber-strand": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_KroKH3PJZVxDDpQjWpx585AK",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "A wide panoramic picture of a small island harbour seen from the sea, for the game Fair Winds Trading Co. Style: a bright, low-poly storybook sea, smooth-shaded land and depth-blue water under flat-shaded houses, boats and trees, in clear sunny colours (match the first attached image exactly: same low-poly 3D look, same blue sea, soft warm afternoon light from above, coloured blue shadows, never grim, no pure white or black). The island is the one in the second attached image: keep its shape, its town and its landmarks. Camera low over the water from a boat offshore, the whole island in view. Composition: very wide; the island and its town in the centre and right; open sea and sky on the left third; everything that matters inside the middle horizontal band (the top and bottom quarters will be cropped). No boat in the foreground, no people close up, no text, no logo, no frame, no border. A long low island of pale dunes with marram grass and honey-gold amber pieces on the beach, a few turf-roofed houses and drying sheds, a short pier.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "src/ui/screens/art/title-key.jpg",
+   "docs/art/ports/ref/amber-strand.jpg"
+  ],
+  "output": "asset_cGPsMkaTV939LvWNVm74GnQf.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 233,
+   "height": 340
+  }
+ },
+ "amber-strand-night": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_dYLcGxSPLwP6opp3PWVtW2hT",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "The same picture at night: keep the island, the town, the camera, the composition and the low-poly 3D style of the first attached image exactly; only the light changes. A deep blue moonlit night, never black: the sky a deep moonlit blue with a few stars and a pale moon, the sea a deep night blue with soft silver moonlight on the waves, coloured blue shadows. Every house window lit warm yellow, lanterns glowing warm along the quay and the paths, a lighthouse lamp lit if there is one, a soft warm glow over the town. Match the second attached image's low-poly look. No text, no logo, no frame, no border.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "docs/art/ports/raw/amber-strand.jpg",
+   "src/ui/screens/art/title-key.jpg"
+  ],
+  "output": "asset_Y7DSfBHjAwYZxTQWMCLuXkfm.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 233,
+   "height": 340
+  }
+ },
+ "calda": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_NR8aS9rftdm1WoA7HNDGtVur",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "A wide panoramic picture of a small island harbour seen from the sea, for the game Fair Winds Trading Co. Style: a bright, low-poly storybook sea, smooth-shaded land and depth-blue water under flat-shaded houses, boats and trees, in clear sunny colours (match the first attached image exactly: same low-poly 3D look, same blue sea, soft warm afternoon light from above, coloured blue shadows, never grim, no pure white or black). The island is the one in the second attached image: keep its shape, its town and its landmarks. Camera low over the water from a boat offshore, the whole island in view. Composition: very wide; the island and its town in the centre and right; open sea and sky on the left third; everything that matters inside the middle horizontal band (the top and bottom quarters will be cropped). No boat in the foreground, no people close up, no text, no logo, no frame, no border. A timber port: sandstone tiers with bright grass caps, pine woods, red and blue roofs, a busy wooden quay. Its landmark is the slipway with a ship's hull on it.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "src/ui/screens/art/title-key.jpg",
+   "docs/art/ports/ref/calda.jpg"
+  ],
+  "output": "asset_RAtyDXJ8q188jQLYWo6wtadx.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 200,
+   "height": 340
+  }
+ },
+ "calda-night": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_43VnUxByiDbZJz6gcH8GjBSZ",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "The same picture at night: keep the island, the town, the camera, the composition and the low-poly 3D style of the first attached image exactly; only the light changes. A deep blue moonlit night, never black: the sky a deep moonlit blue with a few stars and a pale moon, the sea a deep night blue with soft silver moonlight on the waves, coloured blue shadows. Every house window lit warm yellow, lanterns glowing warm along the quay and the paths, a lighthouse lamp lit if there is one, a soft warm glow over the town. Match the second attached image's low-poly look. No text, no logo, no frame, no border.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "docs/art/ports/raw/calda.jpg",
+   "src/ui/screens/art/title-key.jpg"
+  ],
+  "output": "asset_pdwjocCNFmYrKeqXhssWQRPJ.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 200,
+   "height": 340
+  }
+ },
+ "cinder-isle": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_Bc3RKiquWxVdobgJx3E3pAAY",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "A wide panoramic picture of a small island harbour seen from the sea, for the game Fair Winds Trading Co. Style: a bright, low-poly storybook sea, smooth-shaded land and depth-blue water under flat-shaded houses, boats and trees, in clear sunny colours (match the first attached image exactly: same low-poly 3D look, same blue sea, soft warm afternoon light from above, coloured blue shadows, never grim, no pure white or black). The island is the one in the second attached image: keep its shape, its town and its landmarks. Camera low over the water from a boat offshore, the whole island in view. Composition: very wide; the island and its town in the centre and right; open sea and sky on the left third; everything that matters inside the middle horizontal band (the top and bottom quarters will be cropped). No boat in the foreground, no people close up, no text, no logo, no frame, no border. New dark volcanic ground still steaming from the sea: black sand, black rocks, ash, thin red cracks, a few white steam puffs, the first small houses of a new settlement. No game render yet (the port has no pier until it is founded): use `ref/emberhold.jpg` as the second image.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "src/ui/screens/art/title-key.jpg",
+   "docs/art/ports/ref/emberhold.jpg"
+  ],
+  "output": "asset_8RtMi7QKKBMpC9GAz5ZddkwH.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 200,
+   "height": 340
+  }
+ },
+ "cinder-isle-night": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_Kp3m5HUwsdf5MQ5RTaYvFUv2",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "The same picture at night: keep the island, the town, the camera, the composition and the low-poly 3D style of the first attached image exactly; only the light changes. A deep blue moonlit night, never black: the sky a deep moonlit blue with a few stars and a pale moon, the sea a deep night blue with soft silver moonlight on the waves, coloured blue shadows. Every house window lit warm yellow, lanterns glowing warm along the quay and the paths, a lighthouse lamp lit if there is one, a soft warm glow over the town. Match the second attached image's low-poly look. No text, no logo, no frame, no border.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "docs/art/ports/raw/cinder-isle.jpg",
+   "src/ui/screens/art/title-key.jpg"
+  ],
+  "output": "asset_koJtsp8LD71vbzDsCjxBHMk1.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 200,
+   "height": 340
+  }
+ },
+ "emberhold": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_KBA7qXEXGcfbFQxgyGnYfJu9",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "A wide panoramic picture of a small island harbour seen from the sea, for the game Fair Winds Trading Co. Style: a bright, low-poly storybook sea, smooth-shaded land and depth-blue water under flat-shaded houses, boats and trees, in clear sunny colours (match the first attached image exactly: same low-poly 3D look, same blue sea, soft warm afternoon light from above, coloured blue shadows, never grim, no pure white or black). The island is the one in the second attached image: keep its shape, its town and its landmarks. Camera low over the water from a boat offshore, the whole island in view. Composition: very wide; the island and its town in the centre and right; open sea and sky on the left third; everything that matters inside the middle horizontal band (the top and bottom quarters will be cropped). No boat in the foreground, no people close up, no text, no logo, no frame, no border. Warm charcoal basalt cliffs and hexagonal basalt columns, black-sand beach, bright moss on old lava, thin glowing red cracks, steaming vents. Houses of black tarred timber and white walls with red and green roofs, old turf-roofed houses. Its landmark is the glassworks with a tall furnace chimney.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "src/ui/screens/art/title-key.jpg",
+   "docs/art/ports/ref/emberhold.jpg"
+  ],
+  "output": "asset_U1BzngwzzJbDvh66XXGz8wDw.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 190,
+   "height": 340
+  }
+ },
+ "emberhold-night": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_9uHRC8N8kztxENx8qL6tQouZ",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "The same picture at night: keep the island, the town, the camera, the composition and the low-poly 3D style of the first attached image exactly; only the light changes. A deep blue moonlit night, never black: the sky a deep moonlit blue with a few stars and a pale moon, the sea a deep night blue with soft silver moonlight on the waves, coloured blue shadows. Every house window lit warm yellow, lanterns glowing warm along the quay and the paths, a lighthouse lamp lit if there is one, a soft warm glow over the town. Match the second attached image's low-poly look. No text, no logo, no frame, no border.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "docs/art/ports/raw/emberhold.jpg",
+   "src/ui/screens/art/title-key.jpg"
+  ],
+  "output": "asset_WjWtEt8RsE2PR4GPZhoqsS9f.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 190,
+   "height": 340
+  }
+ },
+ "fogwatch": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_qBAeWNCsebju6XQN6xFSu4qy",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "A wide panoramic picture of a small island harbour seen from the sea, for the game Fair Winds Trading Co. Style: a bright, low-poly storybook sea, smooth-shaded land and depth-blue water under flat-shaded houses, boats and trees, in clear sunny colours (match the first attached image exactly: same low-poly 3D look, same blue sea, soft warm afternoon light from above, coloured blue shadows, never grim, no pure white or black). The island is the one in the second attached image: keep its shape, its town and its landmarks. Camera low over the water from a boat offshore, the whole island in view. Composition: very wide; the island and its town in the centre and right; open sea and sky on the left third; everything that matters inside the middle horizontal band (the top and bottom quarters will be cropped). No boat in the foreground, no people close up, no text, no logo, no frame, no border. Layered basalt cliffs with thin green ledges, an even turf green, almost no trees, a waterfall stepping down into the bay, sheep. Houses of black tar and whitewash with turf roofs and red frames, a white church with a black roof. Its landmark is the two tall sea stacks and the foghorn tower. Light: a soft grey-gold, still sunny.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "src/ui/screens/art/title-key.jpg",
+   "docs/art/ports/ref/fogwatch.jpg"
+  ],
+  "output": "asset_MftMA2LjSKhMWQav3QnZRZ4z.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 296,
+   "height": 340
+  }
+ },
+ "fogwatch-night": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_UUNFnvyZZWKNAmxb1i4s77ju",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "The same picture at night: keep the island, the town, the camera, the composition and the low-poly 3D style of the first attached image exactly; only the light changes. A deep blue moonlit night, never black: the sky a deep moonlit blue with a few stars and a pale moon, the sea a deep night blue with soft silver moonlight on the waves, coloured blue shadows. Every house window lit warm yellow, lanterns glowing warm along the quay and the paths, a lighthouse lamp lit if there is one, a soft warm glow over the town. Match the second attached image's low-poly look. No text, no logo, no frame, no border.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "docs/art/ports/raw/fogwatch.jpg",
+   "src/ui/screens/art/title-key.jpg"
+  ],
+  "output": "asset_tpCZTj1Dxg34YybhgG9DQZus.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 296,
+   "height": 340
+  }
+ },
+ "palm-key": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_8fk6eGMQHYd5nS44Emt1WsRd",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "A wide panoramic picture of a small island harbour seen from the sea, for the game Fair Winds Trading Co. Style: a bright, low-poly storybook sea, smooth-shaded land and depth-blue water under flat-shaded houses, boats and trees, in clear sunny colours (match the first attached image exactly: same low-poly 3D look, same blue sea, soft warm afternoon light from above, coloured blue shadows, never grim, no pure white or black). The island is the one in the second attached image: keep its shape, its town and its landmarks. Camera low over the water from a boat offshore, the whole island in view. Composition: very wide; the island and its town in the centre and right; open sea and sky on the left third; everything that matters inside the middle horizontal band (the top and bottom quarters will be cropped). No boat in the foreground, no people close up, no text, no logo, no frame, no border. A small tropical island: a bare ochre volcanic cone striped in bands, jungle and palms round its foot, a white beach, a small pier with a flag.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "src/ui/screens/art/title-key.jpg",
+   "docs/art/ports/ref/palm-key.jpg"
+  ],
+  "output": "asset_FtYt6WoG3yV8XxwVeR6RPe9d.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 245,
+   "height": 340
+  }
+ },
+ "palm-key-night": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_5CBfcrPUU1eFw998wjXx9FMo",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "The same picture at night: keep the island, the town, the camera, the composition and the low-poly 3D style of the first attached image exactly; only the light changes. A deep blue moonlit night, never black: the sky a deep moonlit blue with a few stars and a pale moon, the sea a deep night blue with soft silver moonlight on the waves, coloured blue shadows. Every house window lit warm yellow, lanterns glowing warm along the quay and the paths, a lighthouse lamp lit if there is one, a soft warm glow over the town. Match the second attached image's low-poly look. No text, no logo, no frame, no border.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "docs/art/ports/raw/palm-key.jpg",
+   "src/ui/screens/art/title-key.jpg"
+  ],
+  "output": "asset_PMcqj7Csn6rsLykABqrc4yNE.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 245,
+   "height": 340
+  }
+ },
+ "rimewick": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_oZMKmTrCczFrb3GMN6ZVCACE",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "A wide panoramic picture of a small island harbour seen from the sea, for the game Fair Winds Trading Co. Style: a bright, low-poly storybook sea, smooth-shaded land and depth-blue water under flat-shaded houses, boats and trees, in clear sunny colours (match the first attached image exactly: same low-poly 3D look, same blue sea, soft warm afternoon light from above, coloured blue shadows, never grim, no pure white or black). The island is the one in the second attached image: keep its shape, its town and its landmarks. Camera low over the water from a boat offshore, the whole island in view. Composition: very wide; the island and its town in the centre and right; open sea and sky on the left third; everything that matters inside the middle horizontal band (the top and bottom quarters will be cropped). No boat in the foreground, no people close up, no text, no logo, no frame, no border. Snowy slate hills and snow-covered fir trees above a fjord town of bright wooden houses (oxblood, mustard, slate blue, moss green) with white trim and snowy near-black roofs, a red wooden church with a small bell tower. Its landmark is the jam house with copper pots and steam. Small icebergs in the water.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "src/ui/screens/art/title-key.jpg",
+   "docs/art/ports/ref/rimewick.jpg"
+  ],
+  "output": "asset_CMZLcErT2EtGSSRxApcne4Dr.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 215,
+   "height": 340
+  }
+ },
+ "rimewick-night": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_DygHJLdqLxw2MC3dKeenAnRr",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "The same picture at night: keep the island, the town, the camera, the composition and the low-poly 3D style of the first attached image exactly; only the light changes. A deep blue moonlit night, never black: the sky a deep moonlit blue with a few stars and a pale moon, the sea a deep night blue with soft silver moonlight on the waves, coloured blue shadows. Every house window lit warm yellow, lanterns glowing warm along the quay and the paths, a lighthouse lamp lit if there is one, a soft warm glow over the town. Match the second attached image's low-poly look. No text, no logo, no frame, no border.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "docs/art/ports/raw/rimewick.jpg",
+   "src/ui/screens/art/title-key.jpg"
+  ],
+  "output": "asset_7GQ74CxgrD4aiaKTDt4hA6yz.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 215,
+   "height": 340
+  }
+ },
+ "saltmere": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_y841kEkZgD4SqvrwLFvHw8wL",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "A wide panoramic picture of a small island harbour seen from the sea, for the game Fair Winds Trading Co. Style: a bright, low-poly storybook sea, smooth-shaded land and depth-blue water under flat-shaded houses, boats and trees, in clear sunny colours (match the first attached image exactly: same low-poly 3D look, same blue sea, soft warm afternoon light from above, coloured blue shadows, never grim, no pure white or black). The island is the one in the second attached image: keep its shape, its town and its landmarks. Camera low over the water from a boat offshore, the whole island in view. Composition: very wide; the island and its town in the centre and right; open sea and sky on the left third; everything that matters inside the middle horizontal band (the top and bottom quarters will be cropped). No boat in the foreground, no people close up, no text, no logo, no frame, no border. A fishing port: a row of smokehouses with smoking chimneys, a green with nets drying, the harbourmaster's office facing the quay, broadleaf trees, small fishing boats pulled up on the beach, red and blue roofs.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "src/ui/screens/art/title-key.jpg",
+   "docs/art/ports/ref/saltmere.jpg"
+  ],
+  "output": "asset_MqWBn1Foe7dQzpcpZXBFa9Au.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 300,
+   "height": 340
+  }
+ },
+ "saltmere-night": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_whNTPg6G7LV6yFEpziLUD77o",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "The same picture at night: keep the island, the town, the camera, the composition and the low-poly 3D style of the first attached image exactly; only the light changes. A deep blue moonlit night, never black: the sky a deep moonlit blue with a few stars and a pale moon, the sea a deep night blue with soft silver moonlight on the waves, coloured blue shadows. Every house window lit warm yellow, lanterns glowing warm along the quay and the paths, a lighthouse lamp lit if there is one, a soft warm glow over the town. Match the second attached image's low-poly look. No text, no logo, no frame, no border.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "docs/art/ports/raw/saltmere.jpg",
+   "src/ui/screens/art/title-key.jpg"
+  ],
+  "output": "asset_4G6yyjCdVwDZobeJSwm7Gyr5.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 300,
+   "height": 340
+  }
+ },
+ "snowberry-isle": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_x7BRDsGpkVJVrbtRjkZiqiQ3",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "A wide panoramic picture of a small island harbour seen from the sea, for the game Fair Winds Trading Co. Style: a bright, low-poly storybook sea, smooth-shaded land and depth-blue water under flat-shaded houses, boats and trees, in clear sunny colours (match the first attached image exactly: same low-poly 3D look, same blue sea, soft warm afternoon light from above, coloured blue shadows, never grim, no pure white or black). The island is the one in the second attached image: keep its shape, its town and its landmarks. Camera low over the water from a boat offshore, the whole island in view. Composition: very wide; the island and its town in the centre and right; open sea and sky on the left third; everything that matters inside the middle horizontal band (the top and bottom quarters will be cropped). No boat in the foreground, no people close up, no text, no logo, no frame, no border. Snowy hills, pack-ice floes in the cove, a small green moor with red-orange cloudberries by a steaming warm spring, an old shuttered weather station, a glasshouse and a flagpole by the new houses.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "src/ui/screens/art/title-key.jpg",
+   "docs/art/ports/ref/snowberry-isle.jpg"
+  ],
+  "output": "asset_FpS2P7Ab8g83UJhjE4gDBKXy.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 179,
+   "height": 340
+  }
+ },
+ "snowberry-isle-night": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_A7nLMgf1SsLzt7sjf2dVUmvt",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "The same picture at night: keep the island, the town, the camera, the composition and the low-poly 3D style of the first attached image exactly; only the light changes. A deep blue moonlit night, never black: the sky a deep moonlit blue with a few stars and a pale moon, the sea a deep night blue with soft silver moonlight on the waves, coloured blue shadows. Every house window lit warm yellow, lanterns glowing warm along the quay and the paths, a lighthouse lamp lit if there is one, a soft warm glow over the town. Match the second attached image's low-poly look. No text, no logo, no frame, no border.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "docs/art/ports/raw/snowberry-isle.jpg",
+   "src/ui/screens/art/title-key.jpg"
+  ],
+  "output": "asset_raLQPV4UxuFTkkoDk6vhZpaQ.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 179,
+   "height": 340
+  }
+ },
+ "stonehaven": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_gs1kVVDMVVVqsBk4ab5MqqS8",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "A wide panoramic picture of a small island harbour seen from the sea, for the game Fair Winds Trading Co. Style: a bright, low-poly storybook sea, smooth-shaded land and depth-blue water under flat-shaded houses, boats and trees, in clear sunny colours (match the first attached image exactly: same low-poly 3D look, same blue sea, soft warm afternoon light from above, coloured blue shadows, never grim, no pure white or black). The island is the one in the second attached image: keep its shape, its town and its landmarks. Camera low over the water from a boat offshore, the whole island in view. Composition: very wide; the island and its town in the centre and right; open sea and sky on the left third; everything that matters inside the middle horizontal band (the top and bottom quarters will be cropped). No boat in the foreground, no people close up, no text, no logo, no frame, no border. A stone port on a rocky cay: grey stone cliffs with steps cut into them, a quarry with cut blocks, stone houses, fir trees. Its landmark is the lighthouse.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "src/ui/screens/art/title-key.jpg",
+   "docs/art/ports/ref/stonehaven.jpg"
+  ],
+  "output": "asset_CxK1SoJpGe1B6RxQdF464iMc.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 90,
+   "height": 340
+  }
+ },
+ "stonehaven-night": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_Dde9xfLvg1dE6FBXfEbwKpoQ",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "The same picture at night: keep the island, the town, the camera, the composition and the low-poly 3D style of the first attached image exactly; only the light changes. A deep blue moonlit night, never black: the sky a deep moonlit blue with a few stars and a pale moon, the sea a deep night blue with soft silver moonlight on the waves, coloured blue shadows. Every house window lit warm yellow, lanterns glowing warm along the quay and the paths, a lighthouse lamp lit if there is one, a soft warm glow over the town. Match the second attached image's low-poly look. No text, no logo, no frame, no border.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "docs/art/ports/raw/stonehaven.jpg",
+   "src/ui/screens/art/title-key.jpg"
+  ],
+  "output": "asset_ujy7evBjbkxMCWonQhAKrTRR.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 90,
+   "height": 340
+  }
+ },
+ "sunreach": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_ZAk9n87C5fi6shB2vaz8qHqT",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "A wide panoramic picture of a small island harbour seen from the sea, for the game Fair Winds Trading Co. Style: a bright, low-poly storybook sea, smooth-shaded land and depth-blue water under flat-shaded houses, boats and trees, in clear sunny colours (match the first attached image exactly: same low-poly 3D look, same blue sea, soft warm afternoon light from above, coloured blue shadows, never grim, no pure white or black). The island is the one in the second attached image: keep its shape, its town and its landmarks. Camera low over the water from a boat offshore, the whole island in view. Composition: very wide; the island and its town in the centre and right; open sea and sky on the left third; everything that matters inside the middle horizontal band (the top and bottom quarters will be cropped). No boat in the foreground, no people close up, no text, no logo, no frame, no border. A crater-rim island around a pale turquoise lagoon: white coral beaches, palms, tea-garden terraces on warm ochre and red-brown cliffs, white and peach houses with thatch and terracotta roofs. Its landmark is the tea house with a jade-green roof; small lighthouses on the arm tips.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "src/ui/screens/art/title-key.jpg",
+   "docs/art/ports/ref/sunreach.jpg"
+  ],
+  "output": "asset_5AwipUrtG9zj94GEsFn9KJk2.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 115,
+   "height": 340
+  }
+ },
+ "sunreach-night": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_AMcadcxNNmV9U8chFASxLgEE",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "The same picture at night: keep the island, the town, the camera, the composition and the low-poly 3D style of the first attached image exactly; only the light changes. A deep blue moonlit night, never black: the sky a deep moonlit blue with a few stars and a pale moon, the sea a deep night blue with soft silver moonlight on the waves, coloured blue shadows. Every house window lit warm yellow, lanterns glowing warm along the quay and the paths, a lighthouse lamp lit if there is one, a soft warm glow over the town. Match the second attached image's low-poly look. No text, no logo, no frame, no border.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "docs/art/ports/raw/sunreach.jpg",
+   "src/ui/screens/art/title-key.jpg"
+  ],
+  "output": "asset_WtAVSHmejb4QDcmTmoV8MYGP.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 115,
+   "height": 340
+  }
+ },
+ "watchman-key": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_QBXLbtXnPmi5kZxiVfuE1eAy",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "A wide panoramic picture of a small island harbour seen from the sea, for the game Fair Winds Trading Co. Style: a bright, low-poly storybook sea, smooth-shaded land and depth-blue water under flat-shaded houses, boats and trees, in clear sunny colours (match the first attached image exactly: same low-poly 3D look, same blue sea, soft warm afternoon light from above, coloured blue shadows, never grim, no pure white or black). The island is the one in the second attached image: keep its shape, its town and its landmarks. Camera low over the water from a boat offshore, the whole island in view. Composition: very wide; the island and its town in the centre and right; open sea and sky on the left third; everything that matters inside the middle horizontal band (the top and bottom quarters will be cropped). No boat in the foreground, no people close up, no text, no logo, no frame, no border. A small round green hill with the keeper's lighthouse on top, a few houses with blue and red roofs, a flag on the pier, a small shipyard slip.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "src/ui/screens/art/title-key.jpg",
+   "docs/art/ports/ref/watchman-key.jpg"
+  ],
+  "output": "asset_ASp6K6NLB2BwiLwY45X5beew.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 208,
+   "height": 340
+  }
+ },
+ "watchman-key-night": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_2cU4hPAEZMwtCVKMaRcK74C7",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "The same picture at night: keep the island, the town, the camera, the composition and the low-poly 3D style of the first attached image exactly; only the light changes. A deep blue moonlit night, never black: the sky a deep moonlit blue with a few stars and a pale moon, the sea a deep night blue with soft silver moonlight on the waves, coloured blue shadows. Every house window lit warm yellow, lanterns glowing warm along the quay and the paths, a lighthouse lamp lit if there is one, a soft warm glow over the town. Match the second attached image's low-poly look. No text, no logo, no frame, no border.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "docs/art/ports/raw/watchman-key.jpg",
+   "src/ui/screens/art/title-key.jpg"
+  ],
+  "output": "asset_Pte1JVbu2PXLZGXKo5VpaS89.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 208,
+   "height": 340
+  }
+ },
+ "westholm": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_v1iZUZVy2C3jn9XKKZksZK9h",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "A wide panoramic picture of a small island harbour seen from the sea, for the game Fair Winds Trading Co. Style: a bright, low-poly storybook sea, smooth-shaded land and depth-blue water under flat-shaded houses, boats and trees, in clear sunny colours (match the first attached image exactly: same low-poly 3D look, same blue sea, soft warm afternoon light from above, coloured blue shadows, never grim, no pure white or black). The island is the one in the second attached image: keep its shape, its town and its landmarks. Camera low over the water from a boat offshore, the whole island in view. Composition: very wide; the island and its town in the centre and right; open sea and sky on the left third; everything that matters inside the middle horizontal band (the top and bottom quarters will be cropped). No boat in the foreground, no people close up, no text, no logo, no frame, no border. A grain port: golden wheat fields on the slopes, broadleaf trees, a bakehouse by the quay. Its landmark is the windmill on the hill.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "src/ui/screens/art/title-key.jpg",
+   "docs/art/ports/ref/westholm.jpg"
+  ],
+  "output": "asset_PoYpvRreHz8ZPXQY1JCShx5Q.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 180,
+   "height": 340
+  }
+ },
+ "westholm-night": {
+  "model": "model_google-gemini-3-1-flash",
+  "jobId": "job_2rziPAzRgTM4y9MjF9iUdxC5",
+  "creditUnits": 13,
+  "inputs": {
+   "prompt": "The same picture at night: keep the island, the town, the camera, the composition and the low-poly 3D style of the first attached image exactly; only the light changes. A deep blue moonlit night, never black: the sky a deep moonlit blue with a few stars and a pale moon, the sea a deep night blue with soft silver moonlight on the waves, coloured blue shadows. Every house window lit warm yellow, lanterns glowing warm along the quay and the paths, a lighthouse lamp lit if there is one, a soft warm glow over the town. Match the second attached image's low-poly look. No text, no logo, no frame, no border.",
+   "aspectRatio": "21:9",
+   "resolution": "1K",
+   "numOutputs": 1
+  },
+  "references": [
+   "docs/art/ports/raw/westholm.jpg",
+   "src/ui/screens/art/title-key.jpg"
+  ],
+  "output": "asset_twpGxjpQjmpViRPjiAv817xo.png",
+  "crop": {
+   "scaleToWidth": 1920,
+   "top": 180,
+   "height": 340
+  }
+ }
+}

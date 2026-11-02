@@ -1,13 +1,25 @@
 /*
- * The Shipyard (issue #443, round 3 C): upgrades as three cards and the fleet as a table on the
- * left, the reserved 3D preview area (the biggest thing) with the picked ship's Buy and Boat
- * looks on the right. On a phone the two halves are pages that swipe (scroll snap).
+ * The Shipyard (issues #443, #464, round 3 D), on the same ledger as the other tabs: the upgrades
+ * as three cards side by side over the fleet table, and on the right the reserved 3D preview box
+ * (fixed size) with the picked ship's Buy and Boat looks. On a phone the two halves are pages
+ * that swipe (scroll snap).
  */
 .hb-pane.hb-yard {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.62fr);
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) var(--ui-harbour-detail);
+  grid-template-rows: auto 1fr;
+  align-content: start;
   column-gap: var(--ui-space-5);
+}
+/* The whole page scrolls, its foot fading: the fleet goes on below (#464). */
+html:not([data-layout='phone']) .hb-pane.hb-yard {
+  padding-bottom: var(--ui-space-6);
+  overflow-y: auto;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--ui-space-6)), transparent);
+}
+html:not([data-layout='phone']) .hb-yard .hb-fleet,
+html:not([data-layout='phone']) .hb-yard-side {
+  overflow: visible;
 }
 .hb-yard-page {
   display: contents;
@@ -24,46 +36,64 @@
 .hb-yard-side {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-3);
+  gap: var(--ui-space-2);
   grid-area: 1 / 2 / 3 / 3;
+  min-height: 0;
+  overflow-y: auto;
 }
 .hb-upgrades {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-2);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ui-space-3);
+  margin-bottom: var(--ui-space-2);
 }
 .ui-card.hb-upgrade {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 150px;
-  align-items: center;
-  gap: 0 var(--ui-space-3);
+  grid-template-columns: 24px minmax(0, 1fr);
+  grid-template-rows: auto auto auto 1fr auto;
+  gap: var(--ui-space-1) var(--ui-space-2);
   padding: var(--ui-space-2) var(--ui-space-3);
   background: var(--ui-face-off);
   box-shadow: none;
 }
 .hb-upgrade-icon {
-  grid-area: 1 / 1 / 4 / 2;
-  width: 24px;
-  height: 24px;
+  grid-area: 1 / 1;
+  align-self: center;
+  width: 22px;
+  height: 22px;
 }
 .hb-upgrade .ui-card-title {
-  grid-column: 2;
-  font-size: var(--fs-head);
+  grid-area: 1 / 2;
+  overflow: hidden;
+  font-size: var(--fs-lead);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hb-upgrade .hb-pips {
+  grid-area: 2 / 2;
+  margin: 0;
 }
 .hb-upgrade .ui-card-text,
 .hb-upgrade-next {
-  grid-column: 2;
+  grid-column: 1 / 3;
   font-size: var(--fs-note);
 }
 .hb-upgrade-next {
   color: var(--ui-sage-deep);
   font-weight: 700;
 }
+/* Not affordable yet still reads: the old HUD's faded upgrade button stays off here. */
+.hb-upgrade .upgrade-btn[aria-disabled='true'] {
+  opacity: 1;
+  cursor: default;
+}
 .hb-upgrade .ui-btn {
-  grid-area: 1 / 3 / 4 / 4;
-  min-height: var(--ui-touch-target);
-  padding-inline: var(--ui-space-2);
-  font-size: var(--fs-body);
+  grid-column: 1 / 3;
+  align-self: end;
+  min-height: 40px;
+  padding: var(--ui-space-1) var(--ui-space-2);
+  font-size: var(--fs-note);
+  line-height: 1.15;
 }
 .hb-fleet {
   display: flex;
@@ -71,7 +101,8 @@
   gap: var(--ui-space-1);
   overflow-y: auto;
 }
-.hb-fleet-cols,
+/* Over the ledger's goods columns, whichever file loads first. */
+.hb-fleet .hb-fleet-cols,
 .hb-ship {
   display: grid;
   grid-template-columns: minmax(6em, 1fr) 52px 60px 72px minmax(7em, 1fr);
@@ -104,18 +135,18 @@
   font-size: var(--fs-lead);
 }
 
-/* The 3D preview area, kept for the coming model viewer: a dashed frame, no fake render. */
+/* The 3D preview area, kept for the coming model viewer: a fixed box, no fake render (#464). */
 .hb-preview {
   position: relative;
   display: flex;
-  flex: 1;
+  flex: none;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--ui-space-1);
-  min-height: 150px;
-  border: 2px dashed var(--ui-rule);
+  height: var(--ui-harbour-preview);
   border-radius: var(--ui-radius-m);
+  background: var(--ui-face-off);
   color: var(--ui-muted);
   font-size: var(--fs-note);
   text-align: center;
@@ -174,17 +205,26 @@ html[data-layout='phone'] .hb-yard-side {
 html[data-layout='phone'] .hb-upgrade .ui-card-text {
   display: none;
 }
-html[data-layout='phone'] .hb-upgrade-next {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 /* Three cards and the whole side fit the phone's page without scrolling (#443 review). */
 html[data-layout='phone'] .ui-card.hb-upgrade {
-  grid-template-columns: 22px minmax(0, 1fr) 116px;
+  grid-template-columns: 22px minmax(0, 1fr) auto 116px;
+  grid-template-rows: auto auto;
+  row-gap: 0;
   padding: var(--ui-space-1) var(--ui-space-2);
 }
+html[data-layout='phone'] .hb-upgrade-icon {
+  grid-area: 1 / 1 / 3 / 2;
+}
+html[data-layout='phone'] .hb-upgrade .hb-pips {
+  grid-area: 1 / 3;
+  align-self: center;
+}
+html[data-layout='phone'] .hb-upgrade-next {
+  grid-column: 2 / 4;
+}
 html[data-layout='phone'] .hb-upgrade .ui-btn {
+  grid-area: 1 / 4 / 3 / 5;
+  align-self: center;
   min-height: 40px;
   font-size: var(--fs-small);
   line-height: 1.1;
@@ -201,6 +241,29 @@ html[data-layout='phone'] .hb-upgrade .ui-card-title {
   font-size: var(--fs-text);
 }
 html[data-layout='phone'] .hb-preview {
-  flex: none;
-  min-height: 48px;
+  height: var(--ui-harbour-preview-phone);
+}
+html[data-layout='phone'] .hb-upgrades {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ui-space-2);
+}
+
+/* Free Sailing's Shipyard (#464): each upgrade's levels as a row of three, hers inked sage. */
+.hb-levels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-2);
+  max-width: var(--ui-harbour-detail);
+}
+.hb-level-row {
+  display: grid;
+  grid-template-columns: minmax(5em, 1fr) repeat(3, var(--ui-touch-target));
+  align-items: center;
+  gap: var(--ui-space-2);
+  font-size: var(--fs-lead);
+}
+.hb-level.is-on {
+  border-color: var(--ui-sage-deep);
+  background: var(--ui-sage);
+  color: var(--ui-on-sage);
 }

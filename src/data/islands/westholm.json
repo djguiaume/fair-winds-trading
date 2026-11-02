@@ -501,5 +501,6 @@
       [-1.55, 0.6, 0.22],
       [0.8, 0.65, 0.15]
     ]
-  }
+  },
+  "harbourView": { "art": "art/ports/westholm.jpg", "nightArt": "art/ports/westholm-night.jpg" }
 }

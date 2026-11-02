@@ -1,6 +1,6 @@
 import { formatNumber, shipName, shipThe, t, townLevelName } from '../../i18n';
 import { topSpeedKn } from '../../sim/boat';
-import { SHIP_CLASSES } from '../../sim/ship';
+import { SHIP_CLASSES, type ShipClass } from '../../sim/ship';
 import { homePort } from '../../sim/shipyards';
 import { upgradeAllowed } from '../../sim/trade';
 import {
@@ -24,11 +24,11 @@ import { pips } from './parts';
 import './yard.css';
 
 /**
- * The Shipyard (issue #443, round 3 C): the upgrades for the ship she sails as three cards, the
- * fleet as a table, and on the right the 3D preview area, the biggest thing on the paper, kept
- * empty for the coming model viewer (no fake render), with the picked ship's Buy under it and
- * the Boat looks button. The live boat stays in sight beside the paper. On a phone the upgrades
- * and the fleet are two pages side by side that swipe.
+ * The Shipyard (issues #443, #464, round 3 D): on the same ledger as the other tabs, the upgrades
+ * for the ship she sails as three cards side by side, the fleet as a table under them, and on the
+ * right the 3D preview area, a fixed box kept for the coming model viewer (no fake render), with
+ * the picked ship's Buy under it and the Boat looks button. On a phone the upgrades and the fleet
+ * are two pages side by side that swipe.
  */
 export interface YardActions {
   upgrade: (track: UpgradeTrack) => void;
@@ -60,11 +60,19 @@ export function shipyardPane(world: World, picked: string | null, a: YardActions
     fleetTable(world, offers, selected.cls.id, a.pick),
   );
 
+  const page = el('div', 'hb-yard-page');
+  page.append(main, yardSide(world, selected.cls, shipAction(world, selected, a.ship)));
+  pane.append(page, fleet);
+  return pane;
+}
+
+/** The right of the Shipyard: the preview box, the picked ship, its numbers and main button. */
+export function yardSide(world: World, cls: ShipClass, action: HTMLElement): HTMLElement {
   const side = el('div', 'hb-yard-side');
   const preview = el('div', 'hb-preview');
   preview.setAttribute('aria-hidden', 'true');
   preview.append(
-    el('b', '', t('harbour.preview', { ship: shipThe(selected.cls) })),
+    el('b', '', t('harbour.preview', { ship: shipThe(cls) })),
     el('span', '', t('harbour.previewNote')),
   );
   preview.insertAdjacentHTML(
@@ -77,15 +85,12 @@ export function shipyardPane(world: World, picked: string | null, a: YardActions
   looks.classList.add('hb-wide');
   side.append(
     preview,
-    el('h2', 'hb-detail-name', shipName(selected.cls)),
-    facts(shipFacts(world, selected.cls)),
-    shipAction(world, selected, a.ship),
+    el('h2', 'hb-detail-name', shipName(cls)),
+    facts(shipFacts(world, cls)),
+    action,
     looks,
   );
-  const page = el('div', 'hb-yard-page');
-  page.append(main, side);
-  pane.append(page, fleet);
-  return pane;
+  return side;
 }
 
 function facts(html: string): HTMLElement {
@@ -121,7 +126,7 @@ function upgradeCard(
   const c = card({ title: t(`upg.${track}`), text: nowText });
   c.classList.add('hb-upgrade');
   c.insertAdjacentHTML('afterbegin', icon(TRACK_ICON[track], 'hb-upgrade-icon'));
-  c.querySelector('.ui-card-title')!.append(pips(now, MAX_UPGRADE_LEVEL));
+  c.querySelector('.ui-card-title')!.after(pips(now, MAX_UPGRADE_LEVEL));
   const next =
     level < 3 ? t(`upg.${track}.next${(level + 1) as 2 | 3}`, params((level + 1) as 2 | 3)) : '';
   const nextLine = el('span', 'hb-upgrade-next', max ? t('upg.fullyUpgraded') : next);

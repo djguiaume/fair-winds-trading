@@ -34,3 +34,22 @@ export function onPress(
 export function setSelected(node: HTMLElement, on: boolean) {
   node.setAttribute('aria-pressed', String(on));
 }
+
+/** Keeps Tab and Shift+Tab inside a modal screen: past its last button back to its first. */
+export function trapTab(screen: HTMLElement, e: KeyboardEvent) {
+  if (e.key !== 'Tab') return;
+  const buttons = [...screen.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')];
+  const first = buttons[0];
+  const last = buttons.at(-1);
+  const at = document.activeElement;
+  if (!first) {
+    e.preventDefault();
+    screen.focus();
+  } else if (e.shiftKey && (at === first || at === screen)) {
+    e.preventDefault();
+    last?.focus();
+  } else if (!e.shiftKey && at === last) {
+    e.preventDefault();
+    first.focus();
+  }
+}
