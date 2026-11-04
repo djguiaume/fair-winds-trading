@@ -69,7 +69,6 @@ export interface SeaPanel {
 const MARK_NAMES: Record<string, string> = {
   'buoy-red': 'red buoy (port)',
   'buoy-green': 'green buoy (starboard)',
-  'quest-buoy': 'quest buoy (lantern)',
   'cardinal-north': 'north cardinal',
   'cardinal-east': 'east cardinal',
   'cardinal-south': 'south cardinal',
