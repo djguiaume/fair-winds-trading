@@ -20,7 +20,7 @@
   },
   "text": "quest.standing-wren",
   "giver": "wren",
-  "port": "saltmere",
+  "port": "abbey-head",
   "offer": true,
   "repeat": true,
   "steps": [
@@ -28,7 +28,7 @@
       "id": "ask-1",
       "goal": {
         "is": "landed",
-        "place": "saltmere",
+        "place": "abbey-head",
         "good": "timber",
         "qty": 5
       },
@@ -40,7 +40,7 @@
       "id": "ask-2",
       "goal": {
         "is": "landed",
-        "place": "saltmere",
+        "place": "abbey-head",
         "good": "grain",
         "qty": 5
       },
@@ -52,7 +52,7 @@
       "id": "ask-3",
       "goal": {
         "is": "landed",
-        "place": "saltmere",
+        "place": "abbey-head",
         "good": "stone",
         "qty": 6
       },
