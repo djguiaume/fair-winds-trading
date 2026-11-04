@@ -38,6 +38,8 @@ Where
   --look v1 | v1,x,y            the classic ground (?look=v1) for comparison, and the camera on that
                                 point; the new look (v2, decision 0222) is the default
   --yaw deg --tilt deg          a turned camera (0223): the bearing it looks to, degrees down
+  --chase                       the close chase camera behind the boat (0272), already switched
+  --tune file.json              tuning changes first: a ?tune export or { "graphics.sky.bands": 4 }
   --menu                        the title menu, before Set sail (the scene options are ignored)
   --chart                       the sea chart open (--pad and --click then play on it); --chart-zoom n, --chart-pan Key:n,
                                 --chart-panel journal|market|legend: that tab (default the map)

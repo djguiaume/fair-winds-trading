@@ -13,6 +13,7 @@ import { SEA_DRAG_META } from './tuning-meta-sea-drag';
 import { QUALITY_META } from './tuning-meta-quality';
 import { HUD_META } from './tuning-meta-hud';
 import { UI_META } from './tuning-meta-ui';
+import { SKY_META } from './tuning-meta-sky';
 
 /** The meta entries kept in their own files, one subject each, so tuning-meta.ts stays readable. */
 export const FILE_METAS: Readonly<Record<string, TuningMeta>> = {
@@ -30,4 +31,5 @@ export const FILE_METAS: Readonly<Record<string, TuningMeta>> = {
   ...SEA_DRAG_META,
   ...HUD_META,
   ...UI_META,
+  ...SKY_META,
 };

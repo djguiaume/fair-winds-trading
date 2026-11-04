@@ -567,18 +567,10 @@ export class GameView {
       : CLEAR;
     const ultra = this.profile.ultra ? this.ultra : undefined;
     const shownWeather = this.sea.shownWeather(this.world.weather);
+    this.atmosphere.setView(this.rig.chase.eased, wind.speedKn);
     this.atmosphere.update(dt, day, shownWeather, this.ocean, this.target, haze, ultra?.sunShape);
     const gloom = this.atmosphere.gloom;
-    // Rain and the dark close in a little, never enough to hide the next island. The view range
-    // is `weather.json` › `sight`, in camera distances (decision 0169).
-    const sight = TUNING.weather.sight;
-    fog.near = dist * (sight.near - sight.gloomNear * gloom - sight.nightNear * day.night);
-    fog.far = dist * (sight.far - sight.gloomFar * gloom - sight.nightFar * day.night);
-    // A haze closes in much more: its sight counts from the boat, about `dist` from the camera.
-    if (haze.kind && haze.haze > 0) {
-      fog.near += (Math.min(fog.near, dist + haze.kind.near) - fog.near) * haze.haze;
-      fog.far += (Math.min(fog.far, dist + haze.kind.far) - fog.far) * haze.haze;
-    }
+    this.atmosphere.closeFog(dist, day, haze);
     this.veil.update(haze, this.atmosphere.hazeColor);
     this.ocean.setFog(fog.near, fog.far);
     // Nothing past the fog can show, so the camera stops there and three.js skips what lies beyond
@@ -779,6 +771,7 @@ export class GameView {
     const gloom = this.atmosphere.gloom;
     this.atmosphere.gloom = 0;
     const sun = this.profile.ultra ? this.ultra?.sunShape : undefined;
+    this.atmosphere.setView(0, 0);
     this.atmosphere.update(0, day, this.world.weather, this.ocean, aim, tint, sun);
     this.atmosphere.gloom = gloom;
     const fog = this.scene.fog as THREE.Fog;
@@ -868,6 +861,7 @@ export class GameView {
     this.questMarkers.dispose();
     this.boat.dispose();
     this.ultra?.dispose();
+    this.atmosphere.dispose();
     this.renderer.dispose();
   }
 }

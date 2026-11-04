@@ -294,12 +294,12 @@ if (playtestMap)
   showTestSeaBadge({ stressTest, ringAlone, questTest: !!questTest, editedPhase4: !!editedPhase4 });
 const resumedVoyage = storage ? loadGame(storage, world) : false;
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
-const { perfMode, perfScale, frameCap, tilt, antialias } = perfOptions(location.search, benchMode);
-if (antialias) forceAntialias();
+const aids = perfOptions(location.search, benchMode);
+if (aids.antialias) forceAntialias();
 const view = new GameView(canvas, world, level);
 // The sea's sound where she sails, and the effects of what happens (decision 0209).
 const seaListener = new SeaListener(music, view, () => world.hazeOff.includes('ash'));
-view.renderScale = perfScale;
+view.renderScale = aids.perfScale;
 const hud = new Hud(
   world,
   {
@@ -1435,7 +1435,7 @@ if (pad.usingPad) {
 padFocus.onResume = () => {
   if (started && screens.showing('pause')) pause.resume.click();
 };
-const camera = new CameraControls(view, input, settings, hud, tilt);
+const camera = new CameraControls(view, input, settings, hud, aids);
 world.traffic.cap = TUNING.seamanship.traffic.atOnce[level];
 
 // --- Settings ----------------------------------------------------------------------------------
@@ -1694,7 +1694,7 @@ let soundIn = 0;
 function tick(now: number) {
   frame = requestAnimationFrame(tick);
   // A few ms of slack so a 30 fps cap lands on every second 60 Hz refresh.
-  if (frameCap && now - last < 1000 / frameCap - 4) return;
+  if (aids.frameCap && now - last < 1000 / aids.frameCap - 4) return;
   const rawMs = now - last;
   const dt = Math.min(0.1, rawMs / 1000);
   last = now;
@@ -1823,7 +1823,7 @@ function driveBench(sec: number) {
   if (step.done) {
     bench = null;
     perf?.finishBench();
-    view.renderScale = perfScale;
+    view.renderScale = aids.perfScale;
     resize();
     sailStep = 0;
     world.boat.sailStep = 0;
@@ -1855,7 +1855,7 @@ function startBench(created: Bench) {
 
 // The `?perf` readout (decision 0148) for device tests: its own chunk, like the tuning panel.
 // `?bench` loads the benchmark with it and starts once both are in.
-if (perfMode) {
+if (aids.perfMode) {
   void Promise.all([import('./perf/perfReadout'), benchMode ? import('./perf/bench') : null]).then(
     ([{ PerfReadout }, benchModule]) => {
       const sea = stressTest
@@ -1872,9 +1872,9 @@ if (perfMode) {
         version: __APP_VERSION__,
         sea: [
           sea,
-          perfScale !== 1 ? `scale ${perfScale}` : '',
-          frameCap ? `cap ${frameCap} fps` : '',
-          antialias ? 'antialias forced on' : '',
+          aids.perfScale !== 1 ? `scale ${aids.perfScale}` : '',
+          aids.frameCap ? `cap ${aids.frameCap} fps` : '',
+          aids.antialias ? 'antialias forced on' : '',
         ]
           .filter(Boolean)
           .join(' · '),

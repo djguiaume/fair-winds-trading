@@ -26,11 +26,22 @@ export class CameraRig {
   private focus: { x: number; y: number } | null = null;
   /** Where on the screen the focus point sits, from the centre in screen fractions (0210). */
   private focusShift = { x: 0, y: 0 };
+  /** The next placement lands at once, without the follow easing (the screenshot tool). */
+  private jumpNext = false;
 
   constructor(private readonly camera: THREE.PerspectiveCamera) {}
 
   setZoom(zoom: number) {
     this.zoom = clamp(zoom, TUNING.camera.zoomMin, TUNING.camera.zoomMax);
+  }
+
+  /**
+   * The next frame places the camera where it is heading at once, with `chase` in the chase view
+   * behind the boat (`npm run shots -- --chase`).
+   */
+  jump(chase = false) {
+    this.jumpNext = true;
+    if (chase) Object.assign(this.chase, { active: true, blend: 1 });
   }
 
   /** Look at a map point, `shift` off centre in screen fractions (x right, y down), or null. */
@@ -56,7 +67,9 @@ export class CameraRig {
     const c = TUNING.camera;
     this.orbit.held = this.focus !== null;
     this.orbit.update(dt);
-    this.chase.update(dt, Math.atan2(dir.x, dir.y), this.focus === null);
+    const boatHeading = Math.atan2(dir.x, dir.y);
+    this.chase.update(dt, boatHeading, this.focus === null);
+    if (this.jumpNext) this.chase.heading = boatHeading;
     const b = this.chase.eased;
     const heading = this.orbit.heading + b * wrapAngle(this.chase.heading - this.orbit.heading);
     const pitch = lerp(this.orbit.pitch, c.chase.pitchDeg * DEG, b);
@@ -81,6 +94,8 @@ export class CameraRig {
       ? -this.focus.y - sx * axes.rightZ + sy * axes.forwardZ
       : pos.z - dir.y * ahead;
     const target = this.target;
+    if (this.jumpNext) target.set(tx, 0, tz);
+    this.jumpNext = false;
     target.x = approach(target.x, tx, c.followRate, dt);
     target.z = approach(target.z, tz, c.followRate, dt);
     const back = Math.cos(pitch) * dist;

@@ -1,0 +1,23 @@
+{
+  "graphics.sky.looks.day.horizon": "#c6e3ee",
+  "graphics.sky.looks.day.zenith": "#7fb6de",
+  "graphics.sky.gradientDeg": 40,
+  "graphics.sky.gradientCurve": 0.9,
+  "graphics.sky.reflectZenith": 0.15,
+  "graphics.sky.clouds.count": 28,
+  "graphics.sky.clouds.seed": 11,
+  "graphics.sky.clouds.baseDeg": [
+    0.3,
+    2.5
+  ],
+  "graphics.sky.clouds.widthDeg": [
+    4,
+    10
+  ],
+  "graphics.sky.clouds.heightDeg": [
+    1,
+    2.5
+  ],
+  "graphics.sky.clouds.cover": 0.75,
+  "graphics.sky.clouds.haze": 0.6
+}

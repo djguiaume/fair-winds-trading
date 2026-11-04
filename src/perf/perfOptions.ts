@@ -2,7 +2,8 @@
  * `?perf` test aids (decision 0148), also on for `?bench`: `scale=0.7` draws fewer pixels,
  * `fps=30` caps the frame rate, `tilt=45` holds the turnable camera at that tilt to measure a
  * tilt limit (decision 0223; 0 leaves it free), `aa=1` multisamples the picture on every level
- * to measure what antialiasing costs on Low and Medium (decision 0154).
+ * to measure what antialiasing costs on Low and Medium (decision 0154), `chase=1` starts in the
+ * close chase view to measure its drawn sky (issue #470).
  */
 export function perfOptions(search: string, benchMode: boolean) {
   const params = new URLSearchParams(search);
@@ -13,5 +14,6 @@ export function perfOptions(search: string, benchMode: boolean) {
     frameCap: perfMode ? Math.max(0, Number(params.get('fps')) || 0) : 0,
     tilt: perfMode ? Math.max(0, Number(params.get('tilt')) || 0) : 0,
     antialias: perfMode && params.get('aa') === '1',
+    chase: perfMode && params.get('chase') === '1',
   };
 }

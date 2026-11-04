@@ -10,6 +10,12 @@ describe('?perf test aids (decision 0154)', () => {
     expect(perfOptions('?aa=1', false).antialias).toBe(false);
   });
 
+  it('starts in the chase view with chase=1, only in perf and bench mode (issue #470)', () => {
+    expect(perfOptions('?bench&chase=1', true).chase).toBe(true);
+    expect(perfOptions('?perf', false).chase).toBe(false);
+    expect(perfOptions('?chase=1', false).chase).toBe(false);
+  });
+
   describe('antialiasing by level', () => {
     const before = Object.values(QUALITY).map((p) => p.antialias);
     afterEach(() => Object.values(QUALITY).forEach((p, i) => (p.antialias = before[i]!)));
