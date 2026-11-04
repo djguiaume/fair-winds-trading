@@ -35,9 +35,13 @@ export class CameraRig {
     this.zoom = clamp(zoom, TUNING.camera.zoomMin, TUNING.camera.zoomMax);
   }
 
-  /** The next frame places the camera where it is heading, at once (`npm run shots -- --chase`). */
-  jump() {
+  /**
+   * The next frame places the camera where it is heading at once, with `chase` in the chase view
+   * behind the boat (`npm run shots -- --chase`).
+   */
+  jump(chase = false) {
     this.jumpNext = true;
+    if (chase) Object.assign(this.chase, { active: true, blend: 1 });
   }
 
   /** Look at a map point, `shift` off centre in screen fractions (x right, y down), or null. */
@@ -63,7 +67,9 @@ export class CameraRig {
     const c = TUNING.camera;
     this.orbit.held = this.focus !== null;
     this.orbit.update(dt);
-    this.chase.update(dt, Math.atan2(dir.x, dir.y), this.focus === null);
+    const boatHeading = Math.atan2(dir.x, dir.y);
+    this.chase.update(dt, boatHeading, this.focus === null);
+    if (this.jumpNext) this.chase.heading = boatHeading;
     const b = this.chase.eased;
     const heading = this.orbit.heading + b * wrapAngle(this.chase.heading - this.orbit.heading);
     const pitch = lerp(this.orbit.pitch, c.chase.pitchDeg * DEG, b);

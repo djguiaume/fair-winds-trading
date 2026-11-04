@@ -41,8 +41,10 @@ function setup() {
     },
     horizon: null,
   } as unknown as Ocean;
-  const update = (day: Daylight, low: number) =>
-    atmosphere.update(1, day, CLEAR, ocean, new THREE.Vector3(), undefined, undefined, low);
+  const update = (day: Daylight, low: number) => {
+    atmosphere.setView(low, 10);
+    atmosphere.update(1, day, CLEAR, ocean, new THREE.Vector3());
+  };
   return { scene, atmosphere, sea, update };
 }
 

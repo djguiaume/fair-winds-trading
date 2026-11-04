@@ -8,6 +8,7 @@ import { PALETTE } from './palette';
 import { TUNING } from '../data/tuning';
 import { blendLooks } from './lookBlend';
 import { SkyColors, lightDirection } from './skyLight';
+import { SkyDome } from './skyDome';
 
 /** One look of the sea and the light: background/fog, water, sun and sky light. */
 export interface Look {
@@ -163,6 +164,10 @@ export class Atmosphere {
   readonly hazeColor = new THREE.Color();
   private readonly tintColor = new THREE.Color();
   private readonly skyColors = new SkyColors();
+  private readonly dome = new SkyDome();
+  /** How low the camera looks, and the wind (knots) the clouds drift with: `setView`. */
+  private low = 0;
+  private windKn = 0;
   private readonly reflected = new THREE.Color();
   /** The drawn sky's inputs, written by `update`. */
   readonly drawnSky: SkyFrame = {
@@ -180,7 +185,18 @@ export class Atmosphere {
     private readonly scene: THREE.Scene,
     private readonly sun: THREE.DirectionalLight,
     private readonly sky: THREE.HemisphereLight,
-  ) {}
+  ) {
+    scene.add(this.dome.mesh);
+  }
+
+  /**
+   * `low` (0..1) is how low the camera looks: the chase camera (issue #469) sees the sky, so the
+   * fog turns the drawn sky's horizon colour, the sea mirrors a bluer sky and the dome shows.
+   */
+  setView(low: number, windKn: number) {
+    this.low = low;
+    this.windKn = windKn;
+  }
 
   /** Target gloom for this weather: a gale a little (its `gloom` in weather.json), rain more, a
    * storm's core most. */
@@ -204,10 +220,6 @@ export class Atmosphere {
     l.sky.lerp(horizon, share);
   }
 
-  /**
-   * `low` (0..1) is how low the camera looks: the chase camera (issue #469) sees the sky, so the
-   * fog turns the drawn sky's horizon colour and the sea mirrors a bluer sky.
-   */
   update(
     dt: number,
     day: Daylight,
@@ -216,8 +228,8 @@ export class Atmosphere {
     target: THREE.Vector3,
     haze?: ZoneVisual,
     sun: Readonly<SunShape> = PLAIN_SUN,
-    low = 0,
   ) {
+    const low = this.low;
     // A time jump back (a loaded voyage, the shots tool) must not throw the gloom past 0..1.
     this.gloom = approach(this.gloom, Atmosphere.gloomFor(weather), 0.35, Math.max(0, dt));
     const l = blendLooks(mix, this.now, this.storm, LOOKS, day, this.gloom);
@@ -269,6 +281,28 @@ export class Atmosphere {
     this.sun.target.position.copy(target);
     ocean.setSun(this.lightDir, this.sun.color, this.sun.intensity);
     this.updateSky(l, skyLook.zenith, day, bearing, sun.height, low, h);
+    this.dome.update(Math.max(0, dt), this.drawnSky, this.windKn);
+  }
+
+  /**
+   * Rain and the dark close the fog in a little, never enough to hide the next island; a fog bank
+   * or ash cloud much more, its sight counted from the boat, about `dist` from the camera. The view
+   * range is `weather.json` › `sight`, in camera distances (decision 0169).
+   */
+  closeFog(dist: number, day: Daylight, haze: ZoneVisual) {
+    const fog = this.scene.fog as THREE.Fog;
+    const sight = TUNING.weather.sight;
+    const gloom = this.gloom;
+    fog.near = dist * (sight.near - sight.gloomNear * gloom - sight.nightNear * day.night);
+    fog.far = dist * (sight.far - sight.gloomFar * gloom - sight.nightFar * day.night);
+    if (haze.kind && haze.haze > 0) {
+      fog.near += (Math.min(fog.near, dist + haze.kind.near) - fog.near) * haze.haze;
+      fog.far += (Math.min(fog.far, dist + haze.kind.far) - fog.far) * haze.haze;
+    }
+  }
+
+  dispose() {
+    this.dome.dispose();
   }
 
   private updateSky(

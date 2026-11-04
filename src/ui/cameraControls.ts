@@ -13,8 +13,8 @@ import type { Settings } from './settings';
  * The player's hold on the sea camera (decision 0223): zoom and turns from the mouse, touch and
  * controller, the Settings switches' effect on it ("Turn the camera", "Camera comes back by itself",
  * and the comfort ones of decision 0250: gentle sea motion, camera riding the waves) and the HUD
- * compass that turns with the camera. `tilt` (degrees, `?perf&tilt=`) holds a tilt to measure, and
- * `startChasing` (`?perf&chase=1`) starts in the chase view.
+ * compass that turns with the camera. `start` holds a tilt to measure (degrees, `?perf&tilt=`) or
+ * starts in the chase view (`?perf&chase=1`).
  */
 export class CameraControls {
   private readonly compass: CompassCamera;
@@ -29,15 +29,14 @@ export class CameraControls {
     input: Input,
     private readonly settings: Settings,
     private readonly hud: Hud,
-    tilt = 0,
-    startChasing = false,
+    start: { tilt: number; chase: boolean } = { tilt: 0, chase: false },
   ) {
     const rig = (this.rig = view.rig);
     this.motion = view.motion;
     const orbit = (this.orbit = rig.orbit);
-    if (tilt) orbit.set(0, tilt);
+    if (start.tilt) orbit.set(0, start.tilt);
     const chase = (this.chase = rig.chase);
-    if (startChasing) chase.active = true;
+    if (start.chase) chase.active = true;
     input.onZoom = (f) => (chase.active ? chase.zoomBy(f) : rig.setZoom(rig.zoom * f));
     input.onPinch = (f) => {
       if (!chase.pinch(f, rig.zoom <= TUNING.camera.zoomMin)) input.onZoom(f);

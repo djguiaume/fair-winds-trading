@@ -247,7 +247,7 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
     'boat',
     'bergs',
     'traffic',
-    'skyDome',
+    'atmosphere',
   ]) {
     Object.assign(view, { [key]: { dispose: vi.fn() } });
   }
