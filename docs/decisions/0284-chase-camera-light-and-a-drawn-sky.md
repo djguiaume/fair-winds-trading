@@ -33,5 +33,5 @@ with the low-poly look and costs texture memory on phones.
 - One extra draw call and about 750 triangles while chasing. SwiftShader (software) frame time at
   Low rose about 10 % in the chase view; real GPUs reject the covered pixels early. Phone `?bench`
   with `chase=1` joins the device runs (#377).
-- The chase tilt shows only about 5° of sky; a flatter chase tilt (11°) shows more and is offered
-  to the art director as an option.
+- The chase tilt goes from 15° to 11° (`camera.json` › `chase` › `pitchDeg`, art director's pick):
+  at 15° only about 5° of sky showed. Look A ships, its top blue softened, 13 clouds.
