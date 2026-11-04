@@ -302,3 +302,4 @@ Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decis
 | [0279](0279-remaining-v15-screens-on-the-components-old-menu-styles-remo.md) | **Remaining v1.5 screens on the components, old menu styles removed**: (one line) | 2026-11-02 | Accepted |
 | [0280](0280-port-screen-island-banner-over-a-full-opaque-ledger.md) | **Port screen: island banner over a full opaque ledger**: the port's graded picture as a banner, an opaque paper ledger the same on every tab, a free Shipyard in Free Sailing | 2026-11-02 | Accepted |
 | [0281](0281-version-15-release-a-real-game.md) | **Version 1.5 release, A real game**: the UI rebuilt as one system: version 1.5.0, old styles and fonts gone, ADRs 0268 to 0280 accepted, port banners (364 CU) | 2026-11-02 | Accepted |
+| [0282](0282-title-key-art-is-the-original-bright-cover.md) | **Title key art is the original bright cover**: the ungraded README cover replaces the graded one | 2026-11-04 | Accepted |
