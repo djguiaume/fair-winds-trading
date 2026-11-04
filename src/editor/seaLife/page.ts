@@ -32,7 +32,8 @@ const history = new History<SeaLifeDoc>();
 
 /** What each section is about, shown over its fields. */
 const ABOUT: Record<string, string> = {
-  quality: 'Share of every count drawn at each quality level (0 to 1); Ultra-low draws none.',
+  quality:
+    'Share of every count drawn at each quality level (0 to 1); Ultra-low draws none. A group\'s "from" is the lowest level that draws it.',
   birds:
     'A flock circling its home near the boat: harbour (the nearest pier head), reef or wake (astern of her near a coast). Spans are "low, high".',
   dolphins: 'A pod now and then in its waters: rides abeam of the boat, leaping in turn.',

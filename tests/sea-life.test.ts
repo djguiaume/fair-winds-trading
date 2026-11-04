@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { createRng } from '../src/sim/rng';
 import {
+  groupShare,
   SEA_LIFE,
   livesIn,
   nearestWithin,
@@ -11,6 +12,7 @@ import {
   whalePose,
 } from '../src/sim/seaLife';
 import { MAX_POD } from '../src/sim/seaLifeChecks';
+import { QUALITY_LEVELS } from '../src/render/quality';
 import {
   LIFE_FILE,
   addBird,
@@ -67,10 +69,21 @@ describe('sea life swimmers (issue #476)', () => {
 describe('sea life rules (issue #476)', () => {
   it('thins every count by quality and night, none on Ultra-low', () => {
     expect(shownCount(14, SEA_LIFE.quality.ultralow!)).toBe(0);
-    expect(shownCount(14, SEA_LIFE.quality.low!)).toBe(7);
+    // Low keeps 3 or 4 harbour gulls (art director, #476).
+    expect(shownCount(SEA_LIFE.birds.gull!.count, SEA_LIFE.quality.low!)).toBeGreaterThanOrEqual(3);
+    expect(shownCount(SEA_LIFE.birds.gull!.count, SEA_LIFE.quality.low!)).toBeLessThanOrEqual(4);
     expect(shownCount(14, SEA_LIFE.quality.high!)).toBe(14);
     expect(shownCount(14, 1, 1, 0.35)).toBe(5);
     expect(shownCount(14, 1, 0.5, 0)).toBe(7);
+  });
+
+  it('drops the dolphins and shoals below Medium, keeps the whale on Low', () => {
+    const { dolphins, whale, shoals } = SEA_LIFE;
+    expect(groupShare(SEA_LIFE, QUALITY_LEVELS, 'low', dolphins.from)).toBe(0);
+    expect(groupShare(SEA_LIFE, QUALITY_LEVELS, 'low', shoals.from)).toBe(0);
+    expect(groupShare(SEA_LIFE, QUALITY_LEVELS, 'low', whale.from)).toBe(SEA_LIFE.quality.low);
+    expect(groupShare(SEA_LIFE, QUALITY_LEVELS, 'medium', shoals.from)).toBe(0.75);
+    expect(groupShare(SEA_LIFE, QUALITY_LEVELS, 'ultralow', 'ultralow')).toBe(0);
   });
 
   it('keeps each creature to its seas and its distance from shore', () => {
@@ -132,7 +145,9 @@ describe('sea life rules (issue #476)', () => {
     };
     expect(flown(1, harbour)).toBe(SEA_LIFE.birds.gull!.count);
     expect(birds.distanceTo(['gull'], harbour.x, harbour.y)).toBeLessThan(1);
-    expect(flown(SEA_LIFE.quality.low!, harbour)).toBe(shownCount(SEA_LIFE.birds.gull!.count, 0.5));
+    expect(flown(SEA_LIFE.quality.low!, harbour)).toBe(
+      shownCount(SEA_LIFE.birds.gull!.count, SEA_LIFE.quality.low!),
+    );
     expect(flown(SEA_LIFE.quality.ultralow!, harbour)).toBe(0);
     expect(birds.distanceTo(['gull'], harbour.x, harbour.y)).toBe(Infinity);
   });

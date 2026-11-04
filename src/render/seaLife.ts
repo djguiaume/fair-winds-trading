@@ -2,10 +2,17 @@ import * as THREE from 'three';
 import { seaIdAt } from '../audio/seaBed';
 import { type Pier } from '../sim/collision';
 import { createRng } from '../sim/rng';
-import { type BirdKind, SEA_LIFE, nearestWithin, shoreDistance } from '../sim/seaLife';
+import {
+  type BirdKind,
+  SEA_LIFE,
+  type Waters,
+  groupShare,
+  nearestWithin,
+  shoreDistance,
+} from '../sim/seaLife';
 import { FishShoals } from './fishShoals';
 import { lifeClock } from './lifeModels';
-import type { QualityLevel } from './quality';
+import { QUALITY_LEVELS, type QualityLevel } from './quality';
 import { SeaBirds } from './seaBirds';
 import { Dolphins, type SwimScene, Whale } from './seaSwimmers';
 
@@ -72,9 +79,9 @@ export class SeaLife {
     };
   }
 
-  /** The quality level's share of every count. */
-  private share() {
-    return SEA_LIFE.quality[this.level()] ?? 1;
+  /** The quality level's share of every count; 0 for a group below its lowest level. */
+  private share(group: Pick<Waters, 'from'> = { from: 'ultralow' }) {
+    return groupShare(SEA_LIFE, QUALITY_LEVELS, this.level(), group.from);
   }
 
   /** Whether any of it may show: switched on and not on Ultra-low (`sea-life.json` › `quality`). */
@@ -92,15 +99,17 @@ export class SeaLife {
     scene.dt = dt;
     scene.time = time;
     scene.boat = this.world.boat;
-    scene.share = this.share();
     this.sinceHomes += dt;
     if (this.sinceHomes >= HOME_EVERY) {
       this.sinceHomes = 0;
       this.homes.clear();
     }
-    this.birds.update(dt, time, scene.share, night, (kind) => this.homeOf(kind));
+    this.birds.update(dt, time, this.share(), night, (kind) => this.homeOf(kind));
+    scene.share = this.share(SEA_LIFE.dolphins);
     this.dolphins.update(scene);
+    scene.share = this.share(SEA_LIFE.whale);
     this.whale.update(scene);
+    scene.share = this.share(SEA_LIFE.shoals);
     this.shoals.update(scene);
   }
 

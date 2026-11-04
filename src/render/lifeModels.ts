@@ -121,7 +121,7 @@ varying float vRim;`,
       .replace('#include <common>', '#include <common>\nvarying float vRim;')
       .replace(
         '#include <alphamap_fragment>',
-        '#include <alphamap_fragment>\ndiffuseColor.a *= 1.0 - smoothstep(0.45, 1.0, vRim);',
+        '#include <alphamap_fragment>\ndiffuseColor.a *= 1.0 - smoothstep(0.1, 1.0, vRim);',
       );
   };
   material.customProgramCacheKey = () => `sea-life-swirl-${swirl}`;

@@ -38,6 +38,8 @@ export function seaLifeProblems(data: SeaLifeData, names: LifeNames): string[] {
       if (!names.seas.includes(sea))
         fail(`${where}.seas`, `"${sea}" is not a sea (${names.seas.join(', ')})`);
     if (w.shore !== undefined) span(`${where}.shore`, w.shore, 0, 100000);
+    if (w.from !== undefined && !names.levels.includes(w.from))
+      fail(`${where}.from`, `one of ${names.levels.join(', ')}`);
   };
 
   for (const level of names.levels) between(`quality.${level}`, data.quality?.[level], 0, 1);

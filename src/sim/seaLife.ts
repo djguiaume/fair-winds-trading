@@ -43,6 +43,8 @@ export interface BirdKind {
 export interface Waters {
   seas: string[];
   shore: Span;
+  /** The lowest quality level that draws it: Low keeps a few gulls and drops the rest. */
+  from: string;
 }
 
 export interface DolphinsDef extends Waters {
@@ -107,6 +109,19 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 /** How many of `count` show at a quality level, fewer by night down to the `night` share. */
 export function shownCount(count: number, qualityShare: number, night = 0, nightShare = 1): number {
   return Math.round(count * clamp01(qualityShare) * (1 - clamp01(night) * (1 - nightShare)));
+}
+
+/**
+ * A group's share at a quality level: the level's share of every count, or 0 below the group's
+ * lowest level (`from`). `levels` runs from the lowest to the highest.
+ */
+export function groupShare(
+  data: Pick<SeaLifeData, 'quality'>,
+  levels: readonly string[],
+  level: string,
+  from: string,
+): number {
+  return levels.indexOf(level) < levels.indexOf(from) ? 0 : (data.quality[level] ?? 1);
 }
 
 /** Distance from (x, y) to the nearest island's beach, units (Infinity with no island). */

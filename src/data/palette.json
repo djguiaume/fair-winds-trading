@@ -70,11 +70,11 @@
     "ternCap": "#2f3136",
     "beak": "#e3a531",
     "dolphin": "#7d9ab0",
-    "dolphinBelly": "#dde4e8",
+    "dolphinBelly": "#eaeff2",
     "whale": "#566472",
     "whaleBelly": "#c9d1d4",
     "spout": "#e9f1f4",
-    "shoal": "#16303f"
+    "shoal": "#2a5a70"
   },
   "water": {
     "ring": {

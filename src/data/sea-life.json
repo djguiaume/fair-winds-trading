@@ -1,7 +1,7 @@
 {
   "quality": {
     "ultralow": 0,
-    "low": 0.5,
+    "low": 0.3,
     "medium": 0.75,
     "high": 1,
     "ultra": 1
@@ -9,7 +9,7 @@
   "birds": {
     "gull": {
       "model": "life-gull",
-      "count": 14,
+      "count": 12,
       "size": 1,
       "seas": ["ring", "west", "east", "north", "south"],
       "home": "harbour",
@@ -56,6 +56,7 @@
     "pod": [3, 5],
     "seas": ["ring", "south", "west", "east"],
     "shore": [35, 100000],
+    "from": "medium",
     "every": [35, 90],
     "staySec": [16, 28],
     "side": [9, 16],
@@ -70,6 +71,7 @@
     "size": 2,
     "seas": ["north", "east", "ring"],
     "shore": [60, 100000],
+    "from": "low",
     "every": [60, 140],
     "surfaceSec": 11,
     "fromBoat": [30, 55],
@@ -80,11 +82,12 @@
     "count": 6,
     "size": [0.8, 1.5],
     "color": "shoal",
-    "opacity": 0.42,
+    "opacity": 0.45,
     "seas": ["ring", "south", "west", "east", "north"],
     "shore": [6, 70],
+    "from": "medium",
     "range": [25, 120],
     "driftKn": 0.8,
-    "swirl": 0.5
+    "swirl": 0.35
   }
 }
