@@ -1,0 +1,22 @@
+{
+  "id": "ness-word",
+  "name": "Ness wants a word",
+  "start": {
+    "is": "quest-done",
+    "quest": "stonehaven-light"
+  },
+  "text": "quest.ness-word",
+  "giver": "ada",
+  "doneSpeaker": "ness",
+  "port": "stonehaven",
+  "steps": [
+    {
+      "id": "visit",
+      "port": "stonehaven",
+      "goal": {
+        "is": "docked",
+        "port": "watchman-key"
+      }
+    }
+  ]
+}
