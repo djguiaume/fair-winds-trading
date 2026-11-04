@@ -1,0 +1,90 @@
+{
+  "quality": {
+    "ultralow": 0,
+    "low": 0.5,
+    "medium": 0.75,
+    "high": 1,
+    "ultra": 1
+  },
+  "birds": {
+    "gull": {
+      "model": "life-gull",
+      "count": 14,
+      "size": 1,
+      "seas": ["ring", "west", "east", "north", "south"],
+      "home": "harbour",
+      "range": 170,
+      "circle": [9, 24],
+      "height": [7, 15],
+      "speed": 6,
+      "flapHz": 2.2,
+      "glide": 0.55,
+      "night": 0.35
+    },
+    "wake-gull": {
+      "model": "life-gull",
+      "count": 5,
+      "size": 1,
+      "seas": ["ring", "west", "east", "north"],
+      "home": "wake",
+      "range": 90,
+      "circle": [3, 8],
+      "height": [5, 9],
+      "speed": 7,
+      "flapHz": 2.4,
+      "glide": 0.6,
+      "night": 0
+    },
+    "tern": {
+      "model": "life-tern",
+      "count": 8,
+      "size": 0.85,
+      "seas": ["ring", "south", "east"],
+      "home": "reef",
+      "range": 150,
+      "circle": [5, 14],
+      "height": [4, 9],
+      "speed": 8,
+      "flapHz": 3.4,
+      "glide": 0.25,
+      "night": 0
+    }
+  },
+  "dolphins": {
+    "model": "life-dolphin",
+    "size": 1.3,
+    "pod": [3, 5],
+    "seas": ["ring", "south", "west", "east"],
+    "shore": [35, 100000],
+    "every": [35, 90],
+    "staySec": [16, 28],
+    "side": [9, 16],
+    "cruiseKn": 6,
+    "jumpSec": 2.6,
+    "airShare": 0.38,
+    "jumpHeight": 1.4
+  },
+  "whale": {
+    "model": "life-whale",
+    "spout": "life-spout",
+    "size": 2,
+    "seas": ["north", "east", "ring"],
+    "shore": [60, 100000],
+    "every": [60, 140],
+    "surfaceSec": 11,
+    "fromBoat": [30, 55],
+    "swimKn": 2.5
+  },
+  "shoals": {
+    "model": "life-shoal",
+    "count": 6,
+    "size": [0.8, 1.5],
+    "color": "shoal",
+    "opacity": 0.42,
+    "seas": ["ring", "south", "west", "east", "north"],
+    "shore": [6, 70],
+    "range": [25, 120],
+    "driftKn": 0.8,
+    "swirl": 0.5
+  }
+}

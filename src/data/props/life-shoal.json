@@ -1,0 +1,27 @@
+{
+  "id": "life-shoal",
+  "name": "Fish shoal (sea life)",
+  "group": "life",
+  "internal": true,
+  "parts": [
+    {
+      "cone": [2.2, 0.01, 12],
+      "ops": [["scale", 1, 1, 0.68]],
+      "color": "shoal"
+    },
+    {
+      "repeat": {
+        "i": {
+          "count": 30
+        }
+      },
+      "plane": [0.13, 0.42],
+      "ops": [
+        ["turnX", -1.5708],
+        ["turnY", "-i * 2.4 + sin(i * 7.1) * 0.25"],
+        ["move", "cos(i * 2.4) * sqrt(i / 30) * 1.9", 0, "sin(i * 2.4) * sqrt(i / 30) * 1.25"]
+      ],
+      "color": "shoal"
+    }
+  ]
+}

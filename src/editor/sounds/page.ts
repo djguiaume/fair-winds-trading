@@ -2,6 +2,7 @@ import {
   AUDIO,
   LUFF_STYLES,
   type LuffStyle,
+  type CallPlace,
   RING,
   EVENT_NAMES,
   SYNTH_EFFECTS,
@@ -413,12 +414,7 @@ function drawSea(sea: string): HTMLElement[] {
   ];
 }
 
-function placeText(p: {
-  islands?: string[] | 'any';
-  bergs?: boolean;
-  vents?: boolean;
-  range: number;
-}) {
+function placeText(p: CallPlace) {
   const what = p.islands
     ? p.islands === 'any'
       ? 'any island'
@@ -427,7 +423,9 @@ function placeText(p: {
       ? 'icebergs'
       : p.vents
         ? 'steam vents'
-        : 'reefs';
+        : p.birds
+          ? `birds: ${p.birds.join(', ')}`
+          : 'reefs';
   return `${what} (${p.range})`;
 }
 

@@ -61,7 +61,20 @@
     "tarp": "#6a7f8a",
     "hatch": "#4a3220",
     "wakeFoam": "#f6fbfd",
-    "wakeEdge": "#b8e9e9"
+    "wakeEdge": "#b8e9e9",
+    "gull": "#f2f0ea",
+    "gullWing": "#aab4bc",
+    "gullTip": "#3a3c41",
+    "tern": "#f4f6f7",
+    "ternWing": "#cbd4da",
+    "ternCap": "#2f3136",
+    "beak": "#e3a531",
+    "dolphin": "#7d9ab0",
+    "dolphinBelly": "#dde4e8",
+    "whale": "#566472",
+    "whaleBelly": "#c9d1d4",
+    "spout": "#e9f1f4",
+    "shoal": "#16303f"
   },
   "water": {
     "ring": {

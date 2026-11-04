@@ -91,6 +91,7 @@ export function normalise(opts) {
     currents: !o['no-currents'],
     erupt: o.erupt ?? null,
     eruptions: !o['no-eruptions'],
+    life: o.life ?? null,
     cards: o.cards ?? !!o.url,
     wait: o.wait ?? 1500,
     click: o.click ? (Array.isArray(o.click) ? o.click.join(';') : String(o.click)) : null,
@@ -268,14 +269,13 @@ async function setScene(page, shot) {
       for (const [spot, building] of s.built) home.built[spot] = building;
       window.fwt.showHome();
     }
-    if (s.moor) {
-      if (!window.fwt.moor(s.moor)) return `no pier to moor at on ${s.moor}`;
-    }
+    if (s.moor && !window.fwt.moor(s.moor)) return `no pier to moor at on ${s.moor}`;
     if (s.tab && world.trade.dockedAt) window.fwt.tradePanel.open(s.tab);
     if (s.zoom !== null) view.rig.zoom = s.zoom;
     if (s.turn) view.rig.orbit.set(...s.turn);
     if (s.look) view.setFocus({ x: s.look[0], y: s.look[1] }, true);
     if (s.erupt && !view.erupt(s.erupt, true)) return `no volcano on ${s.erupt}`;
+    if (s.life) view.seaLife.callNow(s.life);
     return null;
   }, shot);
   if (problem) throw new Error(problem);

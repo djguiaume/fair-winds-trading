@@ -10,6 +10,7 @@
     "rocks": { "budget": 200 },
     "landmarks": { "budget": 300 },
     "figureheads": { "budget": 60 },
-    "boats": { "budget": 3500 }
+    "boats": { "budget": 3500 },
+    "life": { "budget": 120 }
   }
 }

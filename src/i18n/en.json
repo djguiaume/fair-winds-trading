@@ -211,6 +211,8 @@
   "settings.bergsNote": "Off: no icebergs drift in the northern sea",
   "settings.ships": "Other ships",
   "settings.shipsNote": "Off: no fishing boats, coasters or visitors sail the seas",
+  "settings.seaLife": "Sea life",
+  "settings.seaLifeNote": "Off: no gulls, dolphins, whales or fish shoals",
   "traffic.label": "{name}, out of {port}",
   "settings.haze.fog": "Fog banks",
   "settings.haze.ash": "Ash clouds",

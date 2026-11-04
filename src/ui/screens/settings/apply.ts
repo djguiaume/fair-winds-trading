@@ -11,6 +11,7 @@ export interface SettingsTargets {
     dayNight: boolean;
     eruptions: boolean;
     wakeStyles: boolean;
+    seaLife: { on: boolean };
   };
   hud: { quiet: boolean; compassOff: boolean };
   /** The camera's and the sea motion's own flags (cameraControls.ts). */
@@ -34,6 +35,7 @@ export class SettingsApplier {
     view.dayNight = s.dayNight;
     view.eruptions = s.eruptions;
     view.wakeStyles = s.wakeStyles;
+    view.seaLife.on = s.seaLife;
     hud.quiet = s.quietHud;
     hud.compassOff = !s.windCompass;
     setMotionMode(s.motion);

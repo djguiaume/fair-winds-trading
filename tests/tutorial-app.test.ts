@@ -21,6 +21,7 @@ vi.mock('../src/render/view', () => ({
     setQuality() {}
     setWaves() {}
     motion = { gentle: false, cameraBob: false };
+    seaLife = { on: true, birdDistance: () => 0 };
     setSettlementLevels() {}
     setHomeBuildings() {}
     setQuestsDone() {}

@@ -27,7 +27,7 @@ describe('quality levels (decision 0247)', () => {
   });
 
   it('is picked by ?quality=ultralow', () => {
-    const settings = { quality: 'auto' as const, effects: {} };
+    const settings = { quality: 'auto' as const, effects: {}, seaLife: true };
     expect(applyGraphicsOverrides('?quality=ultralow', settings)).toBe(true);
     expect(settings.quality).toBe('ultralow');
   });
