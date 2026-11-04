@@ -1,80 +1,50 @@
 {
   "id": "outpost-north",
   "name": "Snowberry Isle",
-  "start": {
-    "is": "quest-done",
-    "quest": "rimewick-jam"
-  },
+  "start": { "is": "quest-done", "quest": "rimewick-jam" },
   "text": "quest.outpost-north",
   "giver": "sigrun",
   "doneSpeaker": "nell",
   "port": "rimewick",
   "offer": true,
-  "items": {
-    "nell": {
-      "space": 0
-    }
-  },
+  "items": { "nell": { "space": 0 }, "kit": { "space": 0 } },
   "steps": [
     {
-      "id": "supplies",
-      "mood": "worried",
+      "id": "settler",
+      "mood": "pleased",
       "goal": {
         "is": "all",
         "of": [
           {
             "is": "landed",
-            "place": {
-              "x": -364,
-              "y": 740,
-              "within": 10,
-              "maxKn": 2,
-              "holdSec": 3
-            },
+            "place": { "x": -364, "y": 740, "within": 10, "maxKn": 2, "holdSec": 3 },
             "good": "planks",
             "qty": 8
           },
           {
             "is": "landed",
-            "place": {
-              "x": -364,
-              "y": 740,
-              "within": 10,
-              "maxKn": 2,
-              "holdSec": 3
-            },
+            "place": { "x": -364, "y": 740, "within": 10, "maxKn": 2, "holdSec": 3 },
             "good": "cutStone",
             "qty": 4
+          },
+          {
+            "is": "carried",
+            "item": "nell",
+            "qty": 1,
+            "from": "rimewick",
+            "to": { "x": -364, "y": 740, "within": 10, "maxKn": 2, "holdSec": 3 }
+          },
+          {
+            "is": "carried",
+            "item": "kit",
+            "qty": 1,
+            "from": "saltmere",
+            "to": { "x": -364, "y": 740, "within": 10, "maxKn": 2, "holdSec": 3 }
           }
         ]
       },
-      "reward": {
-        "gold": 400
-      }
-    },
-    {
-      "id": "settler",
-      "speaker": "nell",
-      "port": "rimewick",
-      "goal": {
-        "is": "carried",
-        "item": "nell",
-        "qty": 1,
-        "from": "rimewick",
-        "to": {
-          "x": -364,
-          "y": 740,
-          "within": 10,
-          "maxKn": 2,
-          "holdSec": 3
-        }
-      },
-      "reward": {
-        "gold": 550
-      }
+      "reward": { "gold": 950 }
     }
   ],
-  "reward": {
-    "found": ["snowberry-isle"]
-  }
+  "reward": { "found": ["snowberry-isle"] }
 }

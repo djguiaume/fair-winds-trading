@@ -7,11 +7,11 @@
   "doneSpeaker": "oskar",
   "port": "emberhold",
   "offer": true,
-  "items": { "oskar": { "space": 0 } },
+  "items": { "oskar": { "space": 0 }, "ines": { "space": 0 } },
   "steps": [
     {
-      "id": "supplies",
-      "mood": "worried",
+      "id": "settler",
+      "mood": "pleased",
       "goal": {
         "is": "all",
         "of": [
@@ -26,23 +26,24 @@
             "place": { "x": -703, "y": 476, "within": 10, "maxKn": 2, "holdSec": 3 },
             "good": "timber",
             "qty": 6
+          },
+          {
+            "is": "carried",
+            "item": "oskar",
+            "qty": 1,
+            "from": "emberhold",
+            "to": { "x": -703, "y": 476, "within": 10, "maxKn": 2, "holdSec": 3 }
+          },
+          {
+            "is": "carried",
+            "item": "ines",
+            "qty": 1,
+            "from": "calda",
+            "to": { "x": -703, "y": 476, "within": 10, "maxKn": 2, "holdSec": 3 }
           }
         ]
       },
-      "reward": { "gold": 300 }
-    },
-    {
-      "id": "settler",
-      "speaker": "oskar",
-      "port": "emberhold",
-      "goal": {
-        "is": "carried",
-        "item": "oskar",
-        "qty": 1,
-        "from": "emberhold",
-        "to": { "x": -703, "y": 476, "within": 10, "maxKn": 2, "holdSec": 3 }
-      },
-      "reward": { "gold": 450 }
+      "reward": { "gold": 750 }
     }
   ],
   "reward": { "found": ["cinder-isle"] }

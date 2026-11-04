@@ -70,7 +70,7 @@ describe('the north sea story (decision 0170)', () => {
     expect(landOut(MAP, new Set(['rimewick-jam']))).toContain('snowberry-pack');
   });
 
-  it('plays through in a sloop: Kit’s letter, Sigrun’s three steps, then founding Snowberry Isle', () => {
+  it('plays through in a sloop: Kit’s letter, Sigrun’s four steps, then founding Snowberry Isle', () => {
     const { world, book } = setup();
     for (const id of [
       'rooks-thanks',
@@ -122,10 +122,14 @@ describe('the north sea story (decision 0170)', () => {
     hold(world, book, LEAD.x, LEAD.y, 2.5, 4);
     expect(book.progress('rimewick-jam')!.step).toBe('beacon');
     hold(world, book, LEAD.x, LEAD.y, 1, 4);
+    expect(book.progress('rimewick-jam')!.step).toBe('calving');
+    // 4. The sea's turn (#359): Wren sends her among the bergs for a tin box, back to Sigrun.
+    expect(cardFor(book, world.map, 'rimewick-jam', 'step')!.giver?.id).toBe('wren');
+    hold(world, book, 215, 650, 2, 4);
+    dock(world, book, 'rimewick');
     expect(book.progress('rimewick-jam')!.step).toBe('done');
 
-    // Snowberry Isle: Sigrun offers it; planks and stone landed, then Nell from Rimewick.
-    dock(world, book, 'rimewick');
+    // Snowberry Isle in one card (#359): Sigrun asks; supplies landed, Nell and Kit brought.
     expect(book.offered.map((q) => q.id)).toContain('outpost-north');
     book.accept('outpost-north');
     expect(cardFor(book, world.map, 'outpost-north', 'step')!.giver?.id).toBe('sigrun');
@@ -133,9 +137,9 @@ describe('the north sea story (decision 0170)', () => {
     world.trade.captain.cargo.cutStone = 4;
     hold(world, book, LANDING.x, LANDING.y, 1, 4);
     expect(book.progress('outpost-north')!.step).toBe('settler');
-    expect(cardFor(book, world.map, 'outpost-north', 'step')!.giver?.id).toBe('nell');
     expect(isDiscovered(world.trade, 'snowberry-isle')).toBe(false);
     dock(world, book, 'rimewick');
+    dock(world, book, 'saltmere');
     hold(world, book, LANDING.x, LANDING.y, 1, 4);
     expect(book.progress('outpost-north')!.step).toBe('done');
     expect(isDiscovered(world.trade, 'snowberry-isle')).toBe(true);

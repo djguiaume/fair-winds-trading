@@ -25,15 +25,15 @@ describe('the balance bots play the grown sea in story order (decision 0195)', (
 
   it('times a quest by the places its steps send her to', () => {
     const outpost = QUESTS.find((q) => q.id === 'outpost-south')!;
-    const [start, supplies, settler] = questVisits(outpost);
+    // One card (#359): she fetches the supplies, then Tam and Ness, and calls once at the landing.
+    const [start, settler] = questVisits(outpost);
     expect(start).toEqual([]);
-    expect(supplies).toEqual([
+    expect(settler).toEqual([
       { maker: 'timber' },
-      { x: 487, y: -738, within: 10 },
       { maker: 'planks' },
+      { port: 'watchman-key' },
       { x: 487, y: -738, within: 10 },
     ]);
-    expect(settler).toEqual([{ port: 'watchman-key' }, { x: 487, y: -738, within: 10 }]);
     const ness = QUESTS.find((q) => q.id === 'watchman-passage')!;
     expect(questVisits(ness)[0]).toEqual([{ port: 'watchman-key' }]);
   });

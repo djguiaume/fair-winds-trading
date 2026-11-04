@@ -6,6 +6,7 @@
   "giver": "bram",
   "port": "emberhold",
   "offer": true,
+  "items": { "brass-compass": { "space": 1 } },
   "steps": [
     {
       "id": "kiln",
@@ -27,6 +28,19 @@
       },
       "clean": true,
       "reward": { "gold": 450 }
+    },
+    {
+      "id": "ash",
+      "speaker": "wren",
+      "goal": {
+        "is": "carried",
+        "item": "brass-compass",
+        "qty": 1,
+        "from": { "x": -865, "y": -100, "within": 14, "maxKn": 3, "holdSec": 3 },
+        "to": "emberhold"
+      },
+      "reward": { "gold": 400 },
+      "sound": { "effect": "bell", "everySec": 8 }
     },
     {
       "id": "furnace",
