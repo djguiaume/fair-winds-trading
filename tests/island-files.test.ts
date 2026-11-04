@@ -127,7 +127,7 @@ const GOLDEN: Record<string, string[]> = {
   saltmere: ['305:845e93d7', '504:fd0b5a46', '732:81a5bb40', '911:998fb521'],
   westholm: ['216:10f65f4e', '436:3820301b', '727:13838172', '881:769cc3db'],
   'south-cay': ['208:70ff1bec', '328:12bcf986', '525:7eefd2df', '702:99d94250'],
-  skerry: ['230:c30c242d', '234:b7ae06f0', '237:842e60ca', '237:842e60ca'],
+  skerry: ['230:76dc1b34', '234:171f49ad', '237:d6b36a7', '237:d6b36a7'],
   'bell-rock': ['13:149f2ca0', '13:149f2ca0', '13:149f2ca0', '13:149f2ca0'],
   'abbey-head': ['47:4081cdca', '75:10334758', '94:f726ad58', '125:f5eb5721'],
   'watchman-key': ['43:76dcfa49', '73:1979e55b', '92:1214bfbb', '99:c4c56bcf'],

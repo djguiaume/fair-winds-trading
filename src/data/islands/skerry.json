@@ -323,19 +323,19 @@
       "from": 1
     },
     {
-      "type": "old-flagpole",
-      "x": -0.18,
-      "z": 0.82,
-      "turn": 0,
-      "size": 1.8,
-      "tags": ["after:homecoming"],
-      "from": 1
-    },
-    {
       "type": "pier-feast",
       "x": 0.22,
       "z": 0.78,
       "size": 1.1,
+      "tags": ["after:homecoming"],
+      "from": 1
+    },
+    {
+      "type": "old-flagpole",
+      "x": -0.1,
+      "z": 0.84,
+      "turn": -180,
+      "size": 1.4,
       "tags": ["after:homecoming"],
       "from": 1
     }
