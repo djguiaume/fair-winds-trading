@@ -28,7 +28,7 @@ Status: ok (AD and Guillaume 2026-10-30, PRs #367, #368). Snowberry Isle: waves 
 
 ## West (10): emberhold, the-smoulder, organ-pipes, cinder-isle, steam-holm, spark-rock, the-chimneys, the-chimneys-2, the-tongs, the-tongs-2
 
-Status: ok (AD and Guillaume 2026-10-30, PR #368). Organ Pipes got more basalt columns. Cinder Isle stands only after `emberhold-glass`: `npm run review -- cinder-isle --quest outpost-west:supplies`.
+Status: ok (AD and Guillaume 2026-10-30, PR #368). Organ Pipes got more basalt columns. Cinder Isle stands only after `emberhold-glass`: `npm run review -- cinder-isle --quest outpost-west:settler`.
 
 ## East (9): fogwatch, the-giant, his-wife, amber-strand, puffin-holm, lamb-holm, broch-isle, the-kittiwakes, sandwick-holm
 

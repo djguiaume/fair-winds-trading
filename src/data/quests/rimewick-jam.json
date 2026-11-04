@@ -1,64 +1,52 @@
 {
   "id": "rimewick-jam",
   "name": "The cold jam house",
-  "start": {
-    "is": "quest-done",
-    "quest": "saltmere-letter"
-  },
+  "start": { "is": "quest-done", "quest": "saltmere-letter" },
   "text": "quest.rimewick-jam",
   "giver": "sigrun",
   "port": "rimewick",
   "offer": true,
+  "items": { "tin-box": { "space": 1 } },
   "steps": [
     {
       "id": "oil",
       "mood": "worried",
-      "goal": {
-        "is": "delivered",
-        "port": "rimewick",
-        "good": "lampOil",
-        "qty": 8
-      },
-      "reward": {
-        "gold": 350
-      }
+      "goal": { "is": "delivered", "port": "rimewick", "good": "lampOil", "qty": 8 },
+      "reward": { "gold": 350 }
     },
     {
       "id": "lead",
       "goal": {
         "is": "reach",
-        "points": [
-          {
-            "x": -282,
-            "y": 721
-          }
-        ],
+        "points": [{ "x": -282, "y": 721 }],
         "within": 12,
         "maxKn": 3,
         "holdSec": 3
       },
       "clean": true,
-      "reward": {
-        "gold": 300
-      }
+      "reward": { "gold": 300 }
     },
     {
       "id": "beacon",
       "goal": {
         "is": "landed",
-        "place": {
-          "x": -282,
-          "y": 721,
-          "within": 10,
-          "maxKn": 2,
-          "holdSec": 3
-        },
+        "place": { "x": -282, "y": 721, "within": 10, "maxKn": 2, "holdSec": 3 },
         "good": "cutStone",
         "qty": 6
       },
-      "reward": {
-        "gold": 500
-      }
+      "reward": { "gold": 500 }
+    },
+    {
+      "id": "calving",
+      "speaker": "wren",
+      "goal": {
+        "is": "carried",
+        "item": "tin-box",
+        "qty": 1,
+        "from": { "x": 215, "y": 650, "within": 14, "maxKn": 3, "holdSec": 3 },
+        "to": "rimewick"
+      },
+      "reward": { "gold": 450 }
     }
   ]
 }
