@@ -35,6 +35,12 @@ const PAGES = 'https://djguiaume.github.io/fair-winds-trading/';
 const SEAS = { phase4: '', game: '', ring: 'ring', stress: 'stress' };
 const NUMBERS = 'heading sail speed zoom yaw tilt time wait chart-zoom hull crash'.split(' ');
 
+/** A `?tune` export or a plain { "path.in.TUNING": value } object, from a JSON file. */
+function tuneChanges(file) {
+  const json = JSON.parse(readFileSync(resolve(ROOT, file), 'utf8'));
+  return json.changes ?? json;
+}
+
 /** One shot from its options (command line or list entry, keys as on the command line). */
 export function normalise(opts) {
   const o = { ...opts };
@@ -64,6 +70,8 @@ export function normalise(opts) {
     tab: o.tab ?? null,
     zoom: o.zoom ?? null,
     turn: (o.yaw ?? o.tilt) !== undefined ? [o.yaw ?? 0, o.tilt] : null,
+    chase: !!o.chase,
+    tune: o.tune ? tuneChanges(o.tune) : null,
     ...lookOption(o.look),
     menu: !!o.menu,
     boot: o.splash ? 'splash' : o['portrait-gate'] ? 'gate' : null,
@@ -159,7 +167,7 @@ export function seedStorage(shot) {
       musicVolume: 0,
       voices: false,
       language: shot.lang,
-      dayNight: shot.night,
+      dayNight: shot.night || shot.time !== null,
       weather: shot.weather,
       storms: shot.storms,
       windZones: shot.zones,
@@ -224,6 +232,7 @@ async function setScene(page, shot) {
     await page.click('#tp-undock');
   const problem = await page.evaluate((s) => {
     const { world, view, trade } = window.fwt;
+    if (s.tune) window.fwt.tune(s.tune);
     if (s.time !== null) world.time = s.time;
     else if (s.night) world.time = s.nightTime;
     else if (!s.url) world.time = 300;
@@ -274,6 +283,10 @@ async function setScene(page, shot) {
     if (s.tab && world.trade.dockedAt) window.fwt.tradePanel.open(s.tab);
     if (s.zoom !== null) view.rig.zoom = s.zoom;
     if (s.turn) view.rig.orbit.set(...s.turn);
+    if (s.chase) {
+      Object.assign(view.rig.chase, { active: true, blend: 1, heading: world.boat.heading });
+      view.rig.jump();
+    }
     if (s.look) view.setFocus({ x: s.look[0], y: s.look[1] }, true);
     if (s.erupt && !view.erupt(s.erupt, true)) return `no volcano on ${s.erupt}`;
     return null;

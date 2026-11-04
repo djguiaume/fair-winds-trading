@@ -24,6 +24,9 @@ export interface Daylight {
   lightBearing: number;
   /** 0..1 height of that light above the horizon. */
   lightHeight: number;
+  /** 0..1 true height of the sun or moon: `lightHeight` keeps a floor so shadows stay short, this
+   * one sets on the horizon (the drawn sky's disc). */
+  skyHeight: number;
 }
 
 const smooth = (k: number) => {
@@ -89,6 +92,7 @@ export function daylightAt(t: number): Daylight {
     warm,
     lightBearing: Math.PI / 2 + arc,
     lightHeight: Math.max(0.15, Math.sin(arc)),
+    skyHeight: Math.sin(arc),
   };
 }
 

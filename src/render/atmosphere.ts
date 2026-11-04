@@ -6,6 +6,8 @@ import { approach, clamp } from '../sim/math';
 import type { Ocean } from './ocean';
 import { PALETTE } from './palette';
 import { TUNING } from '../data/tuning';
+import { blendLooks } from './lookBlend';
+import { SkyColors, lightDirection } from './skyLight';
 
 /** One look of the sea and the light: background/fog, water, sun and sky light. */
 export interface Look {
@@ -127,6 +129,26 @@ function mix(out: Look, a: Look, b: Look, k: number): Look {
 
 const blank = () => look('#000', '#000', '#000', '#000', '#000', '#000', 0, '#000', 0);
 
+const LOOKS = { day: DAY, golden: GOLDEN, night: NIGHT, storm: STORM };
+
+/** What the drawn sky of the low views needs this frame (issue #470). */
+export interface SkyFrame {
+  /** The sky just above the sea: the fog's colour, so the far sea melts into it. */
+  readonly horizon: THREE.Color;
+  /** The sky higher up. */
+  readonly zenith: THREE.Color;
+  /** Toward the sun (or moon), scene space, at its true height: it sets on the horizon. */
+  readonly disc: THREE.Vector3;
+  /** The sun's (or moon's) colour as seen in the sky. */
+  readonly discColor: THREE.Color;
+  /** 0..1: how low the camera looks (0 = the sea camera, 1 = the chase camera). */
+  low: number;
+  /** 0..1: how much a fog bank or ash cloud hides the sky. */
+  haze: number;
+  night: number;
+  gloom: number;
+}
+
 /**
  * Light and colour of the scene from the time of day (decision 0068) and the weather at the boat
  * (decision 0067). Only colours and intensities change: no extra lights, passes or textures.
@@ -140,6 +162,19 @@ export class Atmosphere {
   /** The haze's colour in this light (decision 0169), for the veil over the screen. */
   readonly hazeColor = new THREE.Color();
   private readonly tintColor = new THREE.Color();
+  private readonly skyColors = new SkyColors();
+  private readonly reflected = new THREE.Color();
+  /** The drawn sky's inputs, written by `update`. */
+  readonly drawnSky: SkyFrame = {
+    horizon: new THREE.Color(),
+    zenith: new THREE.Color(),
+    disc: new THREE.Vector3(0, 1, 0),
+    discColor: new THREE.Color(),
+    low: 0,
+    haze: 0,
+    night: 0,
+    gloom: 0,
+  };
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -169,6 +204,10 @@ export class Atmosphere {
     l.sky.lerp(horizon, share);
   }
 
+  /**
+   * `low` (0..1) is how low the camera looks: the chase camera (issue #469) sees the sky, so the
+   * fog turns the drawn sky's horizon colour and the sea mirrors a bluer sky.
+   */
   update(
     dt: number,
     day: Daylight,
@@ -177,16 +216,15 @@ export class Atmosphere {
     target: THREE.Vector3,
     haze?: ZoneVisual,
     sun: Readonly<SunShape> = PLAIN_SUN,
+    low = 0,
   ) {
     // A time jump back (a loaded voyage, the shots tool) must not throw the gloom past 0..1.
     this.gloom = approach(this.gloom, Atmosphere.gloomFor(weather), 0.35, Math.max(0, dt));
-    // Day → golden → night, then the storm on top (a storm at night stays dark blue-grey).
-    const l = mix(this.now, DAY, GOLDEN, day.warm * (1 - day.night));
-    mix(l, l, NIGHT, day.night);
-    mix(this.storm, STORM, NIGHT, day.night * 0.7);
-    mix(l, l, this.storm, this.gloom);
+    const l = blendLooks(mix, this.now, this.storm, LOOKS, day, this.gloom);
     ocean.setDaylight(l, this.gloom);
     this.tintHorizon(l, day, ocean);
+    const skyLook = this.skyColors.update(day, this.gloom);
+    l.sky.lerp(skyLook.horizon, low);
     // A fog bank or ash cloud (decision 0169) turns the sky and the fog its colour, darkened at
     // night like the sky, and dims the sun a little.
     const h = haze?.kind ? haze.haze : 0;
@@ -215,14 +253,41 @@ export class Atmosphere {
     this.sky.color.copy(l.skyLight);
     this.sky.intensity = l.skyIntensity;
     ocean.setColors(l);
+    const strength = this.skyColors.reflection(
+      this.reflected,
+      l.skyLight,
+      low,
+      day.night,
+      this.gloom,
+    );
+    ocean.setSkyReflection(this.reflected, strength);
 
     // The sun (or moon) moves across the sky; shadows swing with it.
-    const height = day.lightHeight * sun.height;
     const bearing = day.lightBearing + sun.turn;
-    this.lightDir.set(Math.sin(bearing), height * 1.6, -Math.cos(bearing));
-    this.lightDir.normalize();
+    lightDirection(this.lightDir, bearing, day.lightHeight * sun.height);
     this.sun.position.copy(target).addScaledVector(this.lightDir, sun.distance);
     this.sun.target.position.copy(target);
     ocean.setSun(this.lightDir, this.sun.color, this.sun.intensity);
+    this.updateSky(l, skyLook.zenith, day, bearing, sun.height, low, h);
+  }
+
+  private updateSky(
+    l: Look,
+    zenith: THREE.Color,
+    day: Daylight,
+    bearing: number,
+    height: number,
+    low: number,
+    haze: number,
+  ) {
+    const sky = this.drawnSky;
+    sky.horizon.copy(l.sky);
+    sky.zenith.copy(zenith);
+    lightDirection(sky.disc, bearing, day.skyHeight * height);
+    sky.discColor.copy(l.sun);
+    sky.low = low;
+    sky.haze = haze;
+    sky.night = day.night;
+    sky.gloom = this.gloom;
   }
 }

@@ -175,5 +175,52 @@
         "ice": 0
       }
     }
+  },
+  "sky": {
+    "looks": {
+      "day": {
+        "horizon": "#a6d6ee",
+        "zenith": "#4f9bd6"
+      },
+      "golden": {
+        "horizon": "#f0c49c",
+        "zenith": "#6271a6"
+      },
+      "night": {
+        "horizon": "#14304f",
+        "zenith": "#071629"
+      },
+      "storm": {
+        "horizon": "#56666e",
+        "zenith": "#323f46"
+      }
+    },
+    "gradientDeg": 24,
+    "gradientCurve": 0.6,
+    "bands": 0,
+    "reflection": 0.7,
+    "reflectZenith": 0.3,
+    "sun": {
+      "sizeDeg": 2.4,
+      "moonSizeDeg": 1.8,
+      "glow": 0.35,
+      "glowDeg": 22
+    },
+    "stars": {
+      "density": 0.1,
+      "brightness": 0.8
+    },
+    "clouds": {
+      "count": 16,
+      "seed": 7,
+      "baseDeg": [0.4, 3],
+      "widthDeg": [7, 16],
+      "heightDeg": [1.5, 4],
+      "cover": 0.95,
+      "light": 0.85,
+      "shade": 0.82,
+      "haze": 0.45,
+      "driftDegPerKn": 0.04
+    }
   }
 }

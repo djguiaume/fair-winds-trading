@@ -32,6 +32,7 @@ import type { GraphicsEffects, UltraPipeline } from './ultraPipeline';
 import { Rain, rainMayReachArea } from './rain';
 import { CameraRig } from './cameraRig';
 import { Atmosphere, LAVA_BY_DAY, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from './atmosphere';
+import { SkyDome } from './skyDome';
 import { LighthouseBeams } from './lighthouseBeams';
 import { BeaconLights } from './beaconLights';
 import { Lanterns } from './lanterns';
@@ -80,6 +81,8 @@ export class GameView {
   private readonly hemi = new THREE.HemisphereLight(PALETTE.sky, '#1a4d55', 1.5);
   /** Time of day and weather light (decisions 0067 and 0068). */
   private readonly atmosphere = new Atmosphere(this.scene, this.sun, this.hemi);
+  /** The sky the chase camera sees (issue #470). */
+  private readonly skyDome = new SkyDome();
   private lanterns!: Lanterns;
   /** Day and night cycle on (decision 0068); off holds early afternoon. */
   dayNight = true;
@@ -192,7 +195,7 @@ export class GameView {
     );
     this.scene.background = new THREE.Color(PALETTE.deepWater);
     this.scene.fog = new THREE.Fog(PALETTE.deepWater, 120, 220);
-    this.scene.add(this.hemi);
+    this.scene.add(this.hemi, this.skyDome.mesh);
     this.sun.shadow.mapSize.set(1024, 1024);
     Object.assign(this.sun.shadow.camera, {
       left: -70,
@@ -569,7 +572,18 @@ export class GameView {
       : CLEAR;
     const ultra = this.profile.ultra ? this.ultra : undefined;
     const shownWeather = this.sea.shownWeather(this.world.weather);
-    this.atmosphere.update(dt, day, shownWeather, this.ocean, this.target, haze, ultra?.sunShape);
+    const low = this.rig.chase.eased;
+    this.atmosphere.update(
+      dt,
+      day,
+      shownWeather,
+      this.ocean,
+      this.target,
+      haze,
+      ultra?.sunShape,
+      low,
+    );
+    this.skyDome.update(dt, this.atmosphere.drawnSky, wind.speedKn);
     const gloom = this.atmosphere.gloom;
     // Rain and the dark close in a little, never enough to hide the next island. The view range
     // is `weather.json` › `sight`, in camera distances (decision 0169).
@@ -782,6 +796,7 @@ export class GameView {
     const sun = this.profile.ultra ? this.ultra?.sunShape : undefined;
     this.atmosphere.update(0, day, this.world.weather, this.ocean, aim, tint, sun);
     this.atmosphere.gloom = gloom;
+    this.skyDome.update(0, this.atmosphere.drawnSky, 0);
     const fog = this.scene.fog as THREE.Fog;
     const { near, far } = fog;
     fog.near = 1e4;
@@ -868,6 +883,7 @@ export class GameView {
     this.questMarkers.dispose();
     this.boat.dispose();
     this.ultra?.dispose();
+    this.skyDome.dispose();
     this.renderer.dispose();
   }
 }

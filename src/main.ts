@@ -19,6 +19,7 @@ import {
   decodeTuneCode,
   loadTuneChanges,
   saveTuneChanges,
+  type TuneChanges,
 } from './data/tuningEdits';
 import {
   GamepadPoller,
@@ -294,7 +295,10 @@ if (playtestMap)
   showTestSeaBadge({ stressTest, ringAlone, questTest: !!questTest, editedPhase4: !!editedPhase4 });
 const resumedVoyage = storage ? loadGame(storage, world) : false;
 let level: QualityLevel = settings.quality === 'auto' ? guessQuality() : settings.quality;
-const { perfMode, perfScale, frameCap, tilt, antialias } = perfOptions(location.search, benchMode);
+const { perfMode, perfScale, frameCap, tilt, antialias, chase } = perfOptions(
+  location.search,
+  benchMode,
+);
 if (antialias) forceAntialias();
 const view = new GameView(canvas, world, level);
 // The sea's sound where she sails, and the effects of what happens (decision 0209).
@@ -1439,7 +1443,7 @@ if (pad.usingPad) {
 padFocus.onResume = () => {
   if (started && screens.showing('pause')) pause.resume.click();
 };
-const camera = new CameraControls(view, input, settings, hud, tilt);
+const camera = new CameraControls(view, input, settings, hud, tilt, chase);
 world.traffic.cap = TUNING.seamanship.traffic.atOnce[level];
 
 // --- Settings ----------------------------------------------------------------------------------
@@ -2020,6 +2024,8 @@ if (new URLSearchParams(location.search).has('debug')) {
       moments,
       hull,
       impact,
+      /** Tuning changes by path, as the `?tune` panel makes them (`npm run shots -- --tune`). */
+      tune: (changes: TuneChanges) => applyChanges(changes),
       /** The voyage as a save code, as Move your voyage sends it (`npm run shots -- --save-link`). */
       saveCode: () => encodeSaveCode(serializeWorld(world), world.map),
     },

@@ -26,11 +26,18 @@ export class CameraRig {
   private focus: { x: number; y: number } | null = null;
   /** Where on the screen the focus point sits, from the centre in screen fractions (0210). */
   private focusShift = { x: 0, y: 0 };
+  /** The next placement lands at once, without the follow easing (the screenshot tool). */
+  private jumpNext = false;
 
   constructor(private readonly camera: THREE.PerspectiveCamera) {}
 
   setZoom(zoom: number) {
     this.zoom = clamp(zoom, TUNING.camera.zoomMin, TUNING.camera.zoomMax);
+  }
+
+  /** The next frame places the camera where it is heading, at once (`npm run shots -- --chase`). */
+  jump() {
+    this.jumpNext = true;
   }
 
   /** Look at a map point, `shift` off centre in screen fractions (x right, y down), or null. */
@@ -81,6 +88,8 @@ export class CameraRig {
       ? -this.focus.y - sx * axes.rightZ + sy * axes.forwardZ
       : pos.z - dir.y * ahead;
     const target = this.target;
+    if (this.jumpNext) target.set(tx, 0, tz);
+    this.jumpNext = false;
     target.x = approach(target.x, tx, c.followRate, dt);
     target.z = approach(target.z, tz, c.followRate, dt);
     const back = Math.cos(pitch) * dist;

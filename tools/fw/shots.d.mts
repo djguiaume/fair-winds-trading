@@ -16,6 +16,10 @@ export interface Shot {
   zoom: number | null;
   /** A turned camera (decision 0223): the bearing it looks toward and its tilt, degrees. */
   turn: [number, number | undefined] | null;
+  /** The close chase camera (decision 0272), already switched. */
+  chase: boolean;
+  /** Tuning changes by path, applied first (`--tune`). */
+  tune: Record<string, unknown> | null;
   look: [number, number] | null;
   /** `--look v1`: the classic ground; null: the game's default, the new look (decision 0222). */
   ground: 'v1' | 'v2' | null;
