@@ -16,8 +16,9 @@ export const KEEPER_STATES: readonly KeeperState[] = ['before', 'running', 'done
  */
 export function keeperArc(port: PortDef, quests: readonly QuestDef[] = QUESTS): string[] {
   // A standing order (decision 0214) comes after the arc, never part of it; nor do the races of
-  // the regatta (decision 0217), sailed for pride from Saltmere and the seas' main ports.
-  const arcs = quests.filter((q) => !q.repeat && !q.race);
+  // the regatta (decision 0217), sailed for pride from Saltmere and the seas' main ports, nor the
+  // story's main quests (0141), which belong to the whole sea (the chapter after Four Winds, 0284).
+  const arcs = quests.filter((q) => !q.repeat && !q.race && !q.main);
   const here = arcs.filter((q) => q.port === port.id);
   const own = here.length ? here : arcs.filter((q) => port.keeper && q.giver === port.keeper);
   return own.map((q) => q.id);

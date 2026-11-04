@@ -313,6 +313,31 @@
       "size": 1.1,
       "tags": ["after:regatta-cup"],
       "from": 1
+    },
+    {
+      "type": "pier-feast",
+      "x": 0.3,
+      "z": 0.62,
+      "size": 1.1,
+      "tags": ["after:homecoming"],
+      "from": 1
+    },
+    {
+      "type": "lamp-post",
+      "x": 0.3,
+      "z": 0.4,
+      "size": 1.3,
+      "tags": ["after:homecoming"],
+      "from": 1
+    },
+    {
+      "type": "old-flagpole",
+      "x": -0.4,
+      "z": 0.52,
+      "turn": -180,
+      "size": 1.3,
+      "tags": ["after:homecoming"],
+      "from": 1
     }
   ],
   "homeSpots": [

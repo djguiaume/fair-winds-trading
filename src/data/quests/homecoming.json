@@ -1,0 +1,38 @@
+{
+  "id": "homecoming",
+  "name": "A flag for the pier",
+  "start": { "is": "quest-done", "quest": "star-over-wave" },
+  "text": "quest.homecoming",
+  "main": true,
+  "giver": "rook",
+  "port": "saltmere",
+  "items": { "old-flag": { "space": 1 }, "ness": { "space": 0 } },
+  "steps": [
+    {
+      "id": "flag",
+      "mood": "pleased",
+      "goal": {
+        "is": "carried",
+        "item": "old-flag",
+        "qty": 1,
+        "from": "saltmere",
+        "to": { "x": -60, "y": -176, "within": 14, "maxKn": 2, "holdSec": 2 }
+      },
+      "reward": { "gold": 200 }
+    },
+    {
+      "id": "ness",
+      "speaker": "ness",
+      "mood": "pleased",
+      "goal": {
+        "is": "carried",
+        "item": "ness",
+        "qty": 1,
+        "from": "watchman-key",
+        "to": { "x": -60, "y": -176, "within": 14, "maxKn": 2, "holdSec": 2 }
+      },
+      "reward": { "gold": 200 }
+    }
+  ],
+  "reward": { "gold": 500 }
+}
