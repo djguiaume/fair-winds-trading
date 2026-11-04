@@ -1,6 +1,7 @@
 import audio from '../data/audio.json';
 import characterData from '../data/characters.json';
 import { SEA_FILES } from '../data/grownMap';
+import { SEA_LIFE } from '../sim/seaLife';
 import { SYNTHS } from './synths';
 import { SYNTH_VOICES, VOWELS, voiceFiles, type Voice } from './babble';
 import type { Theme } from './composer';
@@ -53,14 +54,21 @@ export interface SeaCall {
   volume?: number;
 }
 
-/** Islands by id (or `"any"` island), icebergs, steam vents or reefs, within `range` units. */
+/**
+ * Islands by id (or `"any"` island), icebergs, steam vents, reefs or birds of these
+ * `sea-life.json` kinds in the air (issue #476), within `range` units.
+ */
 export type CallPlace = {
   range: number;
   islands?: string[] | 'any';
   bergs?: boolean;
   vents?: boolean;
   reefs?: boolean;
+  birds?: string[];
 };
+
+/** The kinds of place a call can be near or away from: exactly one per place. */
+const PLACE_KINDS = ['islands', 'bergs', 'vents', 'reefs', 'birds'] as const;
 
 /** How the sails sound luffing in irons (`ambience.ts`). */
 export const LUFF_STYLES = ['gusty', 'slat', 'whump'] as const;
@@ -209,8 +217,10 @@ export function audioProblems(
         ['away', call.away],
       ] as const) {
         if (place === undefined) continue;
-        const what = ['islands', 'bergs', 'vents', 'reefs'].filter((key) => key in place);
-        if (what.length !== 1) problems.push(`${at} ${name}: one of islands, bergs, vents, reefs`);
+        const what = PLACE_KINDS.filter((key) => key in place);
+        if (what.length !== 1) problems.push(`${at} ${name}: one of ${PLACE_KINDS.join(', ')}`);
+        if (place.birds !== undefined && !place.birds.every((id) => id in SEA_LIFE.birds))
+          problems.push(`${at} ${name}: birds are sea-life.json bird kinds`);
         if (!(place.range > 0)) problems.push(`${at} ${name}: range above 0`);
         if (place.islands !== undefined && place.islands !== 'any' && !Array.isArray(place.islands))
           problems.push(`${at} ${name}: islands is a list of ids or "any"`);

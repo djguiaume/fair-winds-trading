@@ -41,6 +41,7 @@ import { DriftingBergs } from './driftingBergs';
 import { TrafficView } from './traffic';
 import type { SeaMarkDef } from '../sim/map';
 import { QuestMarkers } from './questMarkers';
+import { SeaLife } from './seaLife';
 import type { StepMarker } from '../ui/questView';
 import { daylightAt, shownDaylightAt } from '../sim/daylight';
 import { StormClouds } from './stormClouds';
@@ -91,6 +92,7 @@ export class GameView {
   private readonly bergs: DriftingBergs;
   /** Other boats on the sea (decision 0215). */
   private readonly traffic: TrafficView;
+  readonly seaLife: SeaLife;
   /** The tracked quest step's places at sea (decision 0130). */
   private readonly questMarkers = new QuestMarkers();
   private readonly sea = new SeaWaves(() => this.world);
@@ -211,14 +213,10 @@ export class GameView {
       look,
       quality: level,
     });
-    this.lighthouseBeams = new LighthouseBeams(
-      world.map.islands,
-      this.islandLevels(this.levels),
-      look,
-    );
-    this.scene.add(this.lighthouseBeams.root);
-    this.beaconLights = new BeaconLights(world.map.islands, this.islandLevels(this.levels), look);
-    this.scene.add(this.beaconLights.points);
+    const byIsland = this.islandLevels(this.levels);
+    this.lighthouseBeams = new LighthouseBeams(world.map.islands, byIsland, look);
+    this.beaconLights = new BeaconLights(world.map.islands, byIsland, look);
+    this.scene.add(this.lighthouseBeams.root, this.beaconLights.points);
     this.volcanoes = new Volcanoes(this.islands.craters);
     this.level = level;
     this.boat = this.buildBoat();
@@ -227,9 +225,11 @@ export class GameView {
     this.seaMarks = new SeaMarks(world.map);
     this.bergs = new DriftingBergs(world.map);
     this.traffic = new TrafficView(world.map, this.sea.heightAt);
+    this.seaLife = new SeaLife(world, () => this.level, this.sea.heightAt);
     this.scene.add(
       this.bergs.root,
       this.traffic.root,
+      this.seaLife.root,
       this.castaway.root,
       this.seaMarks.root,
       this.questMarkers.root,
@@ -521,10 +521,8 @@ export class GameView {
 
   /** Town levels by port id, keyed by the port's island instead. */
   private islandLevels(levels: Record<string, TownLevel>) {
-    const out: Record<string, TownLevel> = {};
-    for (const port of this.world.map.ports)
-      if (levels[port.id] !== undefined) out[port.islandId] = levels[port.id]!;
-    return out;
+    const ports = this.world.map.ports.filter((p) => levels[p.id] !== undefined);
+    return Object.fromEntries(ports.map((p) => [p.islandId, levels[p.id]!]));
   }
 
   /**
@@ -685,6 +683,7 @@ export class GameView {
       this.world.rival,
       conditions,
     );
+    this.seaLife.update(dt, time, day.night);
     this.questMarkers.update(this.stepMarkers(), time, this.sea.heightAt);
     const course = this.world.destination;
     this.courseSpar.update(
@@ -851,6 +850,7 @@ export class GameView {
     this.currentWater?.dispose();
     this.bergs.dispose();
     this.traffic.dispose();
+    this.seaLife.dispose();
     this.calmWater?.dispose();
     this.roughWater?.dispose();
     this.shallowsWater?.dispose();

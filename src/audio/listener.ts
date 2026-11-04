@@ -10,6 +10,14 @@ import { calmAt, seaIdAt, type PlaceDistances } from './seaBed';
 /** What the listener needs of the music player: the sea's bed and named effects. */
 type Player = Pick<Music, 'sea' | 'effectNamed'>;
 
+/** What it hears from the view: volcanoes erupting, steam vents, the birds it draws. */
+export interface HeardView {
+  /** Eruptions begun since the last call and the nearest steam vent, from a sim point. */
+  volcanoSounds(x: number, y: number): { eruptions: number[]; vent: number };
+  /** From a sim point to the nearest bird of these kinds (issue #476; 0 while none are drawn). */
+  seaLife: { birdDistance(kinds: string[], x: number, y: number): number };
+}
+
 /** How often the sea's sound is worked out, seconds: the layers glide between. */
 const EVERY = 0.25;
 /** Calls and bergs further off than this are not looked for. */
@@ -29,8 +37,7 @@ export class SeaListener {
 
   constructor(
     private readonly player: Player,
-    /** Eruptions begun since the last call and the nearest steam vent (the view's volcanoes). */
-    private readonly volcanoes: (x: number, y: number) => { eruptions: number[]; vent: number },
+    private readonly view: HeardView,
     /** Haze switches off in Settings: `ash` off mutes the rumble with the plume (decision 0169). */
     private readonly ashOff: () => boolean,
   ) {}
@@ -59,7 +66,7 @@ export class SeaListener {
 
     const sea = seaIdAt(boat.x, boat.y);
     const bed = SEA_BEDS[sea];
-    const volcano = this.volcanoes(boat.x, boat.y);
+    const volcano = this.view.volcanoSounds(boat.x, boat.y);
     const squalls = !!world.belt?.inside && world.belt.squalls;
     const rain = Math.max(world.weather.rain, squalls ? 0.85 : 0);
     const islands = world.land.islands;
@@ -78,6 +85,7 @@ export class SeaListener {
       bergs,
       vents: volcano.vent,
       reefs: reefDistance(this.heardReefs(world), boat),
+      birds: (kinds) => this.view.seaLife.birdDistance(kinds, boat.x, boat.y),
       storm: world.weather.storm > 0.3 || squalls,
       raining: rain > 0.2,
     };

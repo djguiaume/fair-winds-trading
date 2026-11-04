@@ -6,6 +6,7 @@ import { openRegatta, regattaOpen, setupRegattaPage } from './regatta/page';
 import { cosmeticsOpen, openCosmetics, setupCosmeticsPage } from './cosmetics/page';
 import { freeSailingOpen, openFreeSailing, setupFreeSailingPage } from './freeSailing/page';
 import { openTheme, setupThemePage, themeOpen } from './theme/page';
+import { openSeaLife, seaLifeOpen, setupSeaLifePage } from './seaLife/page';
 
 /** Whether a full-screen page (not the map) is open, so the map's own shortcuts stand down. */
 export const pageOpen = () =>
@@ -16,6 +17,7 @@ export const pageOpen = () =>
   regattaOpen() ||
   cosmeticsOpen() ||
   freeSailingOpen() ||
+  seaLifeOpen() ||
   themeOpen();
 
 /** The editors' data pages: each opens from its button on the map and comes back through `close`. */
@@ -26,6 +28,7 @@ export function setupPages(close: () => void) {
     ['ed-regatta', openRegatta, setupRegattaPage],
     ['ed-cosmetics', openCosmetics, setupCosmeticsPage],
     ['ed-free', openFreeSailing, setupFreeSailingPage],
+    ['ed-life', openSeaLife, setupSeaLifePage],
     ['ed-theme', openTheme, setupThemePage],
   ];
   for (const [id, open, setup] of pages) {
