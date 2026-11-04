@@ -15,3 +15,5 @@ Data only: quests, standing orders and text (EN and FR), all through the quest e
 Rules: nothing can fail; balance checked on all three levels; hazard steps still finish with hazards off in Settings; no automation of the far-goods trade (0120). Prices and progression: the storyteller rules first, then Guillaume only if scope changes.
 
 Before the store build (not part of v1.5): a stranger playtest, [#364](https://github.com/djguiaume/fair-winds-trading/issues/364).
+
+Story review before the build (2026-11-04): [v1.6-review.md](../story/v1.6-review.md).
