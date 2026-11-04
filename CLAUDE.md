@@ -59,6 +59,7 @@ Full options: [docs/tools/README.md](docs/tools/README.md), or `--help`. `npm ru
 - `race`: regatta courses, pars and rules.
 - `cosmetics`: boat cosmetic items (list, add, set, check, import, export, preview).
 - `free`: Free Sailing presets (list, add, set, check); `walk` proves a session never touches the voyage save.
+- `life`: birds and sea life (`sea-life.json`): list, set, check, add and remove bird kinds.
 - `tune`: tuning numbers (`list hud`, `set hud.idleFadeSec 8`), checked against the `?tune` ranges.
 - `sound`: render the game's sounds to MP3.
 - `theme`: the UI theme's tokens (list, set, check, export, import); the editors' Theme page.

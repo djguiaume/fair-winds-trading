@@ -64,6 +64,9 @@ Look
                                 game's auto guess; ultra: the desktop and Xbox look, decision 0221)
   --erupt island                this volcano erupts as the scene is set (0178); give it time to
                                 build, e.g. --wait 6000. --no-eruptions: the Eruptions switch off
+  --life dolphins|whale         a pod of dolphins comes, or the whale surfaces dead ahead, as the
+                                scene is set (issue #476; e.g. --wait 2500 for her blow).
+                                --query off=life: Settings › Sea life off
   --cards                       keep quest cards and dialogs open (default: closed, kept in a quest test)
   --wait ms                     settle time before the shot (default 1500)
   --click selector              click this before the shot (after the wait), e.g. a card's button,

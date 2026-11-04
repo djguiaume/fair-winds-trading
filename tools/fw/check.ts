@@ -9,6 +9,7 @@ import { type ControlsDoc, controlsProblems, shippedControls } from '../../src/e
 import { regattaProblems, shippedRegattaDoc } from '../../src/editor/regatta/doc';
 import { cosmeticsProblems, shippedCosmeticsDoc } from '../../src/editor/cosmetics/doc';
 import { freeProblems, shippedFreeDoc } from '../../src/editor/freeSailing/doc';
+import { LIFE_FILE, lifeProblems, shippedLifeDoc } from '../../src/editor/seaLife/doc';
 import { THEME_FILE, shippedTheme, themeProblems } from '../../src/editor/theme/doc';
 import { questProblems } from '../../src/editor/quest/doc';
 import { ISLAND_SCALE } from '../../src/sim/islandUnits';
@@ -38,6 +39,7 @@ export interface Problem {
     | 'regatta'
     | 'cosmetics'
     | 'free'
+    | 'life'
     | 'theme';
   where: string;
   severity: 'error' | 'warning';
@@ -226,6 +228,12 @@ export function checkAll(opts: CheckOptions = {}) {
     counted.free = 'src/data/free-sailing';
   }
 
+  if (want('life')) {
+    for (const message of lifeProblems(shippedLifeDoc()))
+      problems.push({ area: 'life', where: 'sea-life.json', severity: 'error', message });
+    counted.life = LIFE_FILE;
+  }
+
   if (want('theme')) {
     for (const message of themeProblems(shippedTheme()))
       problems.push({ area: 'theme', where: 'theme.json', severity: 'error', message });
@@ -239,7 +247,7 @@ const list = (v: unknown) => (typeof v === 'string' ? v.split(',').filter(Boolea
 export function run(args: Args): number {
   if (args.help) {
     console.log(`npm run check [-- options]
-  --only seas,islands,quests,perks,controls,ships,audio,regatta,cosmetics,free,theme  check only these areas
+  --only seas,islands,quests,perks,controls,ships,audio,regatta,cosmetics,free,life,theme  check only these areas
   --island id[,id]                   only these island files
   --map file.json[,file.json]        check these map files (editor exports) instead of the ring and stress seas
   --controls file.json               check this controls file (a controls page export)

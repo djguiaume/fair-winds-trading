@@ -55,6 +55,7 @@ function deskPlaces(sea: DeskSea): PlaceDistances {
     bergs: d,
     vents: d,
     reefs: d,
+    birds: () => d,
     storm: sea.storm,
     raining: sea.here.rain > 0.2,
   };

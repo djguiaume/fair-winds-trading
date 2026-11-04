@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { applyGraphicsOverrides, describeOverrides } from '../src/perf/graphicsOverrides';
 
-const fresh = () => ({ quality: 'auto' as const, effects: {} as Record<string, boolean> });
+const fresh = () => ({
+  quality: 'auto' as const,
+  effects: {} as Record<string, boolean>,
+  seaLife: true,
+});
 
 describe('?quality and ?off device-test switches (issue #377)', () => {
   it('changes nothing when neither is set', () => {
@@ -23,6 +27,13 @@ describe('?quality and ?off device-test switches (issue #377)', () => {
     const s = fresh();
     applyGraphicsOverrides('?off=AO,msaa,nonsense,ao,tonemap', s);
     expect(s.effects).toEqual({ occlusion: false, msaa: false, toneMapping: false });
+  });
+
+  it('turns sea life off for a device run with and without it (issue #476)', () => {
+    const s = fresh();
+    expect(applyGraphicsOverrides('?bench&off=life', s)).toBe(true);
+    expect(s.seaLife).toBe(false);
+    expect(s.effects).toEqual({});
   });
 
   it('says in the report what ran', () => {

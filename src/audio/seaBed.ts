@@ -77,6 +77,8 @@ export interface PlaceDistances {
   bergs: number;
   vents: number;
   reefs: number;
+  /** From the nearest bird of these kinds in the air (issue #476). */
+  birds(kinds: string[]): number;
   /** A storm or a storm belt's squall at the boat. */
   storm: boolean;
   raining: boolean;
@@ -87,6 +89,7 @@ function distanceTo(place: CallPlace, where: PlaceDistances): number {
   if (place.bergs) return where.bergs;
   if (place.vents) return where.vents;
   if (place.reefs) return where.reefs;
+  if (place.birds) return where.birds(place.birds);
   return Infinity;
 }
 

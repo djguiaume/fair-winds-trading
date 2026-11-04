@@ -53,7 +53,11 @@
       "waves": { "level": 0.52, "tone": 520, "swellSec": 7 },
       "wind": { "level": 0.35, "tone": 850 },
       "calls": [
-        { "effect": "gull", "every": [14, 32] },
+        {
+          "effect": "gull",
+          "every": [14, 32],
+          "near": { "birds": ["gull", "wake-gull"], "range": 80 }
+        },
         { "effect": "bell-buoy", "every": [20, 45] }
       ]
     },
@@ -63,7 +67,7 @@
       "wind": { "level": 0.29, "tone": 1100 },
       "calm": [{ "island": "sunreach", "within": 0.7, "waves": 0.35 }],
       "calls": [
-        { "effect": "tern", "every": [10, 24] },
+        { "effect": "tern", "every": [10, 24], "near": { "birds": ["tern"], "range": 80 } },
         { "effect": "surf", "every": [6, 14], "near": { "reefs": true, "range": 60 } },
         { "effect": "palms", "every": [5, 12], "near": { "islands": "any", "range": 35 } }
       ]
@@ -89,7 +93,11 @@
       "waves": { "level": 0.6, "tone": 440, "swellSec": 9 },
       "wind": { "level": 0.35, "tone": 800 },
       "calls": [
-        { "effect": "gull", "every": [20, 45] },
+        {
+          "effect": "gull",
+          "every": [20, 45],
+          "near": { "birds": ["gull", "wake-gull"], "range": 80 }
+        },
         { "effect": "lava-hiss", "every": [4, 9], "near": { "vents": true, "range": 70 } }
       ]
     },

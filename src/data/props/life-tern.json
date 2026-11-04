@@ -1,0 +1,58 @@
+{
+  "id": "life-tern",
+  "name": "Tern (sea life)",
+  "group": "life",
+  "internal": true,
+  "parts": [
+    {
+      "ico": [0.2, 0],
+      "ops": [["scale", 0.7, 0.65, 2.6]],
+      "color": "tern"
+    },
+    {
+      "ico": [0.11, 0],
+      "at": [0, 0.06, -0.42],
+      "color": "ternCap"
+    },
+    {
+      "cone": [0.04, 0.24, 3],
+      "ops": [["turnX", -1.5708]],
+      "at": [0, 0.04, -0.62],
+      "color": "beak"
+    },
+    {
+      "repeat": {
+        "side": [-1, 1]
+      },
+      "parts": [
+        {
+          "plane": [0.55, 0.32],
+          "ops": [
+            ["turnX", -1.5708],
+            ["turnY", "side * -0.15"],
+            ["move", "side * 0.4", 0.04, 0.02]
+          ],
+          "color": "ternWing"
+        },
+        {
+          "plane": [0.55, 0.2],
+          "ops": [
+            ["turnX", -1.5708],
+            ["turnY", "side * -0.35"],
+            ["move", "side * 0.92", 0.08, 0.14]
+          ],
+          "color": "ternWing"
+        },
+        {
+          "plane": [0.07, 0.42],
+          "ops": [
+            ["turnX", -1.5708],
+            ["turnY", "side * 0.25"],
+            ["move", "side * 0.08", 0, 0.78]
+          ],
+          "color": "tern"
+        }
+      ]
+    }
+  ]
+}

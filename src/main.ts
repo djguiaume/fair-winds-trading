@@ -298,11 +298,7 @@ const { perfMode, perfScale, frameCap, tilt, antialias } = perfOptions(location.
 if (antialias) forceAntialias();
 const view = new GameView(canvas, world, level);
 // The sea's sound where she sails, and the effects of what happens (decision 0209).
-const seaListener = new SeaListener(
-  music,
-  (x, y) => view.volcanoSounds(x, y),
-  () => world.hazeOff.includes('ash'),
-);
+const seaListener = new SeaListener(music, view, () => world.hazeOff.includes('ash'));
 view.renderScale = perfScale;
 const hud = new Hud(
   world,

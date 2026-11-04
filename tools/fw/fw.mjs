@@ -28,6 +28,10 @@ const TOOLS = {
     about: 'boat cosmetics: list, add, edit, check, import, export, preview',
     module: '/tools/fw/cosmetics.ts',
   },
+  life: {
+    about: 'birds and sea life (sea-life.json): list, check, set, add and remove bird kinds',
+    module: '/tools/fw/life.ts',
+  },
   free: {
     about: 'Free Sailing presets: list, add, edit, check; walk proves the voyage stays untouched',
     file: './free.mjs',

@@ -18,16 +18,19 @@ function parse(search: string) {
 /**
  * Device-test switches (issue #377): `quality=ultralow|low|medium|high|ultra` picks a level without the
  * menu, `off=ao,msaa,...` turns Ultra's parts off one at a time to read what each pass costs
- * (names in `src/data/graphics-switches.json`). Applied to the settings in memory; returns true when
- * anything was set, so the caller does not save them. Unknown names are ignored.
+ * (names in `src/data/graphics-switches.json`; `life` is Settings › Sea life, issue #476). Applied
+ * to the settings in memory; returns true when anything was set, so the caller does not save them.
+ * Unknown names are ignored.
  */
 export function applyGraphicsOverrides(
   search: string,
-  settings: Pick<Settings, 'quality' | 'effects'>,
+  settings: Pick<Settings, 'quality' | 'effects' | 'seaLife'>,
 ): boolean {
   const { quality, off } = parse(search);
   if (quality) settings.quality = quality;
-  for (const name of off) settings.effects = { ...settings.effects, [NAMES[name]!]: false };
+  for (const name of off)
+    if (NAMES[name] === 'seaLife') settings.seaLife = false;
+    else settings.effects = { ...settings.effects, [NAMES[name]!]: false };
   return quality !== null || off.length > 0;
 }
 
