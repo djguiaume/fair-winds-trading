@@ -141,8 +141,8 @@ describe('quest builder (decision 0142)', () => {
     expect(columns[1]).toEqual(['rooks-thanks']);
     // The four arcs, the club hint and the six races that open after the prologue (0227).
     expect(columns[2]).toHaveLength(11);
-    // Ness's chart opens after Ada's lens, beside the epilogue (decision 0194).
-    expect(columns[3]).toEqual(['fair-winds', 'watchman-passage']);
+    // Ness's chart opens after Ada's lens, beside the epilogue and Ness's hint (decision 0194).
+    expect(columns[3]).toEqual(['fair-winds', 'ness-word', 'watchman-passage']);
     const q = newQuest(doc, PHASE1_MAP);
     doc.quests.push(q);
     setText(doc, 'en', `${q.text}.name`, 'A test');
