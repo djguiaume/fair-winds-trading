@@ -178,6 +178,8 @@ export const SEA_MARK_TYPES = [
   'buoy-red',
   'buoy-green',
   'buoy-yellow',
+  /** A one-off quest mark (decision 0284): cream, an ink band, a lantern on top; not a race mark. */
+  'quest-buoy',
   'cardinal-north',
   'cardinal-east',
   'cardinal-south',

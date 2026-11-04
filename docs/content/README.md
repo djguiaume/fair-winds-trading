@@ -401,7 +401,7 @@ at sea (a ring as wide as `within`, the next one pulsing) and on the chart, with
   { "2": ["smokedFish"] } } }`. Each field given (`produces`, `wants`, `levelProduces`,
   `levelWants`, `wantsMade`) takes the place of the port's own once the quest is done.
 - **Sea marks:** the map's `"marks": [{ "type", "x", "y", "turn", "tags", "chart" }]`, for
-  things at sea: `buoy-red`, `buoy-green`, `fishing-boat`, `pilot-cutter`, or `light` (a star
+  things at sea: `buoy-red`, `buoy-green`, `quest-buoy` (a cream one-off quest mark with a lantern, 0284), `fishing-boat`, `pilot-cutter`, or `light` (a star
   on the chart only), and the cardinal danger marks `cardinal-north`, `cardinal-east`,
   `cardinal-south`, `cardinal-west` (decision 0152: safe water lies on the named side; their
   models are recipes in `src/data/props/mark-cardinal-*.json`, a yellow and black diamond on

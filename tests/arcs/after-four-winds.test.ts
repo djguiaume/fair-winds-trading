@@ -48,7 +48,7 @@ describe('the chapter after Four Winds (#361)', () => {
     const buoy = (goalOf('star-over-wave', 'buoy') as Condition & { points: QuestSpot[] })
       .points[0]!;
     expect([buoy.x, buoy.y]).toEqual([lull.x, lull.y]);
-    expect(quest('star-over-wave').marks).toEqual([{ type: 'buoy-yellow', x: lull.x, y: lull.y }]);
+    expect(quest('star-over-wave').marks).toEqual([{ type: 'quest-buoy', x: lull.x, y: lull.y }]);
     const belt = MAP.windZones!.find((z) => z.id === 'stormbreak')!.outline;
     expect(insideOutline(buoy.x, buoy.y, belt as [number, number][])).toBe(true);
   });
