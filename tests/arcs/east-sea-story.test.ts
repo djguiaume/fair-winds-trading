@@ -120,23 +120,30 @@ describe('the east sea story', () => {
     hold(world, book, STRAND.x, STRAND.y, 5, 4);
     expect(book.progress('fogwatch-amber')!.step).toBe('strand');
     hold(world, book, STRAND.x, STRAND.y, 2, 4);
-    expect(book.progress('fogwatch-amber')!.step).toBe('light');
-    // 3. Eight lamp oil for the foghorn tower.
+    expect(book.progress('fogwatch-amber')!.step).toBe('lull');
+    // 3. The sea's turn (#359): Wren sends her into the Stormbreak for a plank, back to Elias.
+    expect(cardFor(book, world.map, 'fogwatch-amber', 'step')!.giver?.id).toBe('wren');
+    hold(world, book, 760, 290, 2, 4);
     dock(world, book, 'fogwatch');
+    expect(book.progress('fogwatch-amber')!.step).toBe('light');
+    // 4. Eight lamp oil for the foghorn tower.
     deliver(world, book, 'lampOil', 8);
     expect(book.progress('fogwatch-amber')!.step).toBe('done');
 
-    // Amber Strand: Elias offers it; timber and planks landed, then Pip from Fogwatch.
+    // Amber Strand in one card (#359): Elias asks; supplies landed, Pip and Maren brought.
     dock(world, book, 'fogwatch');
     expect(book.offered.map((q) => q.id)).toContain('outpost-east');
     book.accept('outpost-east');
+    expect(cardFor(book, world.map, 'outpost-east', 'step')!.giver?.id).toBe('elias');
     world.trade.captain.cargo.timber = 8;
     world.trade.captain.cargo.planks = 6;
     hold(world, book, LANDING.x, LANDING.y, 1, 4);
     expect(book.progress('outpost-east')!.step).toBe('settler');
-    expect(cardFor(book, world.map, 'outpost-east', 'step')!.giver?.id).toBe('pip');
     expect(isDiscovered(world.trade, 'amber-strand')).toBe(false);
     dock(world, book, 'fogwatch');
+    hold(world, book, LANDING.x, LANDING.y, 1, 4);
+    expect(book.progress('outpost-east')!.step).toBe('settler');
+    dock(world, book, 'westholm');
     hold(world, book, LANDING.x, LANDING.y, 1, 4);
     expect(book.progress('outpost-east')!.step).toBe('done');
     expect(isDiscovered(world.trade, 'amber-strand')).toBe(true);

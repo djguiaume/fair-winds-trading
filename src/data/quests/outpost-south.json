@@ -7,11 +7,11 @@
   "doneSpeaker": "tam",
   "port": "sunreach",
   "offer": true,
-  "items": { "tam": { "space": 0 } },
+  "items": { "tam": { "space": 0 }, "ness": { "space": 0 } },
   "steps": [
     {
-      "id": "supplies",
-      "mood": "worried",
+      "id": "settler",
+      "mood": "pleased",
       "goal": {
         "is": "all",
         "of": [
@@ -26,23 +26,24 @@
             "place": { "x": 487, "y": -738, "within": 10, "maxKn": 2, "holdSec": 3 },
             "good": "planks",
             "qty": 6
+          },
+          {
+            "is": "carried",
+            "item": "tam",
+            "qty": 1,
+            "from": "watchman-key",
+            "to": { "x": 487, "y": -738, "within": 10, "maxKn": 2, "holdSec": 3 }
+          },
+          {
+            "is": "carried",
+            "item": "ness",
+            "qty": 1,
+            "from": "watchman-key",
+            "to": { "x": 487, "y": -738, "within": 10, "maxKn": 2, "holdSec": 3 }
           }
         ]
       },
-      "reward": { "gold": 300 }
-    },
-    {
-      "id": "settler",
-      "speaker": "tam",
-      "port": "watchman-key",
-      "goal": {
-        "is": "carried",
-        "item": "tam",
-        "qty": 1,
-        "from": "watchman-key",
-        "to": { "x": 487, "y": -738, "within": 10, "maxKn": 2, "holdSec": 3 }
-      },
-      "reward": { "gold": 450 }
+      "reward": { "gold": 750 }
     }
   ],
   "reward": { "found": ["palm-key"] }

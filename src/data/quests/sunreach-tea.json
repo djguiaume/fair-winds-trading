@@ -6,6 +6,7 @@
   "giver": "juno",
   "port": "sunreach",
   "offer": true,
+  "items": { "sealed-bottle": { "space": 1 } },
   "steps": [
     {
       "id": "bread",
@@ -21,6 +22,18 @@
         "within": 14,
         "maxKn": 3,
         "holdSec": 3
+      },
+      "reward": { "gold": 400 }
+    },
+    {
+      "id": "glass",
+      "speaker": "wren",
+      "goal": {
+        "is": "carried",
+        "item": "sealed-bottle",
+        "qty": 1,
+        "from": { "x": 440, "y": -612, "within": 14, "maxKn": 3, "holdSec": 3 },
+        "to": "sunreach"
       },
       "reward": { "gold": 400 }
     },

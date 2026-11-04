@@ -94,6 +94,9 @@ export type QuestPlace = { port: string } | { x: number; y: number; within: numb
 /** Where to fetch a good a step asks for: the nearest port that makes it. */
 export type QuestVisit = QuestPlace | { maker: string };
 
+/** Goal kinds that are one fetch then one drop: the goods' maker or the pickup, then where to. */
+const FETCH_AND_BRING = new Set(['delivered', 'landed', 'carried']);
+
 /**
  * The places a quest's steps send her to, in order, step by step: the goods' maker before a
  * delivery or a landing, both ends of a carry, the points to reach.
@@ -111,7 +114,7 @@ export function questVisits(def: QuestDef): QuestVisit[][] {
     if (!c) return [];
     switch (c.is) {
       case 'all':
-        return (c.of as Condition[]).flatMap(walk);
+        return allVisits(c.of as Condition[]);
       case 'any':
         return walk((c.of as Condition[])[0]);
       case 'docked':
@@ -129,6 +132,17 @@ export function questVisits(def: QuestDef): QuestVisit[][] {
       default:
         return [];
     }
+  };
+  // Several fetch-and-bring parts at once (an outpost's supplies and passengers): she fetches
+  // everything first, then calls once at each place it goes to, as a captain would.
+  const allVisits = (parts: Condition[]): QuestVisit[] => {
+    if (!parts.every((p) => FETCH_AND_BRING.has(p.is))) return parts.flatMap(walk);
+    const legs = parts.map(walk);
+    const ends = legs.map((leg) => leg[leg.length - 1]!);
+    const fetches = legs.flatMap((leg) => leg.slice(0, -1));
+    const key = (v: QuestVisit) => JSON.stringify(v);
+    const unique = (vs: QuestVisit[]) => [...new Map(vs.map((v) => [key(v), v])).values()];
+    return [...unique(fetches), ...unique(ends)];
   };
   // A start that asks her to dock somewhere (Ness at Watchman Key) is her first leg.
   const docks = (c: Condition | undefined): QuestPlace[] =>
