@@ -1,12 +1,27 @@
-# Storyteller handover to v1.6 (2026-11-02, after v1.5)
+# Storyteller handover to v1.7 (2026-11-05, after v1.6)
 
-From "Storyteller (v1.4)" to the next storyteller thread. Format: [roles.md](../roles.md). The voice, cast and every ruling live in the [storyteller brief](storyteller-brief.md); this file only says what is open.
+From "Storyteller (v1.6)" to the next storyteller thread. Format: [roles.md](../roles.md). The voice, cast and every ruling live in the [storyteller brief](storyteller-brief.md); this file only says what is open.
 
 ## Open decisions
 
-Nothing waits on Guillaume. v1.4 "Visible upgrades" shipped (release PR #428). v1.5 "A real game" (UI rebuild) shipped as v1.5.372. Next: v1.6, the story release.
+Nothing waits on Guillaume. v1.6 "The far seas' story" shipped as v1.6.387. The brief's Status line (end of file) is still stale; bring it up to date with your first ruling.
 
-## What v1.5 "A real game" ruled (words in `src/i18n`)
+## What v1.6 ruled
+
+- Review before the build: [v1.6-review.md](v1.6-review.md) (arc map, what lands, what drags). Verdict: keep the ring, the cast, the voice and the races; the weak spots were four seas on one template, no question driving the story, reunions off screen, and nothing after Four Winds.
+- **Sea turns** (#359): each keeper arc has one step in the sea's hazard, carried by Wren, with an oddity (sealed bottle, carved plank, tin box, brass compass) all marked with a star over a wave. Hazard off = same spot, calm.
+- **One-card outposts**: settler plus ring sibling plus supplies in one step; the settler speaks the reunion done card; four different closers.
+- **The mark** (#361): the star over a wave is Rook's father's mark, "a light on the water". Quests `star-over-wave` (Ness) and `homecoming` (Rook); the old flag rises on Skerry beside the company flag. Nobody died or is lost; the father is never shown.
+- **Ness is a man** (he, his lens). Check every new Ness line.
+- **Far-goods asks** (#360): keepers' `ask-4` is a cross-sea crafted good at **qty 1** (spiced tea to Sigrun, obsidian mirror to Juno, amber beads to Bram), cloudberries x5 to Elias. Settlers ask timber, planks, bread.
+- #362 (Ness wants a word) and #363 (Wren's order at Abbey Head) done.
+- Lines live in `src/i18n`; the drafts are in project files `story/v1.6/` and `docs/story/v1.6/`. The built text is the truth.
+
+## Open for v1.7
+
+Possible later work, none planned: a deeper per-sea restructure (each sea its own shape, needs new step kinds and balance work); a 13th Skerry logo and themed cosmetic sets (names from the storyteller, see [customisation.md](customisation.md)); more standing-order variety.
+
+## What v1.5  "A real game" ruled (words in `src/i18n`)
 
 - Title tagline: "Read the wind, carry the cargo, find a home." / « Lisez le vent, portez la cargaison, trouvez un port d'attache. » (`menu.tagline`). No pirates, guns or deadlines in taglines.
 - Compass words: "hatched zone" / « zone hachurée » for the no-go wedge; "no-go zone" / « zone de vent debout » stays the HUD name. Never name a colour for the compass (no "red zone", no "green band"). Quest and wreck marks are the "pale diamond" / « losange pâle ». Amber and red belong to the sails control only.
