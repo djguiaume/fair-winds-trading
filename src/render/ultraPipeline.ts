@@ -9,6 +9,7 @@ import { DEG } from '../sim/math';
 import { ShadowCasters } from './shadowCasters';
 import type { SunShape } from './atmosphere';
 import { GradeShader } from './gradeShader';
+import { leanShadowMap } from './shadowTarget';
 
 /** The effects the player can switch off one by one (Settings, decision 0221). */
 export interface GraphicsEffects {
@@ -114,8 +115,14 @@ export class UltraPipeline {
     };
   }
 
+  /** No pass reads the scene's depth after it is drawn, so a multisampled target skips copying it. */
   private target(samples: number, depthBuffer = true) {
-    return new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples, depthBuffer });
+    return new THREE.WebGLRenderTarget(1, 1, {
+      type: THREE.HalfFloatType,
+      samples,
+      depthBuffer,
+      resolveDepthBuffer: false,
+    });
   }
 
   /** Lantern glow size and lit-window brightness at night on Ultra (from the tuning). */
@@ -233,7 +240,7 @@ export class UltraPipeline {
     if (shadow.mapSize.x !== want.mapSize) {
       shadow.mapSize.set(want.mapSize, want.mapSize);
       shadow.map?.dispose();
-      shadow.map = null;
+      shadow.map = leanShadowMap(want.mapSize, this.renderer.state.buffers.depth.getReversed());
     }
     shadow.radius = want.radius;
     shadow.bias = want.bias;

@@ -50,6 +50,7 @@ import {
   seriesWon,
 } from './regatta';
 import { checkRace } from './raceChecks';
+import { checkRepeat } from './standingChecks';
 import { grantSeriesPrizes } from './seriesPrizes';
 import { type RaceRecord, bestFor, cleanRaceRecord, raceRecord, recordTime } from './raceRecords';
 import { createRival, endRival, releaseRival, rivalTime } from './rival';
@@ -57,7 +58,6 @@ import { deckFree, syncMarketLevels, type TradeState } from './trade';
 import { pointOfSail } from './ship';
 import type { World } from './world';
 import { payStandingOrder, standingOrderGold } from './contracts';
-import { MAX_SETTLEMENT_LEVEL, portWants } from './settlement';
 import { TUNING } from '../data/tuning';
 
 /*
@@ -598,36 +598,6 @@ export function checkQuests(
     // Each of a standing order's steps is a round of its own (decision 0214).
     if (!q.repeat)
       for (const id of stepIds) if (!reached.has(id)) out.push(`${at} › ${id}: no step leads here`);
-  }
-  return out;
-}
-
-/**
- * Problems with a standing order (decision 0214): offered at a port of its own, never a main quest
- * or a lesson; each step one ask, with no way on but the end of the round; a step paid like a help
- * order (`order`) lands a good its port wants there.
- */
-function checkRepeat(q: QuestDef, map: MapDef, at: string): string[] {
-  const out: string[] = [];
-  if (!q.offer) out.push(`${at}: a standing order is offered (offer: true)`);
-  if (q.main || q.lesson) out.push(`${at}: a standing order is not a main quest or a lesson`);
-  if (!q.port || isVarRef(q.port) || !resolvePort(map, q.port))
-    out.push(`${at}: a standing order needs its port`);
-  if (q.reward !== undefined) out.push(`${at}: a standing order pays on its steps, not the quest`);
-  for (const s of q.steps ?? []) {
-    const where = `${at} › ${s.id}`;
-    if (s.next !== undefined || s.choose !== undefined || s.unless !== undefined)
-      out.push(`${where}: a standing order's step is one ask (no next, choose or unless)`);
-    if (s.reward?.order === undefined) continue;
-    const g = s.goal;
-    const port = resolvePort(map, typeof g?.place === 'string' ? g.place : undefined);
-    if (g?.is !== 'landed' || !port || !isGood(g.good) || typeof g.qty !== 'number') {
-      out.push(`${where} › reward.order: the goal lands a good at a port (landed)`);
-      continue;
-    }
-    const town = map.ports.find((p) => p.id === port);
-    if (town && !portWants(town, MAX_SETTLEMENT_LEVEL).includes(g.good))
-      out.push(`${where}: ${town.id} never wants ${g.good}`);
   }
   return out;
 }
