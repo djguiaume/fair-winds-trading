@@ -46,6 +46,18 @@
       "reward": {
         "order": true
       }
+    },
+    {
+      "id": "ask-4",
+      "goal": {
+        "is": "landed",
+        "place": "fogwatch",
+        "good": "cloudberries",
+        "qty": 5
+      },
+      "reward": {
+        "order": true
+      }
     }
   ]
 }

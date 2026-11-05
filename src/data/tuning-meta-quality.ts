@@ -51,7 +51,7 @@ export const QUALITY_META: Readonly<Record<string, TuningMeta>> = {
   'graphics.quality.*.waterReflection': toggle('Sky reflection', 'Sky reflection and sun glint.'),
   'graphics.quality.*.mirror': toggle(
     'Boat and island reflections',
-    'The sea mirrors the boats, the islands and the drawn sky (decision 0289); cost knobs in graphics.reflection.levels.',
+    'The sea mirrors the boats, the islands and the drawn sky (decision 0290); cost knobs in graphics.reflection.levels.',
   ),
   'graphics.quality.*.ultra': toggle(
     'Ultra pipeline',

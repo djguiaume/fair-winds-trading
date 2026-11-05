@@ -2,7 +2,7 @@ import { num, toggle, type TuningMeta } from './tuning-meta-types';
 
 /**
  * `graphics.json › reflection`: the sea's planar reflections of the boats, the islands and the
- * drawn sky (issue #285, decision 0289). The look is shared; each level that mirrors
+ * drawn sky (issue #285, decision 0290). The look is shared; each level that mirrors
  * (`quality.*.mirror`) has its own cost knobs under `levels`.
  */
 export const REFLECTION_META: Readonly<Record<string, TuningMeta>> = {

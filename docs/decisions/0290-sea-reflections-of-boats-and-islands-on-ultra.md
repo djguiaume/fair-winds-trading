@@ -1,4 +1,4 @@
-# 0289. Sea reflections of boats and islands on Ultra
+# 0290. Sea reflections of boats and islands on Ultra
 
 **Status:** Accepted (2026-11-05, v1.7; Guillaume waived the visual review for this release). Issue #285, parent #279.
 
@@ -61,7 +61,8 @@ otherwise.**
 The draw-call and triangle medians move with the passing traffic more than with the pass (the
 mirror draws the boats, the sky and the islands within range again: about 8 to 12 calls in a
 frame that has them); the memory is exact: +6 MB at 1080p, +15 MB at 4K for the half-resolution
-half-float target and its depth.
+half-float target and its depth. Measured before [0289](0289-ultras-shadow-map-keeps-only-what-pcf-reads.md)
+cut the shadow map (428 → 349 MB on main at 4K), so with both the expected total is about 364 MB.
 
 The software GPU says nothing about frame time on a real card; it does count draw calls and
 memory exactly. On a real desktop GPU the pass costs one more scene draw at a quarter of the

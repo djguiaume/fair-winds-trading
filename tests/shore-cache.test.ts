@@ -208,7 +208,7 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
   view.setQuality('medium');
   expect(water()).toBe(medium);
   view.setQuality('ultra');
-  // Ultra's water mirrors the boats and islands (decision 0289): its own program, not High's.
+  // Ultra's water mirrors the boats and islands (decision 0290): its own program, not High's.
   expect('MIRROR' in water().mesh.material.defines).toBe(true);
   expect(water().mesh.material === high.mesh.material).toBe(false);
   // Ultra-low's plain water is its own program, never Low's (decision 0247).

@@ -67,7 +67,7 @@ export interface WaterLook {
   fancy: boolean;
   /** Sky reflection, sun glint and soft foam (High and Ultra, decision 0221); needs `fancy`. */
   reflect?: boolean;
-  /** The boats, islands and sky mirrored on the sea (decision 0289); needs `reflect`. */
+  /** The boats, islands and sky mirrored on the sea (decision 0290); needs `reflect`. */
   mirror?: boolean;
   /** Shore and depth read per vertex and no per-pixel lighting (Ultra-low, decision 0247). */
   plain?: boolean;

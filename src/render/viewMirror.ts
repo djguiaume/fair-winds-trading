@@ -5,7 +5,7 @@ import type { QualityLevel } from './quality';
 import { QUALITY } from './quality';
 
 /**
- * The view's side of the sea mirror (decision 0289): fetches `seaMirror.ts` once, the first time
+ * The view's side of the sea mirror (decision 0290): fetches `seaMirror.ts` once, the first time
  * a level with `mirror` is picked (phones never do, so they never download it), and feeds it each
  * frame.
  */
