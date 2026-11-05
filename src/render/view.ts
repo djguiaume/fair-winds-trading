@@ -34,7 +34,7 @@ import { CameraRig } from './cameraRig';
 import { Atmosphere, LAVA_BY_DAY, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from './atmosphere';
 import { LighthouseBeams } from './lighthouseBeams';
 import { BeaconLights } from './beaconLights';
-import { Lanterns } from './lanterns';
+import { Lanterns, harbourLanternSpots } from './lanterns';
 import { Castaway } from './castaway';
 import { SeaMarks } from './seaMarks';
 import { DriftingBergs } from './driftingBergs';
@@ -42,6 +42,7 @@ import { TrafficView } from './traffic';
 import type { SeaMarkDef } from '../sim/map';
 import { QuestMarkers } from './questMarkers';
 import { SeaLife } from './seaLife';
+import { TownFolk } from './townFolk';
 import type { StepMarker } from '../ui/questView';
 import { daylightAt, shownDaylightAt } from '../sim/daylight';
 import { StormClouds } from './stormClouds';
@@ -93,6 +94,7 @@ export class GameView {
   /** Other boats on the sea (decision 0215). */
   private readonly traffic: TrafficView;
   readonly seaLife: SeaLife;
+  readonly townFolk: TownFolk;
   /** The tracked quest step's places at sea (decision 0130). */
   private readonly questMarkers = new QuestMarkers();
   private readonly sea = new SeaWaves(() => this.world);
@@ -226,10 +228,12 @@ export class GameView {
     this.bergs = new DriftingBergs(world.map);
     this.traffic = new TrafficView(world.map, this.sea.heightAt);
     this.seaLife = new SeaLife(world, () => this.level, this.sea.heightAt);
+    this.townFolk = new TownFolk(world, () => this.level, look, this.levels);
     this.scene.add(
       this.bergs.root,
       this.traffic.root,
       this.seaLife.root,
+      this.townFolk.root,
       this.castaway.root,
       this.seaMarks.root,
       this.questMarkers.root,
@@ -305,22 +309,10 @@ export class GameView {
       this.scene.remove(this.lanterns.points);
       this.lanterns.dispose();
     }
-    const spots: THREE.Vector3[] = [];
-    for (const port of this.world.map.ports) {
-      // No light on an empty island not founded yet (decision 0157).
-      if (this.levels[port.id] === 0) continue;
-      const pier = this.harbours[port.id];
-      const island = this.world.land.islands.find((i) => i.id === port.islandId);
-      if (!pier || !island) continue;
-      spots.push(toScene(pier.x, pier.y, new THREE.Vector3()).setY(4));
-      const town = toScene(
-        pier.x + (island.x - pier.x) * 0.35,
-        pier.y + (island.y - pier.y) * 0.35,
-        new THREE.Vector3(),
-      );
-      spots.push(town.setY(7));
-    }
-    this.lanterns = new Lanterns(spots);
+    const { map, land } = this.world;
+    this.lanterns = new Lanterns(
+      harbourLanternSpots(map.ports, this.levels, this.harbours, land.islands),
+    );
     this.scene.add(this.lanterns.points);
   }
 
@@ -517,6 +509,7 @@ export class GameView {
     if (founded) this.buildLanterns();
     this.lighthouseBeams.setLevels(this.islandLevels(levels));
     this.beaconLights.setLevels(this.islandLevels(levels));
+    this.townFolk.setLevels(levels);
   }
 
   /** Town levels by port id, keyed by the port's island instead. */
@@ -684,6 +677,7 @@ export class GameView {
       conditions,
     );
     this.seaLife.update(dt, time, day.night);
+    this.townFolk.update(dt, time, day.night);
     this.questMarkers.update(this.stepMarkers(), time, this.sea.heightAt);
     const course = this.world.destination;
     this.courseSpar.update(
@@ -851,6 +845,7 @@ export class GameView {
     this.bergs.dispose();
     this.traffic.dispose();
     this.seaLife.dispose();
+    this.townFolk.dispose();
     this.calmWater?.dispose();
     this.roughWater?.dispose();
     this.shallowsWater?.dispose();

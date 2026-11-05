@@ -1,0 +1,50 @@
+{
+  "id": "folk-person",
+  "name": "Person (town folk)",
+  "group": "folk",
+  "internal": true,
+  "parts": [
+    {
+      "repeat": { "side": [-1, 1] },
+      "box": [0.09, 0.28, 0.1],
+      "at": ["side * 0.06", 0.14, 0],
+      "color": "trousers"
+    },
+    {
+      "box": [0.26, 0.27, 0.15],
+      "at": [0, 0.415, 0],
+      "color": "coats[0]",
+      "tag": { "coat": true }
+    },
+    {
+      "repeat": { "side": [-1, 1] },
+      "box": [0.07, 0.24, 0.08],
+      "at": ["side * 0.165", 0.42, 0],
+      "color": "coats[0]",
+      "tag": { "coat": true, "arm": true }
+    },
+    {
+      "box": [0.14, 0.14, 0.14],
+      "at": [0, 0.63, 0],
+      "color": "skin"
+    },
+    {
+      "box": [0.17, 0.05, 0.17],
+      "at": [0, 0.715, 0],
+      "color": "cap"
+    },
+    {
+      "cyl": [0.012, 0.012, 0.75, 3],
+      "ops": [["turnX", -1.0]],
+      "at": [0.2, 0.62, -0.28],
+      "color": "post",
+      "tag": { "rod": true }
+    },
+    {
+      "box": [0.24, 0.2, 0.2],
+      "at": [0, 0.46, -0.2],
+      "color": "cargo",
+      "tag": { "load": true }
+    }
+  ]
+}
