@@ -1,0 +1,297 @@
+/* The ?tune panel (decision 0114): style D, touch-first, beside the game in landscape and as a
+   bottom sheet in portrait. Loaded only with ?tune. */
+.tune,
+.tune-pill {
+  --t-navy: rgba(9, 28, 41, 0.92);
+  --t-navy-solid: #123246;
+  --t-brass: #e8c46a;
+  --t-brass-line: rgba(232, 196, 106, 0.55);
+  --t-ink: #eef3f4;
+  --t-dim: rgba(238, 243, 244, 0.66);
+  --t-green: #59d36b;
+  --t-red: #ff6a55;
+  font-family: 'Trebuchet MS', sans-serif;
+  color: var(--t-ink);
+  z-index: 60;
+}
+
+.tune {
+  position: fixed;
+  left: max(10px, env(safe-area-inset-left));
+  top: calc(max(10px, env(safe-area-inset-top)) + 56px);
+  bottom: max(10px, env(safe-area-inset-bottom));
+  width: min(390px, 44vw);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--t-brass-line);
+  border-radius: 14px;
+  background: var(--t-navy);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  font-size: 14px;
+  touch-action: manipulation;
+}
+.tune[hidden],
+.tune-pill[hidden],
+.tune-sheet[hidden],
+.tune [hidden] {
+  display: none !important;
+}
+
+.tune button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.tune-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px 6px;
+}
+.tune-title {
+  font:
+    700 19px/1 'Arial Narrow',
+    'Roboto Condensed',
+    sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--t-brass);
+}
+.tune-live {
+  padding: 2px 7px;
+  border-radius: 8px;
+  background: rgba(89, 211, 107, 0.2);
+  color: var(--t-green);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.tune-count {
+  flex: 1;
+  text-align: right;
+  font-size: 12px;
+  color: var(--t-dim);
+}
+.tune-count.tune-has-changes {
+  color: var(--t-brass);
+}
+.tune-hide {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--t-brass-line);
+  border-radius: 9px;
+  background: transparent;
+}
+
+.tune-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px 10px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tune-tab {
+  flex: none;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font:
+    700 13px/1 'Arial Narrow',
+    'Roboto Condensed',
+    sans-serif !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--t-dim) !important;
+}
+.tune-tab.tune-on {
+  background: var(--t-brass);
+  color: #1d2a33 !important;
+}
+.tune-tab.tune-dot::after {
+  content: ' •';
+  color: var(--t-brass);
+}
+.tune-tab.tune-on.tune-dot::after {
+  color: #1d2a33;
+}
+
+.tune-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 12px 10px;
+}
+.tune-section {
+  margin-top: 10px;
+}
+.tune-h {
+  margin: 6px 0 4px;
+  font:
+    700 13px/1.2 'Arial Narrow',
+    'Roboto Condensed',
+    sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--t-brass);
+}
+
+.tune-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 8px;
+}
+.tune-select {
+  flex: 1;
+  min-height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--t-brass-line);
+  border-radius: 9px;
+  background: var(--t-navy-solid);
+  color: var(--t-ink);
+  font: inherit;
+}
+
+.tune-row {
+  display: grid;
+  grid-template-columns: minmax(96px, 38%) 1fr 72px 30px;
+  align-items: center;
+  gap: 4px 8px;
+  min-height: 40px;
+  padding: 0 4px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+}
+.tune-row.tune-changed {
+  border-color: var(--t-brass);
+  background: rgba(232, 196, 106, 0.08);
+}
+.tune-label {
+  border: 0;
+  background: none;
+  padding: 6px 0;
+  text-align: left;
+  line-height: 1.15;
+}
+.tune-label small {
+  color: var(--t-dim);
+}
+.tune-range {
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  accent-color: var(--t-brass);
+}
+.tune-number {
+  width: 100%;
+  min-height: 32px;
+  padding: 0 6px;
+  border: 1px solid var(--t-brass-line);
+  border-radius: 7px;
+  background: var(--t-navy-solid);
+  color: var(--t-ink);
+  font: inherit;
+  text-align: right;
+}
+.tune-check {
+  justify-self: start;
+  width: 24px;
+  height: 24px;
+  accent-color: var(--t-brass);
+}
+.tune-row .tune-check {
+  grid-column: 2 / 4;
+}
+.tune-reset {
+  grid-column: 4;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(232, 196, 106, 0.18);
+  color: var(--t-brass) !important;
+}
+.tune-help {
+  grid-column: 1 / -1;
+  padding: 0 0 8px;
+  font-size: 12px;
+  color: var(--t-dim);
+}
+
+.tune-ship {
+  display: grid;
+  grid-template-columns: 128px 1fr;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.tune-polar {
+  width: 128px;
+  height: 224px;
+  touch-action: none;
+}
+.tune-nogo {
+  fill: rgba(255, 106, 85, 0.22);
+}
+.tune-ring {
+  fill: none;
+  stroke: rgba(238, 243, 244, 0.18);
+  stroke-width: 0.8;
+}
+.tune-axis {
+  stroke: rgba(238, 243, 244, 0.35);
+  stroke-width: 0.8;
+}
+.tune-svg-label {
+  fill: var(--t-brass);
+  font-size: 9px;
+}
+.tune-curve,
+.tune-curve-shipped {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.tune-curve {
+  stroke: var(--t-brass);
+}
+.tune-curve-shipped {
+  stroke: rgba(238, 243, 244, 0.45);
+  stroke-dasharray: 3 3;
+}
+.tune-handle {
+  fill: #fff;
+  stroke: var(--t-brass);
+  stroke-width: 1.5;
+}
+.tune-handle-changed {
+  fill: var(--t-brass);
+}
+.tune-hit {
+  fill: transparent;
+  cursor: grab;
+}
+.tune-ship-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+}
+.tune-ship-stats b {
+  color: var(--t-brass);
+}
+.tune-polar-reset {
+  grid-column: 1;
+  width: auto;
+  padding: 0 10px;
+  justify-self: start;
+}
+.tune-dim {
+  color: var(--t-dim);
+  font-size: 12px;
+}
+

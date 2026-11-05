@@ -1,0 +1,227 @@
+/*
+ * Quest builder (decision 0142), the mockup of docs/quest-builder: quests and steps on the left,
+ * the chart (or the card, or the story) in the middle, the step's fields and the checks on the
+ * right. In portrait the three stack: steps, then the middle, then the fields.
+ */
+.qb {
+  --green: #7fd18f;
+  --brass-lo: #a8802e;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.qb[hidden],
+.qb [hidden] {
+  display: none !important;
+}
+.qb-short {
+  display: none;
+}
+.qb code {
+  font-size: 12px;
+  color: var(--brass-hi);
+}
+.qb-k {
+  font: 700 13px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-right: 4px;
+}
+.qb-edited {
+  color: var(--amber);
+}
+/* --- Desk layout: quests and steps | chart | panel --------------------------------------- */
+.qb-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 300px 1fr 380px;
+}
+.qb-left {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  border-right: 1px solid rgba(232, 196, 106, 0.25);
+  padding: 8px 12px 12px;
+}
+.qb-modes {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.qb-modes button {
+  flex: 1;
+  font-size: 14px;
+  padding: 4px;
+}
+.qb-modes button[aria-pressed='true'],
+.qb-tabs button[aria-pressed='true'],
+.qb-seg button[aria-pressed='true'],
+.qb-rail button[aria-pressed='true'],
+.qb-moods button[aria-pressed='true'] {
+  background: #2b5a73;
+  border-color: var(--brass-hi);
+  color: var(--brass-hi);
+}
+.qb-left h2,
+.qb-dialog h2 {
+  margin: 6px 0;
+  font: 700 17px/1 var(--display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+.qb-left h2 small {
+  font: 500 13px var(--body);
+  text-transform: none;
+  color: var(--ink-dim);
+  margin-left: 6px;
+}
+.qb-quests ul,
+.qb-steps ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.qb-quests li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+.qb-quests li.on {
+  background: #183e55;
+  border-color: var(--brass-line);
+}
+.qb-quests li.dim,
+.qb-node.dim {
+  opacity: 0.55;
+}
+.qb-quests li b {
+  display: block;
+  font-size: 14px;
+}
+.qb-quests li small,
+.qb-node small {
+  display: block;
+  color: var(--ink-dim);
+  font-size: 12px;
+}
+.qb-face {
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+.qb-face svg {
+  display: block;
+}
+.qb-face i {
+  font-style: normal;
+  width: 30px;
+  text-align: center;
+  color: var(--brass);
+}
+.qb-tag {
+  margin-left: auto;
+  font: 700 11px/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 6px;
+  border-radius: 6px;
+  font-style: normal;
+}
+.qb-tag.main {
+  background: var(--brass);
+  color: var(--outline);
+}
+.qb-tag.tutorial {
+  border: 1px solid var(--ink-dim);
+  color: var(--ink-dim);
+}
+.qb-add {
+  margin: 6px 0 4px;
+  width: 100%;
+  border-style: dashed;
+  background: transparent;
+  font-size: 14px;
+}
+.qb-steps {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(232, 196, 106, 0.25);
+}
+.qb-start {
+  font-size: 13px;
+  color: var(--ink-dim);
+  padding: 6px 8px;
+  border-left: 3px solid var(--brass-line);
+  margin: 6px 0;
+}
+.qb-start b {
+  color: var(--ink);
+}
+.qb-done {
+  border-left-color: var(--green-ink);
+}
+.qb-after {
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  padding: 4px 8px;
+}
+.qb-steps li {
+  display: flex;
+  gap: 8px;
+  padding: 7px 8px;
+  margin: 5px 0;
+  border: 1px solid rgba(238, 243, 244, 0.18);
+  border-radius: 10px;
+  background: #0f2a3b;
+}
+.qb-steps li.on {
+  border-color: var(--brass-hi);
+  background: #183e55;
+  box-shadow: 0 0 0 1px var(--brass-hi) inset;
+}
+.qb-no {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--brass);
+  color: var(--outline);
+  font: 700 15px/1 var(--display);
+}
+.qb-steps li b {
+  display: block;
+  font-size: 14px;
+}
+.qb-goal {
+  display: block;
+  color: var(--ink-dim);
+  font-size: 12px;
+  margin: 2px 0 4px;
+}
+.qb-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.qb-flags em,
+.qb-gold {
+  font: 500 11.5px/1 var(--body);
+  font-style: normal;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: #24506a;
+}
+.qb-gold {
+  background: #4a3b12;
+  color: var(--brass-hi);
+}
+
