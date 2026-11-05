@@ -211,6 +211,8 @@
   "settings.bergsNote": "Désactivé : aucun iceberg ne dérive dans la mer du Nord",
   "settings.ships": "Autres navires",
   "settings.shipsNote": "Désactivé : ni bateaux de pêche, ni caboteurs, ni visiteurs en mer",
+  "settings.seaLife": "Vie marine",
+  "settings.seaLifeNote": "Désactivé : ni mouettes, ni dauphins, ni baleines, ni bancs de poissons",
   "traffic.label": "{name}, de {port}",
   "settings.haze.fog": "Bancs de brouillard",
   "settings.haze.ash": "Nuages de cendres",

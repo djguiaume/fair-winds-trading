@@ -45,6 +45,7 @@ describe('storm water (issue #282)', () => {
       setDaylight() {},
       setColors() {},
       setSun() {},
+      setSkyReflection() {},
       horizon: null,
     } as unknown as Ocean;
     const day = { night: 0, warm: 0, lightHeight: 1, lightBearing: 0 } as Daylight;

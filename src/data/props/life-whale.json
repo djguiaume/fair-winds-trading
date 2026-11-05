@@ -1,0 +1,48 @@
+{
+  "id": "life-whale",
+  "name": "Whale (sea life)",
+  "group": "life",
+  "internal": true,
+  "parts": [
+    {
+      "sphere": [1.1, 8, 3, 0, 6.2832, 0, 1.5708],
+      "ops": [["scale", 1, 0.75, 4.1]],
+      "color": "whale"
+    },
+    {
+      "sphere": [1.1, 8, 2, 0, 6.2832, 1.5708, 1.5708],
+      "ops": [["scale", 1, 0.6, 4.1]],
+      "color": "whaleBelly"
+    },
+    {
+      "cone": [0.32, 0.4, 4],
+      "at": [0, 0.95, 1.7],
+      "color": "whale"
+    },
+    {
+      "repeat": {
+        "side": [-1, 1]
+      },
+      "parts": [
+        {
+          "plane": [2.3, 0.45],
+          "ops": [
+            ["turnX", -1.5708],
+            ["turnY", "side * 0.65"],
+            ["move", "side * 1.75", -0.35, -1.1]
+          ],
+          "color": "whaleBelly"
+        },
+        {
+          "plane": [1.7, 0.95],
+          "ops": [
+            ["turnX", -1.5708],
+            ["turnY", "side * 0.32"],
+            ["move", "side * 0.82", 0.1, 4.75]
+          ],
+          "color": "whale"
+        }
+      ]
+    }
+  ]
+}

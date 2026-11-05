@@ -123,6 +123,8 @@ export class Ocean {
   private readonly shallowLight = new THREE.Color(1, 1, 1);
   /** 0 = clear … 1 = under the darkest storm: the mid and deep water grey toward slate blue (#282). */
   private gloom = 0;
+  /** The sky reflection's strength against the shipped one (the chase camera's, issue #469). */
+  private reflectStrength = 1;
   /** How much stronger the shore foam is under the darkest storm (Ultra's `stormFoam`, else 0). */
   private readonly stormFoam: number;
 
@@ -230,6 +232,15 @@ export class Ocean {
   }
 
   /**
+   * The sky the sea mirrors and how strongly, against `graphics.water.reflection`: the chase
+   * camera's bluer sky (issue #469). Call after `setColors`, which resets the colour.
+   */
+  setSkyReflection(color: THREE.Color, strength: number): void {
+    (this.mesh.material.uniforms.uSkyLight!.value as THREE.Color).copy(color);
+    this.reflectStrength = strength;
+  }
+
+  /**
    * The time of day and the weather, before any zone tints (atmosphere.ts): the depth colours are
    * the sea's day colours times this light's water against the day's, so dusk, night and storms
    * shade every sea alike, and a sea's own colours replace the old zone tint of its water.
@@ -290,7 +301,7 @@ export class Ocean {
       look.set(facets, near * detailFrom, near * detailTo, slopeGain);
     } else shoreWashOff();
     const w = TUNING.graphics.water;
-    u.uReflect!.value = reflect ? w.reflection : 0;
+    u.uReflect!.value = reflect ? w.reflection * this.reflectStrength : 0;
     u.uGlint!.value = reflect ? w.glint : 0;
     u.uFresnelPower!.value = w.fresnelPower;
     u.uGlintSharpness!.value = w.glintSharpness;

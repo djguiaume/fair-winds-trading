@@ -17,7 +17,7 @@
   "resetRate": 4,
   "returnAfterSeconds": 5,
   "chase": {
-    "pitchDeg": 15,
+    "pitchDeg": 11,
     "distance": 48,
     "sightDistance": 110,
     "lookAhead": 14,

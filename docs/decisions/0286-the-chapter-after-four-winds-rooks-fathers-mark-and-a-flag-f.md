@@ -1,4 +1,4 @@
-# 0284. The chapter after Four Winds: Rook's father's mark and a flag for the pier
+# 0286. The chapter after Four Winds: Rook's father's mark and a flag for the pier
 
 **Status:** Proposed (2026-11-04).
 

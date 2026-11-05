@@ -41,6 +41,7 @@ import { DriftingBergs } from './driftingBergs';
 import { TrafficView } from './traffic';
 import type { SeaMarkDef } from '../sim/map';
 import { QuestMarkers } from './questMarkers';
+import { SeaLife } from './seaLife';
 import type { StepMarker } from '../ui/questView';
 import { daylightAt, shownDaylightAt } from '../sim/daylight';
 import { StormClouds } from './stormClouds';
@@ -91,6 +92,7 @@ export class GameView {
   private readonly bergs: DriftingBergs;
   /** Other boats on the sea (decision 0215). */
   private readonly traffic: TrafficView;
+  readonly seaLife: SeaLife;
   /** The tracked quest step's places at sea (decision 0130). */
   private readonly questMarkers = new QuestMarkers();
   private readonly sea = new SeaWaves(() => this.world);
@@ -211,14 +213,10 @@ export class GameView {
       look,
       quality: level,
     });
-    this.lighthouseBeams = new LighthouseBeams(
-      world.map.islands,
-      this.islandLevels(this.levels),
-      look,
-    );
-    this.scene.add(this.lighthouseBeams.root);
-    this.beaconLights = new BeaconLights(world.map.islands, this.islandLevels(this.levels), look);
-    this.scene.add(this.beaconLights.points);
+    const byIsland = this.islandLevels(this.levels);
+    this.lighthouseBeams = new LighthouseBeams(world.map.islands, byIsland, look);
+    this.beaconLights = new BeaconLights(world.map.islands, byIsland, look);
+    this.scene.add(this.lighthouseBeams.root, this.beaconLights.points);
     this.volcanoes = new Volcanoes(this.islands.craters);
     this.level = level;
     this.boat = this.buildBoat();
@@ -227,9 +225,11 @@ export class GameView {
     this.seaMarks = new SeaMarks(world.map);
     this.bergs = new DriftingBergs(world.map);
     this.traffic = new TrafficView(world.map, this.sea.heightAt);
+    this.seaLife = new SeaLife(world, () => this.level, this.sea.heightAt);
     this.scene.add(
       this.bergs.root,
       this.traffic.root,
+      this.seaLife.root,
       this.castaway.root,
       this.seaMarks.root,
       this.questMarkers.root,
@@ -521,10 +521,8 @@ export class GameView {
 
   /** Town levels by port id, keyed by the port's island instead. */
   private islandLevels(levels: Record<string, TownLevel>) {
-    const out: Record<string, TownLevel> = {};
-    for (const port of this.world.map.ports)
-      if (levels[port.id] !== undefined) out[port.islandId] = levels[port.id]!;
-    return out;
+    const ports = this.world.map.ports.filter((p) => levels[p.id] !== undefined);
+    return Object.fromEntries(ports.map((p) => [p.islandId, levels[p.id]!]));
   }
 
   /**
@@ -569,18 +567,10 @@ export class GameView {
       : CLEAR;
     const ultra = this.profile.ultra ? this.ultra : undefined;
     const shownWeather = this.sea.shownWeather(this.world.weather);
+    this.atmosphere.setView(this.rig.chase.eased, wind.speedKn);
     this.atmosphere.update(dt, day, shownWeather, this.ocean, this.target, haze, ultra?.sunShape);
     const gloom = this.atmosphere.gloom;
-    // Rain and the dark close in a little, never enough to hide the next island. The view range
-    // is `weather.json` › `sight`, in camera distances (decision 0169).
-    const sight = TUNING.weather.sight;
-    fog.near = dist * (sight.near - sight.gloomNear * gloom - sight.nightNear * day.night);
-    fog.far = dist * (sight.far - sight.gloomFar * gloom - sight.nightFar * day.night);
-    // A haze closes in much more: its sight counts from the boat, about `dist` from the camera.
-    if (haze.kind && haze.haze > 0) {
-      fog.near += (Math.min(fog.near, dist + haze.kind.near) - fog.near) * haze.haze;
-      fog.far += (Math.min(fog.far, dist + haze.kind.far) - fog.far) * haze.haze;
-    }
+    this.atmosphere.closeFog(dist, day, haze);
     this.veil.update(haze, this.atmosphere.hazeColor);
     this.ocean.setFog(fog.near, fog.far);
     // Nothing past the fog can show, so the camera stops there and three.js skips what lies beyond
@@ -693,6 +683,7 @@ export class GameView {
       this.world.rival,
       conditions,
     );
+    this.seaLife.update(dt, time, day.night);
     this.questMarkers.update(this.stepMarkers(), time, this.sea.heightAt);
     const course = this.world.destination;
     this.courseSpar.update(
@@ -780,6 +771,7 @@ export class GameView {
     const gloom = this.atmosphere.gloom;
     this.atmosphere.gloom = 0;
     const sun = this.profile.ultra ? this.ultra?.sunShape : undefined;
+    this.atmosphere.setView(0, 0);
     this.atmosphere.update(0, day, this.world.weather, this.ocean, aim, tint, sun);
     this.atmosphere.gloom = gloom;
     const fog = this.scene.fog as THREE.Fog;
@@ -858,6 +850,7 @@ export class GameView {
     this.currentWater?.dispose();
     this.bergs.dispose();
     this.traffic.dispose();
+    this.seaLife.dispose();
     this.calmWater?.dispose();
     this.roughWater?.dispose();
     this.shallowsWater?.dispose();
@@ -868,6 +861,7 @@ export class GameView {
     this.questMarkers.dispose();
     this.boat.dispose();
     this.ultra?.dispose();
+    this.atmosphere.dispose();
     this.renderer.dispose();
   }
 }
