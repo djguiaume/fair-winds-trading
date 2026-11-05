@@ -165,6 +165,25 @@ describe('standing orders (decision 0214)', () => {
     );
   });
 
+  it('a keeper may ask for a far good made in another sea, never a ring good (#360)', () => {
+    const at = (place: string, good: string) =>
+      checkQuests(
+        [
+          {
+            ...KIT,
+            port: place,
+            steps: [{ ...ask('ask-1', good, 2), goal: { is: 'landed', place, good, qty: 2 } }],
+          } as QuestDef,
+        ],
+        GAME_MAP,
+        ['first-voyage'],
+      ).join();
+    expect(at('rimewick', 'spicedTea')).not.toContain('never wants');
+    expect(at('fogwatch', 'cloudberries')).not.toContain('never wants');
+    expect(at('palm-key', 'bread')).not.toContain('never wants');
+    expect(at('rimewick', 'stone')).toContain('rimewick never wants stone');
+  });
+
   it('every person whose arc is done has one, at their port, after their arc', () => {
     const standing = QUESTS.filter((q) => q.repeat);
     expect(standing.map((q) => q.giver).sort()).toEqual(
