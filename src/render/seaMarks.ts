@@ -45,6 +45,10 @@ function model(type: SeaMarkDef['type']): THREE.BufferGeometry | null {
   if (type === 'buoy-green') return buoy('#2f9a55');
   // Drawn larger than a channel buoy: a mark to sail round, seen from the helm's camera.
   if (type === 'buoy-yellow') return practiceBuoy().scale(1.5, 1.5, 1.5);
+  if (type === 'quest-buoy')
+    return mergeAll(
+      buildProp('mark-quest-buoy', { R: 1, style: 'fish', variant: 0, shape: 0.5, size: 1 }),
+    );
   // Cardinal danger marks (decision 0152): one recipe each in src/data/props/mark-cardinal-*.json,
   // whose `scale` stands them taller than channel buoys so their top marks read from the camera.
   if (type.startsWith('cardinal-'))
