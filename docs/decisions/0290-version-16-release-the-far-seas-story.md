@@ -9,7 +9,7 @@ Every part of the [v1.6 brief](../v1.6/brief.md) is merged on `main`: Ness's hin
 ## Decision
 
 - **This is an update.** `package.json` goes to `1.6.0` and the menu label to "1.6" ([0042](0042-light-versioning.md), [0219](0219-version-1-0-release.md)).
-- **The tag** is the version the menu shows for this PR's merge (v1.6.386 if nothing merges first), published with the release workflow and the notes in `docs/releases/` ([0062](0062-github-releases-per-phase.md)).
+- **The tag** is the version the menu shows for this PR's merge (v1.6.387 if nothing merges first), published with the release workflow and the notes in `docs/releases/` ([0062](0062-github-releases-per-phase.md)).
 - **Open, not blocking:** real-device `?bench` runs for the chase sky and for sea life join #377; people on the sea is #477 (not in v1.6); the stranger playtest #364 stays before the store build.
 
 ## Consequences

@@ -30,4 +30,4 @@ worth remembering.
 | [v1.3.335](v1.3.335.md) | merge of the 1.3.1 PR | 1.3.1 Boats that ride them: boats heave, pitch and roll, waves slow the boat, surf lines and beach wash, start view, bake coast |
 | [v1.4.351](v1.4.351.md) | merge of the 1.4 PR | 1.4 Visible upgrades: upgrades on every ship, Boat looks screen, logos and patterns, earned looks, Free Sailing |
 | [v1.5.372](v1.5.372.md) | merge of the 1.5 PR | 1.5 A real game: the UI rebuilt as one system with the chart-table identity, every screen on the same components, painted port banners, a close chase camera |
-| [v1.6.386](v1.6.386.md) | merge of the 1.6 PR | 1.6 The far seas' story: a turn in every far sea, on-screen reunions, a chapter after Four Winds, cross-sea far-goods asks, a drawn sky, sea life |
+| [v1.6.387](v1.6.387.md) | merge of the 1.6 PR | 1.6 The far seas' story: a turn in every far sea, on-screen reunions, a chapter after Four Winds, cross-sea far-goods asks, a drawn sky, sea life |
