@@ -72,7 +72,7 @@ describe('the south sea story (decision 0155)', () => {
     setLanguage('en');
   });
 
-  it('plays through in a sloop: Ness’s chart, Juno’s three steps, then founding Palm Key', () => {
+  it('plays through in a sloop: Ness’s chart, Juno’s four steps, then founding Palm Key', () => {
     const { world, book } = setup();
     book.check();
     expect(book.active.map((a) => a.quest.id)).not.toContain('watchman-passage');
@@ -117,28 +117,31 @@ describe('the south sea story (decision 0155)', () => {
     hold(world, book, 474, -730, 6, 4);
     expect(book.progress('sunreach-tea')!.step).toBe('garden');
     hold(world, book, 474, -730, 2, 4);
-    expect(book.progress('sunreach-tea')!.step).toBe('racks');
-    // 3. Ten planks for the drying racks.
+    expect(book.progress('sunreach-tea')!.step).toBe('glass');
+    // 3. The sea's turn (#359): Wren sends her into The Glass for a bottle, back to Juno.
+    expect(cardFor(book, world.map, 'sunreach-tea', 'step')!.giver?.id).toBe('wren');
+    hold(world, book, 440, -612, 2, 4);
+    expect(book.progress('sunreach-tea')!.step).toBe('glass');
     dock(world, book, 'sunreach');
+    expect(book.progress('sunreach-tea')!.step).toBe('racks');
+    // 4. Ten planks for the drying racks.
     const planks = deliver(world, book, 'planks', 10);
     expect(book.progress('sunreach-tea')!.step).toBe('done');
-    expect(world.trade.captain.gold - bread - planks).toBe(gold + 300 + 250 + 400 + 600);
+    expect(world.trade.captain.gold - bread - planks).toBe(gold + 300 + 250 + 400 + 400 + 600);
 
-    // Palm Key: Juno offers it at Sunreach; timber and planks landed, then Tam from Watchman Key.
+    // Palm Key in one card (#359): Juno asks; timber and planks landed, Tam and Ness brought.
     expect(book.offered.map((q) => q.id)).toContain('outpost-south');
     book.accept('outpost-south');
     expect(cardFor(book, world.map, 'outpost-south', 'step')!.giver?.id).toBe('juno');
     world.trade.captain.cargo.timber = 6;
     world.trade.captain.cargo.planks = 4;
     hold(world, book, LANDING.x, LANDING.y, 1, 4);
-    expect(book.progress('outpost-south')!.step).toBe('supplies');
     world.trade.captain.cargo.timber = 4;
     world.trade.captain.cargo.planks = 2;
     hold(world, book, LANDING.x + 30, LANDING.y, 1, 1);
     hold(world, book, LANDING.x, LANDING.y, 1, 4);
     expect(book.progress('outpost-south')!.step).toBe('settler');
     expect(isDiscovered(world.trade, 'palm-key')).toBe(false);
-    expect(cardFor(book, world.map, 'outpost-south', 'step')!.giver?.id).toBe('tam');
     dock(world, book, 'watchman-key');
     hold(world, book, LANDING.x, LANDING.y, 1, 4);
     expect(book.progress('outpost-south')!.step).toBe('done');

@@ -68,9 +68,11 @@ export function seaMarkShape(
             ? '#2f9a55'
             : mark.type === 'buoy-yellow'
               ? '#f2c230'
-              : mark.type === 'wreck'
-                ? '#5a4636'
-                : '#3f74a8',
+              : mark.type === 'quest-buoy'
+                ? '#efe6d1'
+                : mark.type === 'wreck'
+                  ? '#5a4636'
+                  : '#3f74a8',
       stroke: '#f6f1e4',
       'stroke-width': 1 * px,
     },

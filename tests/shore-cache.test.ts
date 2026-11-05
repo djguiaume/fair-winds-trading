@@ -156,6 +156,7 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
     sea: { gerstner: false, setOn: () => false, calmBy: <T>(seabed: T) => seabed },
     wavesChoice: false,
     islands: { setQuality: vi.fn() },
+    seaLife: { dispose: vi.fn() },
     rig: { orbit: new CameraOrbit() },
     boat: { setLowDetail: vi.fn() },
     scene: new THREE.Scene(),
@@ -247,6 +248,7 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
     'boat',
     'bergs',
     'traffic',
+    'atmosphere',
   ]) {
     Object.assign(view, { [key]: { dispose: vi.fn() } });
   }

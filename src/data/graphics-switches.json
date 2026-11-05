@@ -4,5 +4,6 @@
   "tonemap": "toneMapping",
   "haze": "haze",
   "reflection": "reflection",
-  "msaa": "msaa"
+  "msaa": "msaa",
+  "life": "seaLife"
 }

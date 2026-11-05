@@ -1,0 +1,40 @@
+{
+  "id": "star-over-wave",
+  "name": "The star over a wave",
+  "start": { "is": "quest-done", "quest": "four-winds" },
+  "text": "quest.star-over-wave",
+  "main": true,
+  "giver": "ness",
+  "doneSpeaker": "rook",
+  "port": "watchman-key",
+  "items": { "sea-chest": { "space": 2 } },
+  "marks": [{ "type": "quest-buoy", "x": 760, "y": 290 }],
+  "steps": [
+    { "id": "lay", "port": "watchman-key", "goal": { "is": "docked", "port": "watchman-key" } },
+    {
+      "id": "buoy",
+      "compass": { "x": 760, "y": 290 },
+      "goal": {
+        "is": "reach",
+        "points": [{ "x": 760, "y": 290 }],
+        "within": 14,
+        "maxKn": 3,
+        "holdSec": 3
+      },
+      "reward": { "gold": 250 }
+    },
+    {
+      "id": "chest",
+      "mood": "pleased",
+      "goal": {
+        "is": "carried",
+        "item": "sea-chest",
+        "qty": 1,
+        "from": { "x": 760, "y": 290, "within": 14, "maxKn": 3, "holdSec": 3 },
+        "to": "saltmere"
+      },
+      "reward": { "gold": 350 }
+    }
+  ],
+  "reward": { "gold": 400 }
+}

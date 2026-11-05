@@ -20,6 +20,7 @@ const nowhere: PlaceDistances = {
   bergs: Infinity,
   vents: Infinity,
   reefs: Infinity,
+  birds: () => Infinity,
   storm: false,
   raining: false,
 };
@@ -85,6 +86,19 @@ describe('sounds of the sea (decision 0209)', () => {
     const storm = { effect: 'thunder', every: [5, 10] as [number, number], when: 'storm' as const };
     expect(callLevel(storm, nowhere)).toBe(0);
     expect(callLevel(storm, { ...nowhere, storm: true })).toBe(1);
+  });
+
+  it('lets the gulls cry only where the drawn gulls fly (issue #476)', () => {
+    const gull = SEA_BEDS[RING]!.calls!.find((c) => c.effect === 'gull')!;
+    expect(gull.near?.birds).toContain('gull');
+    const birdsAt = (d: number) => ({
+      ...nowhere,
+      birds: (kinds: string[]) => (kinds.includes('gull') ? d : Infinity),
+    });
+    expect(callLevel(gull, birdsAt(Infinity))).toBe(0);
+    expect(callLevel(gull, birdsAt(10))).toBeGreaterThan(0);
+    // Sea life hidden: the view answers 0, so the gulls cry as they did before there were birds.
+    expect(callLevel(gull, birdsAt(0))).toBe(gull.volume ?? 1);
   });
 
   it('times calls between their waits, and only while they may sound', () => {

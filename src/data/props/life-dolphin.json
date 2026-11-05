@@ -1,0 +1,45 @@
+{
+  "id": "life-dolphin",
+  "name": "Dolphin (sea life)",
+  "group": "life",
+  "internal": true,
+  "parts": [
+    {
+      "sphere": [0.42, 7, 3, 0, 6.2832, 0, 1.5708],
+      "ops": [["scale", 1, 0.9, 3.6]],
+      "color": "dolphin"
+    },
+    {
+      "sphere": [0.42, 7, 2, 0, 6.2832, 1.5708, 1.5708],
+      "ops": [["scale", 1, 0.75, 3.6]],
+      "color": "dolphinBelly"
+    },
+    {
+      "cone": [0.12, 0.45, 5],
+      "ops": [["turnX", -1.5708]],
+      "at": [0, -0.05, -1.68],
+      "color": "dolphin"
+    },
+    {
+      "cone": [0.24, 0.5, 3],
+      "ops": [
+        ["scale", 0.25, 1, 1],
+        ["turnX", 0.55]
+      ],
+      "at": [0, 0.5, 0.15],
+      "color": "dolphin"
+    },
+    {
+      "repeat": {
+        "side": [-1, 1]
+      },
+      "plane": [0.55, 0.32],
+      "ops": [
+        ["turnX", -1.5708],
+        ["turnY", "side * 0.35"],
+        ["move", "side * 0.27", 0, 1.62]
+      ],
+      "color": "dolphin"
+    }
+  ]
+}

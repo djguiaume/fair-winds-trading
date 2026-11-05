@@ -49,7 +49,9 @@ describe('main quests and the Quay tab (decision 0141)', () => {
     expect(QUESTS.filter((q) => q.main).map((q) => q.id)).toEqual([
       'fair-winds',
       'four-winds',
+      'homecoming',
       'rooks-thanks',
+      'star-over-wave',
     ]);
     expect(QUESTS.filter((q) => q.main && q.offer)).toEqual([]);
     expect(checkQuests([{ ...MAIN, main: 'yes' as unknown as boolean }], PHASE1_MAP)).toContain(

@@ -8,6 +8,7 @@ import { resolve, join } from 'node:path';
 import { ROOT, chromiumPath, startVite } from './lib.mjs';
 import { padSteps } from './padSteps.mjs';
 import { defaultName, keyHold, list, lookOption, pair, readAll } from './shotOptions.mjs';
+import { applyTune, nightTime, tuneChanges } from './shotOptions.mjs';
 import { prepareBoot, shootBoot } from './shotsBoot.mjs';
 import { HELP } from './shotsHelp.mjs';
 export { HELP };
@@ -64,6 +65,8 @@ export function normalise(opts) {
     tab: o.tab ?? null,
     zoom: o.zoom ?? null,
     turn: (o.yaw ?? o.tilt) !== undefined ? [o.yaw ?? 0, o.tilt] : null,
+    chase: !!o.chase,
+    tune: o.tune ? tuneChanges(o.tune) : null,
     ...lookOption(o.look),
     menu: !!o.menu,
     boot: o.splash ? 'splash' : o['portrait-gate'] ? 'gate' : null,
@@ -91,6 +94,7 @@ export function normalise(opts) {
     currents: !o['no-currents'],
     erupt: o.erupt ?? null,
     eruptions: !o['no-eruptions'],
+    life: o.life ?? null,
     cards: o.cards ?? !!o.url,
     wait: o.wait ?? 1500,
     click: o.click ? (Array.isArray(o.click) ? o.click.join(';') : String(o.click)) : null,
@@ -159,7 +163,7 @@ export function seedStorage(shot) {
       musicVolume: 0,
       voices: false,
       language: shot.lang,
-      dayNight: shot.night,
+      dayNight: shot.night || shot.time !== null,
       weather: shot.weather,
       storms: shot.storms,
       windZones: shot.zones,
@@ -222,6 +226,7 @@ function lookAt(at) {
 async function setScene(page, shot) {
   if ((shot.at || shot.moor || (shot.port && !shot.url)) && (await visible(page, '#tp-undock')))
     await page.click('#tp-undock');
+  if (shot.tune) await page.evaluate(applyTune, shot.tune);
   const problem = await page.evaluate((s) => {
     const { world, view, trade } = window.fwt;
     if (s.time !== null) world.time = s.time;
@@ -268,14 +273,14 @@ async function setScene(page, shot) {
       for (const [spot, building] of s.built) home.built[spot] = building;
       window.fwt.showHome();
     }
-    if (s.moor) {
-      if (!window.fwt.moor(s.moor)) return `no pier to moor at on ${s.moor}`;
-    }
+    if (s.moor && !window.fwt.moor(s.moor)) return `no pier to moor at on ${s.moor}`;
     if (s.tab && world.trade.dockedAt) window.fwt.tradePanel.open(s.tab);
     if (s.zoom !== null) view.rig.zoom = s.zoom;
     if (s.turn) view.rig.orbit.set(...s.turn);
+    if (s.chase) view.rig.jump(true);
     if (s.look) view.setFocus({ x: s.look[0], y: s.look[1] }, true);
     if (s.erupt && !view.erupt(s.erupt, true)) return `no volcano on ${s.erupt}`;
+    if (s.life) view.seaLife.callNow(s.life);
     return null;
   }, shot);
   if (problem) throw new Error(problem);
@@ -498,13 +503,6 @@ async function shootScene(page, shot) {
     await pause(400);
     await act(page, shot);
   }
-}
-
-/** The night's middle, in game seconds, from the tuning file (decision 0068). */
-function nightTime() {
-  const w = JSON.parse(readFileSync(join(ROOT, 'src/data/tuning/weather.json'), 'utf8'));
-  const { duskEnd, nightEnd } = w.daylight;
-  return Math.round((duskEnd + nightEnd) / 2);
 }
 
 /** Takes the shots; returns the files written. Also used by `npm run quest -- play --shots`. */

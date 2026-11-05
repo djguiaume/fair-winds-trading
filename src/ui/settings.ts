@@ -68,6 +68,8 @@ export interface Settings {
   bergs: boolean;
   /** Other boats on the sea (decision 0215): fishing boats, coasters and visitors; off, none. */
   ships: boolean;
+  /** Gulls, terns, dolphins, a whale and fish shoals (issue #476); drawing only. */
+  seaLife: boolean;
   /** Haze switches (`fog`, `ash`, decision 0169): false turns that haze off. Left out = on. */
   haze: Record<string, boolean>;
   /** Graphics effect switches (`shadows`, `reflection`…, decision 0221). Left out = on. */
@@ -114,6 +116,7 @@ const DEFAULTS: Settings = {
   seaDrag: true,
   bergs: true,
   ships: true,
+  seaLife: true,
   haze: {},
   effects: {},
   seenCurrentHint: false,

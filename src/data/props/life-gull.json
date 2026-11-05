@@ -1,0 +1,58 @@
+{
+  "id": "life-gull",
+  "name": "Gull (sea life)",
+  "group": "life",
+  "internal": true,
+  "parts": [
+    {
+      "ico": [0.22, 0],
+      "ops": [["scale", 0.75, 0.7, 2.6]],
+      "color": "gull"
+    },
+    {
+      "cone": [0.045, 0.2, 3],
+      "ops": [["turnX", -1.5708]],
+      "at": [0, 0.03, -0.66],
+      "color": "beak"
+    },
+    {
+      "repeat": {
+        "side": [-1, 1]
+      },
+      "parts": [
+        {
+          "plane": [0.52, 0.4],
+          "ops": [
+            ["turnX", -1.5708],
+            ["move", "side * 0.39", 0.04, 0.02]
+          ],
+          "color": "gull"
+        },
+        {
+          "plane": [0.46, 0.28],
+          "ops": [
+            ["turnX", -1.5708],
+            ["turnY", "side * -0.22"],
+            ["move", "side * 0.86", 0.09, 0.1]
+          ],
+          "color": "gullWing"
+        },
+        {
+          "plane": [0.18, 0.2],
+          "ops": [
+            ["turnX", -1.5708],
+            ["turnY", "side * -0.3"],
+            ["move", "side * 1.15", 0.11, 0.17]
+          ],
+          "color": "gullTip"
+        }
+      ]
+    },
+    {
+      "plane": [0.3, 0.3],
+      "ops": [["turnX", -1.5708]],
+      "at": [0, 0, 0.68],
+      "color": "gull"
+    }
+  ]
+}
