@@ -271,6 +271,16 @@ A lesson step with a `speaker` is that person's card instead of a bubble, coach 
 
 The **quest builder** in the map editor (`editor.html` › Quests, [how to use](../quest-builder/builder/README.md), [0142](../decisions/0142-quest-builder.md)) edits all of this with forms, places on the chart and text side by side, and exports the files.
 
+**Where the quest code lives (#422).** Engine, in `src/sim/`: `quests.ts` (the `QuestBook`, and
+it passes on the rest) on `questBookBase.ts` (what it knows) and `questBookSteps.ts` (how quests
+move on); `questTypes.ts` (the file format), `questFlow.ts` (step to step), `questChecks.ts`,
+`questSave.ts`, `questRewards.ts`. Conditions: `questLibrary.ts` (passes them on),
+`conditionBasics.ts`, `questConditions.ts` (every kind), one file per family
+(`conditionsVoyage.ts`, `conditionsCargo.ts`, `conditionsSailing.ts`), `conditionChecks.ts`.
+Builder, in `src/editor/quest/`: `doc.ts` with `docText`, `docWords`, `docPlaces`, `docStory`,
+`docChecks`; `form.ts` with `formFields.ts`, `seaFields.ts`, `rewardForm.ts`. Game, in `src/ui/`:
+`questView.ts` (cards) with `questWords`, `questJournal`, `questPlaces`, `questLesson`.
+
 Every file in `src/data/quests/` is a quest the engine runs (`src/sim/quests.ts`), several at
 once, saved with the voyage. Example (a test file: [`tests/fixtures/quests/test-pier.json`](../../tests/fixtures/quests/test-pier.json)):
 
