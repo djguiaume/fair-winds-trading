@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { QUALITY, ultraCapable } from '../src/render/quality';
 import { ShadowCasters } from '../src/render/shadowCasters';
+import { leanShadowMap } from '../src/render/shadowTarget';
 
 describe('Ultra quality (decision 0221)', () => {
   it('is guessed only for a real graphics card with enough cores', () => {
@@ -41,5 +42,17 @@ describe('Ultra quality (decision 0221)', () => {
     casters.restore(scene);
     expect([house.castShadow, house.receiveShadow]).toEqual([false, false]);
     expect([ground.castShadow, ground.receiveShadow]).toEqual([true, true]);
+  });
+
+  it('keeps a lean shadow map: one-byte colour, 16-bit depth set up for PCF', () => {
+    const map = leanShadowMap(4096, false);
+    expect([map.width, map.height]).toEqual([4096, 4096]);
+    expect(map.texture.format).toBe(THREE.RedFormat);
+    expect(map.texture.type).toBe(THREE.UnsignedByteType);
+    const depth = map.depthTexture!;
+    expect(depth.type).toBe(THREE.UnsignedShortType);
+    expect(depth.format).toBe(THREE.DepthFormat);
+    expect(depth.compareFunction).toBe(THREE.LessEqualCompare);
+    expect(leanShadowMap(1024, true).depthTexture!.compareFunction).toBe(THREE.GreaterEqualCompare);
   });
 });
