@@ -3,9 +3,9 @@ import { type StepEffects, type StepWind, checkStepEffects } from './stepEffects
 import characterData from '../data/characters.json';
 import { daylightAt } from './daylight';
 import { chartAreaIds, chartAreas } from './fog';
-import { GOODS, type GoodAmounts, type GoodId, isGood } from './goods';
+import { FAR_GOODS, GOODS, type GoodAmounts, type GoodId, isGood } from './goods';
 import { type IslandDesign, questTagIds, runningTag } from '../data/islands';
-import { type MapDef, SEA_MARK_TYPES, type SeaMarkDef } from './map';
+import { type MapDef, type PortDef, SEA_MARK_TYPES, type SeaMarkDef } from './map';
 import {
   type CheckScope,
   type Condition,
@@ -57,7 +57,7 @@ import { deckFree, syncMarketLevels, type TradeState } from './trade';
 import { pointOfSail } from './ship';
 import type { World } from './world';
 import { payStandingOrder, standingOrderGold } from './contracts';
-import { MAX_SETTLEMENT_LEVEL, portWants } from './settlement';
+import { MAX_SETTLEMENT_LEVEL, portProduces, portWants } from './settlement';
 import { TUNING } from '../data/tuning';
 
 /*
@@ -605,7 +605,8 @@ export function checkQuests(
 /**
  * Problems with a standing order (decision 0214): offered at a port of its own, never a main quest
  * or a lesson; each step one ask, with no way on but the end of the round; a step paid like a help
- * order (`order`) lands a good its port wants there.
+ * order (`order`) lands a good its port wants there, or a far good made in another port (a
+ * cross-sea ask, #360: Sigrun wants Juno's tea).
  */
 function checkRepeat(q: QuestDef, map: MapDef, at: string): string[] {
   const out: string[] = [];
@@ -626,10 +627,23 @@ function checkRepeat(q: QuestDef, map: MapDef, at: string): string[] {
       continue;
     }
     const town = map.ports.find((p) => p.id === port);
-    if (town && !portWants(town, MAX_SETTLEMENT_LEVEL).includes(g.good))
-      out.push(`${where}: ${town.id} never wants ${g.good}`);
+    if (town && !asksFor(map, town, g.good))
+      out.push(`${where}: ${town.id} never wants ${g.good}, and it is no far good made elsewhere`);
   }
   return out;
+}
+
+/**
+ * Whether a standing order at `town` may ask for `good`: one it buys at some level once a port makes
+ * it, or a far good made at another port (a cross-sea ask, #360).
+ */
+function asksFor(map: MapDef, town: PortDef, good: GoodId): boolean {
+  const made = new Set(map.ports.flatMap((p) => portProduces(p, MAX_SETTLEMENT_LEVEL)));
+  if (portWants(town, MAX_SETTLEMENT_LEVEL, made).includes(good)) return true;
+  const elsewhere = map.ports.some(
+    (p) => p !== town && portProduces(p, MAX_SETTLEMENT_LEVEL).includes(good),
+  );
+  return FAR_GOODS.includes(good) && elsewhere;
 }
 
 /** Problems with a step's `set` (decision 0151): known vars, and values that fit them. */
