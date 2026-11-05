@@ -1,168 +1,43 @@
-import { isDifficulty } from '../../sim/difficulty';
 import { GOODS } from '../../sim/goods';
-import { BUILDINGS, homeSpots } from '../../sim/home';
-import type { MapDef } from '../../sim/map';
+import { BUILDINGS } from '../../sim/home';
 import {
   CONDITIONS,
   CONDITION_ABOUT,
   type Condition,
-  MAP_PLACES,
   type Param,
   type QuestPoint,
   SCREENS,
   POINTS_OF_SAIL,
-  isSpot,
 } from '../../sim/questLibrary';
-import type { QuestDef } from '../../sim/quests';
 import { REGATTA } from '../../sim/regatta';
 import { SHIP_CLASSES } from '../../sim/ship';
-import { defaultParam, newCondition, round1 } from './doc';
+import { newCondition } from './doc';
+import {
+  type FormContext,
+  h,
+  row,
+  select,
+  numberInput,
+  checkbox,
+  segmented,
+  portOptions,
+  buildableIslands,
+  questIds,
+  questOf,
+  varOptions,
+} from './formFields';
+import { parField, placeField, pointsField, gateField } from './seaFields';
 
 /*
  * The quest builder's forms (decision 0142), built from the condition library: each parameter
  * of a kind (`CONDITIONS[kind].params`) gets the field its type asks for, so a new kind needs no
  * builder code. Edits change the document in place inside `edit`, which records undo and redraws.
+ *
+ * The inputs and lists are in `formFields.ts` (passed on from here), the fields for places at sea
+ * and pars in `seaFields.ts`.
  */
 
-export interface FormContext {
-  map: MapDef;
-  quests: readonly QuestDef[];
-  /** The quest being edited (its items, its steps). */
-  quest: QuestDef;
-  edit(change: () => void): void;
-  /** Picks a point on the chart for this `{ x, y }`. */
-  pick?(point: QuestPoint): void;
-}
-
-export const h = <K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  attrs: Record<string, string> = {},
-  ...children: (Node | string)[]
-): HTMLElementTagNameMap[K] => {
-  const el = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (k === 'class') el.className = v;
-    else el.setAttribute(k, v);
-  }
-  el.append(...children);
-  return el;
-};
-
-export function row(label: string, ...field: (Node | string)[]): HTMLElement {
-  return h('label', { class: 'ed-row' }, h('span', {}, label), ...field);
-}
-
-export function select(
-  options: (string | [string, string])[],
-  value: string | undefined,
-  onPick: (v: string) => void,
-  blank?: string,
-): HTMLSelectElement {
-  const el = h('select');
-  const list = options.map((o) => (Array.isArray(o) ? o : [o, o]));
-  if (blank !== undefined) list.unshift(['', blank]);
-  // A value the list does not know (a typo in a file) stays visible, so the checks can name it.
-  if (value !== undefined && value !== '' && !list.some(([v]) => v === value))
-    list.push([value, `${value} (unknown)`]);
-  for (const [v, text] of list) el.append(new Option(text, v, false, v === (value ?? '')));
-  el.addEventListener('change', () => onPick(el.value));
-  return el;
-}
-
-export function numberInput(
-  value: number | undefined,
-  onSet: (v: number | undefined) => void,
-  placeholder = '',
-): HTMLInputElement {
-  const el = h('input', { type: 'number', step: 'any', placeholder });
-  if (value !== undefined) el.value = String(value);
-  el.addEventListener('change', () => onSet(el.value === '' ? undefined : Number(el.value)));
-  return el;
-}
-
-export function textInput(value: string, onSet: (v: string) => void): HTMLInputElement {
-  const el = h('input', { type: 'text' });
-  el.value = value;
-  el.addEventListener('change', () => onSet(el.value.trim()));
-  return el;
-}
-
-export function checkbox(value: boolean, onSet: (v: boolean) => void, text = ''): HTMLElement {
-  const box = h('input', { type: 'checkbox' });
-  box.checked = value;
-  box.addEventListener('change', () => onSet(box.checked));
-  return h('span', { class: 'qb-check' }, box, text ? ` ${text}` : '');
-}
-
-/**
- * Fields the forms do not draw yet, as JSON (decision 0151: a lesson's ways back, vars and coach
- * marks): `{}` for none. A text that does not parse is marked and not applied.
- */
-export function jsonField(
-  label: string,
-  value: Record<string, unknown>,
-  apply: (v: Record<string, unknown>) => void,
-  edit: (change: () => void) => void,
-): HTMLElement {
-  const shown = Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined));
-  const area = h('textarea', { rows: String(Math.min(14, 2 + JSON.stringify(shown).length / 50)) });
-  area.className = 'qb-json';
-  area.value = Object.keys(shown).length ? JSON.stringify(shown, null, 2) : '{}';
-  area.addEventListener('change', () => {
-    try {
-      const v: unknown = JSON.parse(area.value || '{}');
-      if (typeof v !== 'object' || v === null || Array.isArray(v)) throw new Error('an object');
-      area.classList.remove('bad');
-      edit(() =>
-        apply({ ...Object.fromEntries(Object.keys(value).map((k) => [k, undefined])), ...v }),
-      );
-    } catch (e) {
-      area.classList.add('bad');
-      area.title = `Not applied: ${(e as Error).message}`;
-    }
-  });
-  return row(label, area);
-}
-
-/** Buttons where one is on, like the map editor's toggles. */
-export function segmented(
-  options: [string, string][],
-  value: string,
-  onPick: (v: string) => void,
-): HTMLElement {
-  const box = h('span', { class: 'qb-seg' });
-  for (const [v, text] of options) {
-    const b = h('button', { type: 'button', 'aria-pressed': String(v === value) }, text);
-    b.addEventListener('click', () => onPick(v));
-    box.append(b);
-  }
-  return box;
-}
-
-// --- Lists from the game's data -------------------------------------------------------------
-
-export const portOptions = (map: MapDef): [string, string][] => [
-  ['home', 'home (the home port)'],
-  ...map.ports.map((p): [string, string] => [p.id, p.name]),
-];
-export const buildableIslands = (map: MapDef) =>
-  map.islands.filter((i) => homeSpots(map, i.id).length).map((i) => i.id);
-
-function questIds(ctx: FormContext): string[] {
-  return ctx.quests.map((q) => q.id);
-}
-/** A quest's steps and options, for the step and option lists. */
-function questOf(
-  ctx: FormContext,
-  id: unknown,
-): { steps: { id: string; choose?: { id: string }[] }[] } | undefined {
-  return ctx.quests.find((q) => q.id === id);
-}
-/** The quest's vars of a kind, as `$name` choices (decision 0151). */
-const varOptions = (ctx: FormContext, kind: 'port' | 'good'): [string, string][] =>
-  Object.entries(ctx.quest.vars ?? {})
-    .filter(([, k]) => k === kind)
-    .map(([name]): [string, string] => [`$${name}`, `$${name} (picked in play)`]);
+export * from './formFields';
 
 // --- Conditions -----------------------------------------------------------------------------
 
@@ -376,181 +251,4 @@ function paramField(
     default:
       return row(name, String(v ?? ''));
   }
-}
-
-const DIFFICULTIES = ['fair', 'captain', 'salt'];
-
-/** Seconds, or seconds per difficulty level. */
-function parField(name: string, v: unknown, set: (v: unknown) => void): HTMLElement {
-  const per = typeof v === 'object' && v !== null;
-  const box = h('div', { class: 'qb-par' });
-  box.append(
-    segmented(
-      [
-        ['one', 'one par'],
-        ['per', 'per level'],
-      ],
-      per ? 'per' : 'one',
-      (mode) => {
-        if (mode === 'per' && !per) {
-          const s = typeof v === 'number' ? v : 120;
-          set({ fair: Math.round(s * 1.3), captain: s, salt: Math.round(s * 0.8) });
-        } else if (mode === 'one' && per) set((v as Record<string, number>).captain ?? 120);
-      },
-    ),
-  );
-  if (per) {
-    const levels = v as Record<string, number>;
-    for (const level of DIFFICULTIES.filter(isDifficulty))
-      box.append(
-        h(
-          'span',
-          { class: 'qb-par-level' },
-          level,
-          numberInput(levels[level], (n) => set({ ...levels, [level]: n }), 's'),
-        ),
-      );
-  } else box.append(numberInput(v as number | undefined, set, 's'));
-  return row(name, box);
-}
-
-/** A port, or a spot at sea `{ x, y, within, maxKn?, holdSec? }` placed on the chart. */
-function placeField(
-  name: string,
-  v: unknown,
-  ctx: FormContext,
-  set: (v: unknown) => void,
-): HTMLElement {
-  const spot = isSpot(v);
-  const box = h('div', { class: 'qb-place' });
-  box.append(
-    select(
-      [...portOptions(ctx.map), ...varOptions(ctx, 'port'), ['@spot', 'a spot at sea…']],
-      spot ? '@spot' : (v as string),
-      (p) => {
-        if (p !== '@spot') set(p);
-        else if (!spot) {
-          const s = ctx.map.start;
-          set({ x: round1(s.x), y: round1(s.y + 30), within: 10, maxKn: 2, holdSec: 3 });
-        }
-      },
-    ),
-  );
-  if (spot) {
-    const s = v;
-    const num = (key: 'x' | 'y' | 'within' | 'maxKn' | 'holdSec', ph: string) =>
-      h(
-        'span',
-        { class: 'qb-mini' },
-        ph,
-        numberInput(s[key], (n) =>
-          ctx.edit(() => {
-            if (n === undefined && (key === 'maxKn' || key === 'holdSec')) delete s[key];
-            else if (n !== undefined) s[key] = n;
-          }),
-        ),
-      );
-    box.append(
-      h(
-        'div',
-        { class: 'qb-spot' },
-        num('x', 'x'),
-        num('y', 'y'),
-        num('within', 'within'),
-        num('maxKn', 'max kn'),
-        num('holdSec', 'hold s'),
-      ),
-    );
-  }
-  return row(name, box);
-}
-
-function pointsField(
-  name: string,
-  points: (QuestPoint | string)[] | undefined,
-  ctx: FormContext,
-  optional: boolean,
-  set: (v: unknown) => void,
-): HTMLElement {
-  const box = h('div', { class: 'qb-points' });
-  (points ?? []).forEach((p, i) => {
-    const line = h('div', { class: 'qb-pt' }, h('b', {}, String(i + 1)));
-    // A map place by its word (decision 0151), or a point: each map puts the place itself.
-    line.append(
-      select(
-        Object.keys(MAP_PLACES).map((k): [string, string] => [k, `the map’s ${k}`]),
-        typeof p === 'string' ? p : '',
-        (v) => ctx.edit(() => (points![i] = v || { x: 0, y: 0 })),
-        'a point',
-      ),
-    );
-    if (typeof p !== 'string')
-      for (const key of ['x', 'y'] as const)
-        line.append(
-          key,
-          numberInput(p[key], (n) => n !== undefined && ctx.edit(() => (p[key] = n))),
-        );
-    const up = h('button', { type: 'button', title: 'Earlier' }, '↑');
-    up.disabled = i === 0;
-    up.addEventListener('click', () =>
-      ctx.edit(() => points!.splice(i - 1, 0, ...points!.splice(i, 1))),
-    );
-    const x = h('button', { type: 'button', title: 'Remove this point' }, '✕');
-    x.disabled = !optional && points!.length < 2;
-    x.addEventListener('click', () =>
-      ctx.edit(() => {
-        points!.splice(i, 1);
-        if (!points!.length) set(undefined);
-      }),
-    );
-    line.append(up, x);
-    box.append(line);
-  });
-  const add = h('button', { type: 'button', class: 'qb-add' }, '+ point (or ◎ on the chart)');
-  add.addEventListener('click', () =>
-    ctx.edit(() => {
-      const last = [...(points ?? [])]
-        .reverse()
-        .find((o): o is QuestPoint => typeof o !== 'string');
-      const p = last
-        ? { x: round1(last.x + 15), y: round1(last.y) }
-        : (defaultParam('points', ctx.map, []) as QuestPoint[])[0]!;
-      if (points) points.push(p);
-      else set([p]);
-    }),
-  );
-  box.append(add);
-  return row(name, box);
-}
-
-/**
- * A race's start or finish line (decision 0217): the committee boat's end, then the pin's. Both
- * ends are dragged on the chart too.
- */
-function gateField(
-  name: string,
-  gate: QuestPoint[] | undefined,
-  ctx: FormContext,
-  set: (v: unknown) => void,
-): HTMLElement {
-  const ends = gate?.length === 2 ? gate : (defaultParam('gate', ctx.map, []) as QuestPoint[]);
-  const box = h('div', { class: 'qb-points' });
-  ends.forEach((p, i) => {
-    const line = h('div', { class: 'qb-pt' }, h('b', {}, i ? 'pin' : 'boat'));
-    for (const key of ['x', 'y'] as const)
-      line.append(
-        key,
-        numberInput(
-          p[key],
-          (n) =>
-            n !== undefined &&
-            ctx.edit(() => {
-              if (gate?.length === 2) gate[i]![key] = n;
-              else set(ends.map((e, k) => (k === i ? { ...e, [key]: n } : e)));
-            }),
-        ),
-      );
-    box.append(line);
-  });
-  return row(name, box);
 }
