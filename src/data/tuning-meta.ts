@@ -26,6 +26,7 @@ export const ID_COLLECTIONS: readonly string[] = [
   'waves.bands',
   'waves.previews',
   'graphics.quality',
+  'graphics.reflection.levels',
 ];
 
 /** The meta path of a value: `['ships', 'cutter', 'hold']` → `ships.*.hold`. */

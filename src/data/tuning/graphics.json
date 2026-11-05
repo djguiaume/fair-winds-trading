@@ -14,7 +14,8 @@
       "ultra": false,
       "plain": true,
       "lowDetail": true,
-      "waves": false
+      "waves": false,
+      "mirror": false
     },
     "low": {
       "maxRenderPixels": 400000,
@@ -30,7 +31,8 @@
       "ultra": false,
       "plain": false,
       "lowDetail": true,
-      "waves": false
+      "waves": false,
+      "mirror": false
     },
     "medium": {
       "maxRenderPixels": 1250000,
@@ -46,7 +48,8 @@
       "ultra": false,
       "plain": false,
       "lowDetail": false,
-      "waves": true
+      "waves": true,
+      "mirror": false
     },
     "high": {
       "maxRenderPixels": 2500000,
@@ -62,7 +65,8 @@
       "ultra": false,
       "plain": false,
       "lowDetail": false,
-      "waves": true
+      "waves": true,
+      "mirror": false
     },
     "ultra": {
       "maxRenderPixels": 3700000,
@@ -78,7 +82,8 @@
       "ultra": true,
       "plain": false,
       "lowDetail": false,
-      "waves": true
+      "waves": true,
+      "mirror": true
     }
   },
   "auto": {
@@ -221,6 +226,25 @@
       "shade": 0.82,
       "haze": 0.45,
       "driftDegPerKn": 0.04
+    }
+  },
+  "reflection": {
+    "strength": 0.55,
+    "nightStrength": 0.8,
+    "distortion": 0.06,
+    "levels": {
+      "ultra": {
+        "resolution": 0.5,
+        "everyFrames": 1,
+        "range": 220,
+        "islands": true
+      },
+      "high": {
+        "resolution": 0.25,
+        "everyFrames": 2,
+        "range": 120,
+        "islands": false
+      }
     }
   }
 }

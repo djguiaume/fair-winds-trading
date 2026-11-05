@@ -49,6 +49,10 @@ export const QUALITY_META: Readonly<Record<string, TuningMeta>> = {
     'Soft fog-of-war edge on the chart.',
   ),
   'graphics.quality.*.waterReflection': toggle('Sky reflection', 'Sky reflection and sun glint.'),
+  'graphics.quality.*.mirror': toggle(
+    'Boat and island reflections',
+    'The sea mirrors the boats, the islands and the drawn sky (decision 0289); cost knobs in graphics.reflection.levels.',
+  ),
   'graphics.quality.*.ultra': toggle(
     'Ultra pipeline',
     'Tone mapping, soft shadows, occlusion and haze (decision 0221).',

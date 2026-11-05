@@ -159,7 +159,14 @@ describe('settings applier', () => {
   it('pushes every setting to the world, the view and the HUD', () => {
     const world = createWorld(PHASE1_MAP, SLOOP);
     const view = {
-      effects: { shadows: true, occlusion: true, toneMapping: true, haze: true, reflection: true },
+      effects: {
+        shadows: true,
+        occlusion: true,
+        toneMapping: true,
+        haze: true,
+        reflection: true,
+        mirror: true,
+      },
       setWaves: vi.fn(),
       dayNight: true,
       eruptions: true,

@@ -19,7 +19,16 @@ const EFFECTS: readonly (keyof GraphicsEffects)[] = [
   'toneMapping',
   'haze',
   'reflection',
+  'mirror',
 ];
+
+/** Whether a level draws an effect, so its switch shows only there. */
+function drawn(id: keyof GraphicsEffects, level: QualityLevel): boolean {
+  const profile = QUALITY[level];
+  if (id === 'reflection') return profile.waterReflection;
+  if (id === 'mirror') return profile.mirror;
+  return profile.ultra;
+}
 
 /** What the switches drive: the view's effects and its waves. */
 export interface GraphicsView {
@@ -63,8 +72,7 @@ export function effectSwitches(
         settings.effects = { ...settings.effects, [id]: on };
         change();
       },
-      hidden: () =>
-        id === 'reflection' ? !QUALITY[level()].waterReflection : !QUALITY[level()].ultra,
+      hidden: () => !drawn(id, level()),
     })),
   ];
 }

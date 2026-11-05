@@ -163,8 +163,10 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
     sun: new THREE.DirectionalLight(),
     renderer: { shadowMap: { enabled: false }, dispose: vi.fn() },
     resize: vi.fn(),
-    // The Ultra pipeline needs a real WebGL context; its water is what is under test here.
+    // The Ultra pipeline and the sea mirror need a real WebGL context; its water is what is
+    // under test here.
     loadUltra: vi.fn(),
+    mirror: { load: vi.fn(), dispose: vi.fn() },
   });
   const water = () => (view as unknown as { ocean: Ocean }).ocean;
   view.setQuality('low');
@@ -206,7 +208,9 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
   view.setQuality('medium');
   expect(water()).toBe(medium);
   view.setQuality('ultra');
-  expect(water().mesh.material).toBe(high.mesh.material);
+  // Ultra's water mirrors the boats and islands (decision 0289): its own program, not High's.
+  expect('MIRROR' in water().mesh.material.defines).toBe(true);
+  expect(water().mesh.material === high.mesh.material).toBe(false);
   // Ultra-low's plain water is its own program, never Low's (decision 0247).
   view.setQuality('ultralow');
   expect('PLAIN' in water().mesh.material.defines).toBe(true);
