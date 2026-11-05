@@ -22,6 +22,7 @@ vi.mock('../src/render/view', () => ({
     setWaves() {}
     motion = { gentle: false, cameraBob: false };
     seaLife = { on: true, birdDistance: () => 0 };
+    townFolk = { on: true };
     setSettlementLevels() {}
     setHomeBuildings() {}
     setQuestsDone() {}

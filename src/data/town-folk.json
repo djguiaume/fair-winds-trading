@@ -1,0 +1,50 @@
+{
+  "quality": {
+    "ultralow": 0,
+    "low": 0.4,
+    "medium": 0.75,
+    "high": 1,
+    "ultra": 1
+  },
+  "town": {
+    "model": "folk-person",
+    "coats": "coats",
+    "size": 1,
+    "max": 60,
+    "range": 130,
+    "fadeSec": 1.5,
+    "night": 0.3,
+    "perLevel": [4, 8, 14, 20],
+    "cargo": ["crates", "warehouse", "drying-rack", "net-rack"]
+  },
+  "kinds": {
+    "walker": {
+      "where": "lane",
+      "share": 0.45,
+      "speed": 0.5,
+      "stepHz": 1.8,
+      "pauseSec": [1, 4]
+    },
+    "stroller": {
+      "where": "pier",
+      "share": 0.2,
+      "speed": 0.35,
+      "stepHz": 1.5,
+      "pauseSec": [2, 6]
+    },
+    "fisher": {
+      "where": "edge",
+      "share": 0.15,
+      "speed": 0,
+      "stepHz": 0.3,
+      "pauseSec": [0, 0]
+    },
+    "worker": {
+      "where": "cargo",
+      "share": 0.2,
+      "speed": 0.55,
+      "stepHz": 2.1,
+      "pauseSec": [1, 2]
+    }
+  }
+}

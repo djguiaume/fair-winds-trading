@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import type { IslandDef, PortDef } from '../sim/map';
+import { toScene } from './sceneSpace';
 
 /** A soft round glow, drawn once into a small canvas texture. */
 export function glowTexture(): THREE.Texture {
@@ -23,6 +25,29 @@ export function glowTexture(): THREE.Texture {
  * boat, so ports and your own ship are easy to find in the dark. One additive point cloud, no
  * real lights, so it costs one draw call on an old tablet.
  */
+/**
+ * Where the harbour lanterns stand: one on each pier head and a town glow a little inland, none
+ * on an empty island not founded yet (decision 0157).
+ */
+export function harbourLanternSpots(
+  ports: readonly PortDef[],
+  levels: Readonly<Record<string, number>>,
+  harbours: Readonly<Record<string, { x: number; y: number }>>,
+  islands: readonly IslandDef[],
+): THREE.Vector3[] {
+  const spots: THREE.Vector3[] = [];
+  for (const port of ports) {
+    if (levels[port.id] === 0) continue;
+    const pier = harbours[port.id];
+    const island = islands.find((i) => i.id === port.islandId);
+    if (!pier || !island) continue;
+    spots.push(toScene(pier.x, pier.y).setY(4));
+    const town = toScene(pier.x + (island.x - pier.x) * 0.35, pier.y + (island.y - pier.y) * 0.35);
+    spots.push(town.setY(7));
+  }
+  return spots;
+}
+
 /** World size of a lantern's glow on the levels below Ultra. */
 const GLOW_SIZE = 13;
 

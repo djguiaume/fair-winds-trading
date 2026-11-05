@@ -157,6 +157,7 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
     wavesChoice: false,
     islands: { setQuality: vi.fn() },
     seaLife: { dispose: vi.fn() },
+    townFolk: { dispose: vi.fn() },
     rig: { orbit: new CameraOrbit() },
     boat: { setLowDetail: vi.fn() },
     scene: new THREE.Scene(),

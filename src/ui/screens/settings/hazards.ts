@@ -30,6 +30,7 @@ function hazardSwitches({ settings }: SettingsContext, change: () => void): Swit
     flag('bergs', 'bergs'),
     flag('ships', 'ships'),
     flag('sea-life', 'seaLife'),
+    flag('town-folk', 'townFolk'),
     ...hazeSwitches().map((id): SwitchSpec => ({
       id: `haze-${id}`,
       key: `settings.haze.${id}`,
