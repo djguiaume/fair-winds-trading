@@ -1,0 +1,271 @@
+/* --- Chart ---------------------------------------------------------------------------------- */
+.qb-tools {
+  padding: 10px 6px;
+}
+.qb-map {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.qb-chart .ed-toggles {
+  left: 10px;
+}
+.qb-overlay .qb-ghost {
+  fill: rgba(255, 255, 255, 0.08);
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-dasharray: 2 1.5;
+  stroke-width: 0.6;
+}
+.qb-overlay .qb-run {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 0.8;
+  stroke-dasharray: 3 2;
+}
+.qb-overlay .qb-order {
+  fill: none;
+  stroke: var(--brass-hi);
+  stroke-width: 1.3;
+  stroke-dasharray: 3 2;
+}
+.qb-overlay .qb-ring {
+  fill: rgba(232, 196, 106, 0.18);
+  stroke: var(--brass-hi);
+  stroke-width: 1.4;
+}
+.qb-overlay .qb-ring.pick {
+  fill: rgba(232, 196, 106, 0.32);
+  stroke: #fff;
+  stroke-width: 1.8;
+}
+.qb-overlay .qb-handle {
+  fill: #fff;
+  stroke: var(--outline);
+  stroke-width: 0.4;
+}
+.qb-overlay .qb-size {
+  fill: var(--brass);
+  stroke: var(--outline);
+  stroke-width: 0.4;
+}
+.qb-overlay .qb-mark {
+  stroke: var(--outline);
+  stroke-width: 0.6;
+}
+.qb-mark.buoy-red {
+  fill: #e5533f;
+}
+.qb-mark.buoy-green {
+  fill: #3fb36a;
+}
+.qb-mark.boat {
+  fill: #c98a4a;
+}
+.qb-l {
+  font-family: var(--display);
+  font-weight: 700;
+  fill: #fff;
+  stroke: var(--outline);
+  paint-order: stroke;
+  text-anchor: middle;
+}
+.qb-l.ghost {
+  fill: rgba(255, 255, 255, 0.75);
+}
+.qb-l.num {
+  fill: var(--brass-hi);
+}
+.qb-l.tip {
+  text-anchor: start;
+  fill: #fff;
+}
+.qb-l.giver {
+  fill: var(--brass-hi);
+}
+
+/* --- Panel ---------------------------------------------------------------------------------- */
+.qb-panel {
+  min-width: 0;
+}
+.qb-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px 14px 0;
+}
+.qb-tabs button {
+  flex: 1;
+  border-radius: 8px 8px 0 0;
+}
+.qb-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 12px 14px;
+  border-top: 1px solid var(--brass-line);
+}
+.qb-scroll h2:first-child {
+  margin-top: 0;
+}
+.qb-scroll .ed-row {
+  grid-template-columns: 92px 1fr;
+}
+.qb-cond {
+  border: 1px solid var(--brass-line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin: 8px 0;
+  background: #0f2a3b;
+}
+.qb-cond-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.qb-kind {
+  flex: 1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--brass-line);
+  background: var(--field);
+}
+.qb-pt {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 4px 0;
+  color: var(--ink-dim);
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+.qb-pt.on {
+  background: #24506a;
+}
+.qb-pt b {
+  color: var(--brass-hi);
+  width: 14px;
+}
+.qb-pt input {
+  width: 58px;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: 5px;
+  background: var(--field);
+}
+.qb-pt button {
+  padding: 1px 6px;
+  font-size: 13px;
+}
+.qb-seg {
+  display: inline-flex;
+}
+.qb-seg button {
+  border-radius: 0;
+  font-size: 14px;
+  padding: 3px 10px;
+}
+.qb-seg button:first-child {
+  border-radius: 8px 0 0 8px;
+}
+.qb-seg button:last-child {
+  border-radius: 0 8px 8px 0;
+}
+.qb-checks {
+  max-height: 32%;
+}
+.qb-moods {
+  display: flex;
+  gap: 6px;
+  margin: 6px 0;
+}
+.qb-moods button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px;
+  font-size: 13px;
+}
+
+/* --- Card preview -------------------------------------------------------------------------- */
+.qb-pv-toggles {
+  justify-content: flex-start;
+  gap: 10px;
+}
+.qb-card-host {
+  position: relative;
+  padding-top: 70px;
+}
+dialog.quest-card.qb-card {
+  position: relative;
+  inset: auto;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  max-height: none;
+  border-radius: 14px;
+  border-bottom: 1.5px solid var(--brass-line);
+}
+.qb-card .quest-body {
+  max-height: none;
+}
+.qb-text {
+  margin-top: 16px;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 6px;
+  background: rgba(9, 28, 41, 0.92);
+  border: 1px solid var(--brass-line);
+  border-radius: 12px;
+  padding: 6px;
+}
+.qb-text th {
+  font: 700 14px/1 var(--display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--brass);
+  text-align: left;
+  vertical-align: top;
+  padding-top: 6px;
+}
+.qb-text td {
+  width: 45%;
+}
+.qb-text input,
+.qb-text textarea {
+  width: 100%;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--ink);
+  font: 500 14px/1.35 var(--body);
+  resize: none;
+}
+/* A speech's versions per way of playing (decision 0184): default, touch, keys, controller. */
+.qb-ways {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 6px;
+}
+.qb-ways button {
+  padding: 3px 7px;
+  border: 1px solid var(--brass-line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-dim);
+  font: 600 11px/1.2 var(--body);
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+.qb-ways button.written::after {
+  content: ' ●';
+  color: var(--green-ink);
+}
+.qb-ways button[aria-selected='true'] {
+  background: var(--brass);
+  color: #08141b;
+}

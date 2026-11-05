@@ -1,0 +1,270 @@
+/* --- Chart ---------------------------------------------------------------------------------- */
+.c-sea {
+  fill: #2aa6b4;
+  stroke: rgba(238, 243, 244, 0.45);
+  stroke-width: 1.5px;
+  stroke-dasharray: 6 4;
+  vector-effect: non-scaling-stroke;
+}
+.c-edge-outline {
+  fill: none;
+  stroke: rgba(238, 243, 244, 0.18);
+  stroke-width: 1px;
+  stroke-dasharray: 2 4;
+  vector-effect: non-scaling-stroke;
+}
+.c-edge-hit {
+  fill: none;
+  stroke: transparent;
+  pointer-events: stroke;
+}
+.c-grid {
+  stroke: rgba(238, 243, 244, 0.1);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+.c-shore {
+  fill: #f2cf7e;
+  stroke: var(--outline);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.c-land {
+  fill: #7cc04f;
+  stroke: #f2cf7e;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.c-bank {
+  fill: #f7e3ad;
+  fill-opacity: 0.6;
+  stroke: #f7e3ad;
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+/* Pack ice and grounded floes (decision 0170). */
+.c-ice {
+  fill: #f2f8fb;
+  fill-opacity: 0.85;
+  stroke: #9fd3e2;
+  stroke-width: 1.2px;
+  vector-effect: non-scaling-stroke;
+}
+/* Where icebergs drift (decision 0170): open water, a dashed pale edge. */
+.c-bergs {
+  fill: #e9f6fa;
+  fill-opacity: 0.25;
+  stroke: #cfeaf2;
+  stroke-width: 1.4px;
+  stroke-dasharray: 5 4;
+  vector-effect: non-scaling-stroke;
+}
+/* Drifting bergs (decision 0170): each berg, the loops they drift round, arrows, sway band. */
+.c-berg {
+  fill: #f4fbfd;
+  stroke: #2c5b72;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+.c-berg-track {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 1.6px;
+  stroke-dasharray: 2 3;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.c-berg-band {
+  fill: none;
+  stroke: #ffffff;
+  stroke-opacity: 0.14;
+  stroke-linejoin: round;
+}
+.c-berg-arrow {
+  fill: #ffffff;
+}
+/* Shallows only shallow ships cross (decision 0152). */
+.c-shallows {
+  fill: #b9ecdf;
+  fill-opacity: 0.7;
+  stroke: #3fb3a3;
+  stroke-width: 1.4px;
+  stroke-dasharray: 2 3;
+  vector-effect: non-scaling-stroke;
+}
+.c-reef {
+  fill: #e86a52;
+  fill-opacity: 0.35;
+  stroke: #e86a52;
+  stroke-width: 1.4px;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+.c-zone {
+  fill-opacity: 0.22;
+  pointer-events: none;
+}
+/* A current is darker, deeper water (decision 0140): no outline, no arrows. */
+.c-squalls path {
+  fill: none;
+  stroke: #ffb36b;
+  stroke-opacity: 0.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.c-current {
+  fill: #13607e;
+  fill-opacity: 0.55;
+  pointer-events: none;
+}
+.c-crests path {
+  fill: none;
+  stroke: #d8f1f5;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+.c-dashed {
+  stroke-dasharray: 5 4;
+  stroke-width: 1.5px;
+  opacity: 0.8;
+}
+.c-width {
+  stroke: var(--brass-hi);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.c-width-handle {
+  cursor: ew-resize;
+}
+.c-hit {
+  fill: transparent;
+  stroke: none;
+  cursor: grab;
+}
+.c-ring-edge {
+  fill: none;
+  stroke: rgba(232, 196, 106, 0.4);
+  stroke-width: 2;
+  stroke-dasharray: 10 8;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.c-sector line {
+  stroke: rgba(238, 243, 244, 0.6);
+  stroke-width: 1.5;
+  stroke-dasharray: 14 10;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.c-label.c-sector-label {
+  fill: rgba(238, 243, 244, 0.85);
+  font-style: italic;
+}
+.c-ghost {
+  fill: none;
+  stroke: rgba(238, 243, 244, 0.55);
+  stroke-width: 1.2px;
+  stroke-dasharray: 4 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+/* Land that rises (gold) or clears (blue-white) after a quest (decision 0166). */
+.c-quest {
+  fill: none;
+  stroke-width: 2px;
+  stroke-dasharray: 6 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.c-quest-after {
+  stroke: #f3d37e;
+}
+.c-quest-before {
+  stroke: #cfe8ff;
+}
+.c-quest-label {
+  fill: #f3d37e;
+}
+.c-selected {
+  fill: none;
+  stroke: var(--brass-hi);
+  stroke-width: 2.5px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.c-handle {
+  fill: var(--brass-hi);
+  stroke: var(--outline);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+  cursor: move;
+}
+.c-handle.on {
+  fill: #fff;
+}
+.c-add {
+  fill: #0d2433;
+  stroke: var(--brass-hi);
+  stroke-width: 1.2px;
+  vector-effect: non-scaling-stroke;
+  cursor: copy;
+  opacity: 0.8;
+}
+.c-pier {
+  stroke: #8a5a2b;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.c-range {
+  fill: rgba(255, 255, 255, 0.06);
+  stroke: rgba(238, 243, 244, 0.5);
+  stroke-width: 1px;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.c-link {
+  stroke: rgba(238, 243, 244, 0.6);
+  stroke-width: 1.2px;
+  stroke-dasharray: 2 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.c-waypoint {
+  fill: #fff;
+  stroke: var(--outline);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+  cursor: grab;
+}
+.c-start {
+  fill: #fff;
+  stroke: var(--outline);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+  cursor: grab;
+}
+.c-label {
+  fill: #fff;
+  stroke: var(--outline);
+  stroke-linejoin: round;
+  paint-order: stroke;
+  font-family: var(--display);
+  font-weight: 700;
+  text-anchor: middle;
+  pointer-events: none;
+}
+.c-label.small {
+  fill: var(--ink-dim);
+  font-family: var(--body);
+}
+.c-label.yard {
+  fill: var(--amber);
+  font-family: var(--body);
+}
