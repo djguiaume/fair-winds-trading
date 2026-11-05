@@ -1,6 +1,6 @@
 # 0291. People on the quays and in the towns
 
-**Status:** Proposed (2026-11-05), part of v1.7 (#477). Waits on Guillaume's `visual-ok`.
+**Status:** Accepted (2026-11-05), part of v1.7 (#477). Guillaume gave the visual OK.
 
 ## Context
 

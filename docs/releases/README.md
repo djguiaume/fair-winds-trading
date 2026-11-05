@@ -31,3 +31,4 @@ worth remembering.
 | [v1.4.351](v1.4.351.md) | merge of the 1.4 PR | 1.4 Visible upgrades: upgrades on every ship, Boat looks screen, logos and patterns, earned looks, Free Sailing |
 | [v1.5.372](v1.5.372.md) | merge of the 1.5 PR | 1.5 A real game: the UI rebuilt as one system with the chart-table identity, every screen on the same components, painted port banners, a close chase camera |
 | [v1.6.387](v1.6.387.md) | merge of the 1.6 PR | 1.6 The far seas' story: a turn in every far sea, on-screen reunions, a chapter after Four Winds, cross-sea far-goods asks, a drawn sky, sea life |
+| [v1.7.392](v1.7.392.md) | merge of the 1.7 PR | 1.7 Tidy, smooth, shiny: quest code and stylesheets split, phone fluidity targets, Ultra reflections of boats and islands, people on the quays |
