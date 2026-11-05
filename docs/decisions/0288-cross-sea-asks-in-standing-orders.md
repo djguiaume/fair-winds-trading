@@ -11,13 +11,13 @@ buys, so "Sigrun wants Juno's tea" could not be written.
 ## Decision
 
 - Each far keeper's standing order gets a 4th ask for a far good from the next sea, closing a loop
-  south > north > east > west > south: Sigrun spiced tea x2 at Rimewick, Elias cloudberries x5 at
-  Fogwatch, Bram amber beads x2 at Emberhold, Juno obsidian mirrors x2 at Sunreach. As a step of
+  south > north > east > west > south: Sigrun spiced tea x1 at Rimewick, Elias cloudberries x5 at
+  Fogwatch, Bram amber beads x1 at Emberhold, Juno obsidian mirror x1 at Sunreach. As a step of
   the same order, the keeper's own raw asks keep cycling.
 - The standing-order check allows a good the port buys at some level once a port makes it, or a
   far good made at another port. A ring good the port never buys is still refused.
 - Settlers keep ask-1 timber; ask-2 is planks x5 and ask-3 bread x5, tied to what the place is for.
-- Pay stays the help-order rule (haul distance), so a crafted ask pays about 750-1050 g (raw asks pay 270-360 g). No trade
+- Pay stays the help-order rule (haul distance), so a crafted ask pays about 380-530 g at qty 1 (raw asks pay 270-360 g); the storyteller chose qty 1 so it reads as a favour, not a trade route. No trade
   automation (0120): the captain buys and carries the goods.
 
 ## Consequences

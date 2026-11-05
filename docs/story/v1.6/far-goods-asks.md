@@ -3,7 +3,7 @@
 ## Rulings
 
 1. Shape: OK, cross-sea asks are the keeper's `ask-4`, so the raw asks keep cycling.
-2. Cross-sea asks: keep all four (south > north > east > west > south), but crafted goods at **qty 2**, not 3: pay ~1000 g a haul is already five times a raw ask and standing orders repeat. Elias cloudberries x5 stays. If balance on three levels says pay is still too high, lower it again; the story never states a number.
+2. Cross-sea asks: keep all four (south > north > east > west > south), but crafted goods at **qty 1**, not 3: pay ~1000 g a haul is already five times a raw ask and standing orders repeat. Elias cloudberries x5 stays. If balance on three levels says pay is still too high, lower it again; the story never states a number.
 3. Settlers: do NOT add a 4th ask. Each keeps `ask-1` timber and swaps `ask-2` to **planks x5** and `ask-3` to **bread x5**, tied to the place (lines below). No new goods for settlers (outposts only take timber, planks, bread).
 4. Only the old closer "Rook will want that in the book" lives in the outpost done cards (already replaced by the one-card outposts); none lands here.
 5. Voice rules as ever: no number in the copy except goods counts that match the file; no deadlines.
@@ -79,3 +79,4 @@
 ## Build notes
 
 Built in #360 (decision 0288). FR uses the game's good name "mûres arctiques" (not "airelles des marais") for cloudberries, and no-break spaces before ! and ? (decision 0091).
+Ruling update (after build): crafted asks are qty 1 so they read as a favour; copy ends "A tin of spiced tea" / "One obsidian mirror" / "One string of amber beads".
