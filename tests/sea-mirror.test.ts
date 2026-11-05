@@ -4,7 +4,7 @@ import { QUALITY, QUALITY_LEVELS } from '../src/render/quality';
 import { drawsOnFrame, mirrorLevel, withinRange } from '../src/render/seaMirror';
 import { applyGraphicsOverrides } from '../src/perf/graphicsOverrides';
 
-describe('sea mirror (decision 0290)', () => {
+describe('sea mirror (decision 0291)', () => {
   it('mirrors on Ultra alone by default, and every mirrored level has its cost knobs', () => {
     expect(QUALITY.ultra.mirror).toBe(true);
     for (const level of QUALITY_LEVELS) {

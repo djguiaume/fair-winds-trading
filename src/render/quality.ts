@@ -27,7 +27,7 @@ export interface QualityProfile {
   chartFogBlur: boolean;
   /** Fresnel sky reflection and sun glint on the sea (decision 0221). */
   waterReflection: boolean;
-  /** The boats, islands and sky mirrored on the sea (decision 0290); needs `waterReflection`. */
+  /** The boats, islands and sky mirrored on the sea (decision 0291); needs `waterReflection`. */
   mirror: boolean;
   /** Desktop and Xbox pipeline (decision 0221): tone mapping, soft shadows, occlusion, haze. */
   ultra: boolean;
