@@ -4,7 +4,7 @@ import { QUALITY, QUALITY_LEVELS } from '../src/render/quality';
 import { drawsOnFrame, mirrorLevel, withinRange } from '../src/render/seaMirror';
 import { applyGraphicsOverrides } from '../src/perf/graphicsOverrides';
 
-describe('sea mirror (decision 0291)', () => {
+describe('sea mirror (decision 0292)', () => {
   it('mirrors on Ultra alone by default, and every mirrored level has its cost knobs', () => {
     expect(QUALITY.ultra.mirror).toBe(true);
     for (const level of QUALITY_LEVELS) {
@@ -37,7 +37,7 @@ describe('sea mirror (decision 0291)', () => {
   });
 
   it('is switched off by ?off=mirror', () => {
-    const settings = { quality: 'auto' as const, effects: {}, seaLife: true };
+    const settings = { quality: 'auto' as const, effects: {}, seaLife: true, townFolk: true };
     expect(applyGraphicsOverrides('?quality=ultra&off=mirror', settings)).toBe(true);
     expect(settings.effects).toEqual({ mirror: false });
   });

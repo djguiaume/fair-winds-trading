@@ -77,7 +77,7 @@ export function withinRange(f: Footprint, target: { x: number; z: number }, rang
 }
 
 /**
- * Planar reflections on the sea (issue #285, decision 0291): the boats, the islands and the drawn
+ * Planar reflections on the sea (issue #285, decision 0292): the boats, the islands and the drawn
  * sky, drawn again from the camera's mirror image under the water into a texture at a share of the
  * screen resolution, which the water shader samples (`oceanShader.ts`, `MIRROR`). The sea itself,
  * its sheets, wakes, rain and every glow stay out, so there is no reflection of a reflection.

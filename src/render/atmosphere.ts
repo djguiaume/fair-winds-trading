@@ -189,7 +189,7 @@ export class Atmosphere {
     scene.add(this.dome.mesh);
   }
 
-  /** The drawn sky's mesh, for the sea mirror (decision 0291). */
+  /** The drawn sky's mesh, for the sea mirror (decision 0292). */
   get skyMesh(): THREE.Object3D {
     return this.dome.mesh;
   }

@@ -137,7 +137,8 @@ export type PropGroup =
   | 'landmarks'
   | 'figureheads'
   | 'boats'
-  | 'life';
+  | 'life'
+  | 'folk';
 
 /** The prop groups in the builder's order, each with its triangle budget per prop. */
 export const PROP_GROUPS = groupsFile.groups as Record<PropGroup, { budget: number }>;

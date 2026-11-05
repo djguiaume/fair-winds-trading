@@ -157,6 +157,7 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
     wavesChoice: false,
     islands: { setQuality: vi.fn() },
     seaLife: { dispose: vi.fn() },
+    townFolk: { dispose: vi.fn() },
     rig: { orbit: new CameraOrbit() },
     boat: { setLowDetail: vi.fn() },
     scene: new THREE.Scene(),
@@ -208,7 +209,7 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
   view.setQuality('medium');
   expect(water()).toBe(medium);
   view.setQuality('ultra');
-  // Ultra's water mirrors the boats and islands (decision 0291): its own program, not High's.
+  // Ultra's water mirrors the boats and islands (decision 0292): its own program, not High's.
   expect('MIRROR' in water().mesh.material.defines).toBe(true);
   expect(water().mesh.material === high.mesh.material).toBe(false);
   // Ultra-low's plain water is its own program, never Low's (decision 0247).

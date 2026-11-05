@@ -5,16 +5,15 @@ import { PALETTE, PROP_RECIPES } from '../../data/props';
 import { QUALITY_LEVELS } from '../../render/quality';
 import { SEA_LIFE, type SeaLifeData } from '../../sim/seaLife';
 import { seaLifeProblems } from '../../sim/seaLifeChecks';
+import type { FieldsDoc } from '../fieldsDoc';
 
 /**
  * `src/data/sea-life.json` as the editors' Sea life page and `npm run life` edit it (issue
- * #476, decision 0153): one module for the fields, the edits, the checks and the file text, so
- * the page and the command can never disagree.
+ * #476, decision 0153): one description of the file's fields, kinds, checks and text, so the
+ * page and the command can never disagree (`fieldsDoc.ts` does the editing).
  */
 export type SeaLifeDoc = SeaLifeData;
 
-/** Where the page keeps its working copy in this browser. */
-export const EDITED_LIFE_KEY = 'fwt-editor-sea-life';
 export const LIFE_FILE = 'src/data/sea-life.json';
 
 export const shippedLifeDoc = (): SeaLifeDoc => structuredClone(SEA_LIFE);
@@ -32,76 +31,37 @@ export const lifeProblems = (doc: SeaLifeDoc) =>
 
 export const lifeText = (doc: SeaLifeDoc) => formatJson(doc);
 
-/** How a field is typed: a number, a [low, high] pair, a word, or a list of words. */
-export type FieldKind = 'number' | 'span' | 'text' | 'list';
-
-/** Every field of the file, dotted (`birds.gull.count`), with its kind, in the file's order. */
-export function lifeFields(doc: SeaLifeDoc): { path: string; kind: FieldKind }[] {
-  const out: { path: string; kind: FieldKind }[] = [];
-  const walk = (value: unknown, path: string) => {
-    if (typeof value === 'number') out.push({ path, kind: 'number' });
-    else if (typeof value === 'string') out.push({ path, kind: 'text' });
-    else if (Array.isArray(value))
-      out.push({ path, kind: value.every((v) => typeof v === 'number') ? 'span' : 'list' });
-    else if (value && typeof value === 'object')
-      for (const [key, v] of Object.entries(value)) walk(v, path ? `${path}.${key}` : key);
-  };
-  walk(doc, '');
-  return out;
-}
-
-/** The object holding a dotted path's last key, or null. */
-function holder(doc: SeaLifeDoc, path: string): [Record<string, unknown>, string] | null {
-  const keys = path.split('.');
-  const last = keys.pop()!;
-  let at: unknown = doc;
-  for (const key of keys) at = (at as Record<string, unknown> | undefined)?.[key];
-  return at && typeof at === 'object' && last in at ? [at as Record<string, unknown>, last] : null;
-}
-
-/** A field's value as text: numbers as typed, pairs and lists with commas. */
-export function lifeField(doc: SeaLifeDoc, path: string): string {
-  const found = holder(doc, path);
-  if (!found) return '';
-  const value = found[0][found[1]];
-  return Array.isArray(value) ? value.join(', ') : String(value);
-}
-
-/** Sets one field from text (the page's inputs, `npm run life -- set`); a problem or null. */
-export function setLifeField(doc: SeaLifeDoc, path: string, text: string): string | null {
-  const field = lifeFields(doc).find((f) => f.path === path);
-  const found = holder(doc, path);
-  if (!field || !found) return `unknown field ${path} (npm run life -- list shows them)`;
-  const parts = text.split(',').map((p) => p.trim());
-  let value: unknown = text.trim();
-  if (field.kind === 'number') value = Number(text);
-  if (field.kind === 'span') value = parts.map(Number);
-  if (field.kind === 'list') value = parts.filter(Boolean);
-  if (field.kind === 'number' && !Number.isFinite(value)) return `${path} needs a number`;
-  if (field.kind === 'span' && (parts.length !== 2 || !(value as number[]).every(Number.isFinite)))
-    return `${path} needs two numbers, "low, high"`;
-  found[0][found[1]] = value;
-  return null;
-}
-
-/** A new bird kind, a copy of `from` (default the first kind), or a problem. */
-export function addBird(doc: SeaLifeDoc, id: string, from?: string): string | null {
-  if (!/^[a-z][a-z0-9-]*$/.test(id)) return 'an id is lower-case letters, digits and -';
-  if (doc.birds[id]) return `${id} already exists`;
-  const source = from ? doc.birds[from] : Object.values(doc.birds)[0];
-  if (!source) return `no bird kind ${from} to copy`;
-  doc.birds[id] = structuredClone(source);
-  return null;
-}
-
-export function removeBird(doc: SeaLifeDoc, id: string): boolean {
-  if (!doc.birds[id]) return false;
-  delete doc.birds[id];
-  return true;
-}
-
 /** A working copy read back from the browser: only the shape, the checks say the rest. */
 export function isLifeDoc(raw: unknown): raw is SeaLifeDoc {
   const doc = raw as SeaLifeDoc | null;
   return !!doc && typeof doc.birds === 'object' && !!doc.dolphins && !!doc.whale && !!doc.shoals;
 }
+
+export const SEA_LIFE_DOC: FieldsDoc<SeaLifeDoc> = {
+  tool: 'life',
+  file: LIFE_FILE,
+  storageKey: 'fwt-editor-sea-life',
+  about: 'Sea life',
+  shipped: shippedLifeDoc,
+  isDoc: isLifeDoc,
+  text: lifeText,
+  problems: lifeProblems,
+  kinds: { key: 'birds', name: 'bird kind' },
+  sections: (doc) => [
+    ...Object.keys(doc.birds).map((id) => `birds.${id}`),
+    'dolphins',
+    'whale',
+    'shoals',
+    'quality',
+  ],
+  sectionAbout: {
+    quality:
+      'Share of every count drawn at each quality level (0 to 1); Ultra-low draws none. A group\'s "from" is the lowest level that draws it.',
+    birds:
+      'A flock circling its home near the boat: harbour (the nearest pier head), reef or wake (astern of her near a coast). Spans are "low, high".',
+    dolphins: 'A pod now and then in its waters: rides abeam of the boat, leaping in turn.',
+    whale: 'Surfaces now and then off the bow in deep water: rises, blows, dives flukes up.',
+    shoals: 'Dark fish just under the surface, placed round the boat where fish live.',
+  },
+  names: `Seas: ${LIFE_SEAS.join(', ')}. Models are prop recipes (life-*).`,
+};

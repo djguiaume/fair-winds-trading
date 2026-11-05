@@ -1,4 +1,4 @@
-# 0291. Sea reflections of boats and islands on Ultra
+# 0292. Sea reflections of boats and islands on Ultra
 
 **Status:** Accepted (2026-11-05, v1.7; Guillaume waived the visual review for this release). Issue #285, parent #279.
 

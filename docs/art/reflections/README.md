@@ -1,4 +1,4 @@
-# Sea reflections of boats and islands (issue #285, decision 0291)
+# Sea reflections of boats and islands (issue #285, decision 0292)
 
 Ultra's planar reflections: the boats, the islands and the drawn sky mirrored on the water.
 Shots: Ultra, desktop, headless (SwiftShader), off Saltmere at (235, -125) heading 80, the

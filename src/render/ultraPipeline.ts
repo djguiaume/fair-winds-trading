@@ -23,7 +23,7 @@ export interface GraphicsEffects {
   haze: boolean;
   /** The sea's sky reflection and sun glint, on High and Ultra. */
   reflection: boolean;
-  /** The boats, islands and sky mirrored on the sea, on the levels with `mirror` (decision 0291). */
+  /** The boats, islands and sky mirrored on the sea, on the levels with `mirror` (decision 0292). */
   mirror: boolean;
   /** Ultra's multisampled off-screen render; on unless a `?off=msaa` device test says false. */
   msaa?: boolean;

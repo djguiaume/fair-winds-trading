@@ -172,6 +172,7 @@ describe('settings applier', () => {
       eruptions: true,
       wakeStyles: true,
       seaLife: { on: true },
+      townFolk: { on: true },
     };
     const hud = { quiet: false, compassOff: false };
     const camera = { sync: vi.fn() };
@@ -182,6 +183,7 @@ describe('settings applier', () => {
       weather: false,
       ships: false,
       seaLife: false,
+      townFolk: false,
       quietHud: true,
       windCompass: false,
       dayNight: false,
@@ -195,6 +197,7 @@ describe('settings applier', () => {
     expect(world.hazeOff).toContain('fog');
     expect(view.dayNight).toBe(false);
     expect(view.seaLife.on).toBe(false);
+    expect(view.townFolk.on).toBe(false);
     expect(view.effects.shadows).toBe(false);
     expect(hud).toEqual({ quiet: true, compassOff: true });
     expect(padGlyphs).toHaveBeenCalledWith('playstation');
