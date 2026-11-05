@@ -1,4 +1,6 @@
 import './island.css';
+import './islandMap.css';
+import './islandSide.css';
 import * as THREE from 'three';
 import { editedIslands, saveEditedIslands } from '../../data/editedMap';
 import {

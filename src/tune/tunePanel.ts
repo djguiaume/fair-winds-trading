@@ -1,4 +1,5 @@
 import './tune.css';
+import './tuneRows.css';
 import { strToU8, zipSync } from 'fflate';
 import { VOICES } from '../audio/catalog';
 import { SHIPPED_TUNING, TUNING } from '../data/tuning';

@@ -1,4 +1,6 @@
 import './editor.css';
+import './editorChart.css';
+import './editorPanel.css';
 import { EDITED_MAP_KEY, EDITED_SEAS_KEY, isMapShape } from '../data/editedMap';
 import { SEAS } from '../data/grownMap';
 import grownFile from '../data/seas/grown.json';

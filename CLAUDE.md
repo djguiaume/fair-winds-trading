@@ -18,6 +18,7 @@ Threads keep forgetting it. Before reading or grepping code: run `graphify updat
 - Human readable, clear code: small functions, clear names, comments only for the why. Match the surrounding code.
 - Best practices: TypeScript strict, no dead code, no copy-paste (move shared logic into a module), Vitest tests for logic.
 - Keep it optimized: it must run on an old tablet and a phone (decision 0006); no per-frame allocations, watch draw calls and triangle budgets (`?perf`, `?bench`).
+- Screens: `index.html` is only the shell; a screen's markup is built by its module and its `.css` sits beside it (decision 0287).
 - No big files: split a file once it passes about 400 lines. Same for docs: one subject per file, short.
 - Everything data driven (decision 0093): tuning numbers and content (goods, ships, towns, weather, quests, text) live in data files, never in TypeScript constants.
 - Every authoring feature is editable in the editors AND has a matching `npm run` tool (decision 0153); the tool and the editor share one module.

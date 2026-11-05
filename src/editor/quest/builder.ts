@@ -73,6 +73,8 @@ import { raceRows } from './raceRows';
 import { stormShapes } from './raceStormView';
 import '../../ui/quests/index.css';
 import './quest.css';
+import './questPanel.css';
+import './questGraph.css';
 import gamePage from '../../../index.html?raw';
 
 /**
