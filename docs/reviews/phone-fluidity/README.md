@@ -2,7 +2,7 @@
 
 Guillaume (2026-10-31): Zombie Assault: Resurgence (Ninja Kiwi, native Android, about 1.9 GB) "looks better and is more fluid ... it just runs great with good visuals, textures, effects". It is a **feel reference only**: a native top-down shooter, not a browser sailing game. We do not copy its tech or style (art stays with the [art bible](../../art/art-bible.md)); we borrow measurable targets.
 
-Status: the targets below come from our own readouts ([old-tablet-test](../old-tablet-test/README.md), [new-look-performance](../new-look-performance/README.md)) and the `?perf` / `?bench` metrics (decisions 0148, 0154). The "Play notes" table is for Guillaume's impressions from the same phone; fill it in before the #377 device runs.
+Status: the targets below come from our own readouts ([old-tablet-test](../old-tablet-test/README.md), [new-look-performance](../new-look-performance/README.md)) and the `?perf` / `?bench` metrics (decisions 0148, 0154). Guillaume's Zombie Assault feel notes can be added later; the criteria below do not wait for them.
 
 ## Targets (phone, Android 10, Medium unless noted)
 
@@ -32,19 +32,22 @@ Budgeted ideas, cheapest first. None is started; each needs its own issue and AD
 
 Dropped on purpose: heavy post effects (bloom stacks, full-screen blur) and a 1.9 GB texture budget. They cost fill rate, which is what limits the weakest device (decision 0240, 0247).
 
-## Play notes (Guillaume, to fill in)
+## Smoothness criteria (industry standard, as Fair Winds targets)
 
-Same phone, a few minutes, then one line each.
+Seven things players feel as "smooth", each with a number we can read. Guillaume can add Zombie Assault feel notes later; these do not wait for them.
 
-| Question | Notes |
-|---|---|
-| What makes it feel smooth: frame rate, input, no stalls, loading? | |
-| Which effects stand out most (hits, particles, light)? | |
-| Which textures look best close up? | |
-| Anything that feels worse than Fair Winds on the same phone? | |
+| # | Criterion | Target | How we measure |
+|---|---|---|---|
+| 1 | Steady frame rate: locked 30 or 60 fps, judged by consistency, not the average | Medium 60 fps (p95 <= 16.8 ms), Low 30 fps (p95 <= 40 ms); 1 % low >= 55 / 27 fps | `?bench`, `?perf` |
+| 2 | Frame pacing: no spike over about 2x the target frame time, no GC hitch, no shader compile stall | Worst frame <= 2x target after warm-up; 0 hitches (>= 100 ms); no per-frame allocation; materials and shaders warmed before the sea shows | `?bench` hitches column; allocation review in code |
+| 3 | Input latency: tap or touch to visible response | Under 100 ms; instant feedback on press (button state, tiller or sail response next frame) | Frame time plus a press-to-change check on the phone |
+| 4 | No stalls when entering a town or changing quality | 0 hitches on port entry, town growth and quality change; island and town builds spread over frames | `?bench` route through a port, `npm run perf` townGrowth |
+| 5 | Thermal: sustained fps after 10 minutes, not only the first minute | Last-minute average within 10 % of the first minute; no extra Auto quality drops | A 10-minute `?perf` run on the phone |
+| 6 | Effects feel: short, cheap particles and impact feedback with sound | Pooled, instanced, at most 64 live particles, no allocation per frame; every impact has a sound | Draw calls and triangles in `budget.json`; code review |
+| 7 | Texture clarity: sharp at the shown size | Mipmapped, compressed where the format allows, resolution matched to screen size, inside the GPU memory budget | `gpuMemory` in `npm run perf`; screenshot on the phone |
 
 ## Next
 
-1. Fill in the play notes; the rows above get reordered by what you feel most.
+1. Optional: Guillaume adds Zombie Assault feel notes here later; they reorder the ideas above.
 2. #377 device runs: record the table above with `?bench` on the phone (Medium), then Low on a weak device.
 3. Turn the first idea you pick into an issue with a budget.
