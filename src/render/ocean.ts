@@ -43,12 +43,14 @@ export function oceanFor(
     ({ mesh }) =>
       'FANCY' in mesh.material.defines === profile.fancyWater &&
       'REFLECT' in mesh.material.defines === profile.waterReflection &&
+      'MIRROR' in mesh.material.defines === profile.mirror &&
       'PLAIN' in mesh.material.defines === profile.plain &&
       'GERSTNER' in mesh.material.defines === gerstner,
   )?.mesh.material;
   const look = {
     fancy: profile.fancyWater,
     reflect: profile.waterReflection,
+    mirror: profile.mirror,
     plain: profile.plain,
     ultra: profile.ultra,
     seabed: terrain === 'v2' ? seabed : undefined,
@@ -65,6 +67,8 @@ export interface WaterLook {
   fancy: boolean;
   /** Sky reflection, sun glint and soft foam (High and Ultra, decision 0221); needs `fancy`. */
   reflect?: boolean;
+  /** The boats, islands and sky mirrored on the sea (decision 0292); needs `reflect`. */
+  mirror?: boolean;
   /** Shore and depth read per vertex and no per-pixel lighting (Ultra-low, decision 0247). */
   plain?: boolean;
   /** Ultra's tone mapping (decision 0221): its shore foam lifts under a storm to keep reading. */
@@ -84,7 +88,8 @@ function waterDefines(look: WaterLook): Record<string, string> {
   // The new look's Low reads the shore per pixel too (issue #277): per vertex, its coarse grid
   // smeared the shallows into a wide halo and lost the foam ring.
   if (!look.fancy && !look.seabed) return { VERTEX_SHORES: '' };
-  return look.reflect ? { FANCY: '', REFLECT: '' } : { FANCY: '' };
+  if (!look.reflect) return { FANCY: '' };
+  return look.mirror ? { FANCY: '', REFLECT: '', MIRROR: '' } : { FANCY: '', REFLECT: '' };
 }
 
 /**
@@ -181,6 +186,13 @@ export class Ocean {
           uFoamLook: { value: new THREE.Vector4() },
           uShoreCalm: { value: new THREE.Vector2() },
           uFoamNight: { value: 1 },
+          ...(look.mirror
+            ? {
+                uMirror: { value: null },
+                uMirrorMatrix: { value: new THREE.Matrix4() },
+                uMirrorLook: { value: new THREE.Vector3() },
+              }
+            : {}),
           ...(look.gerstner ? { ...gerstnerUniforms(), ...SHORE_WASH_UNIFORMS } : {}),
         },
       });
@@ -265,6 +277,19 @@ export class Ocean {
     liftToFloor(greyed(midLit, this.gloom * depth.storm.mid, depth.storm), night);
     liftToFloor(greyed(deepLit, this.gloom, depth.storm), night);
     (u.uDayWater!.value as THREE.Color).copy(deep);
+  }
+
+  /**
+   * The mirror texture of the boats, islands and sky (`seaMirror.ts`) and its world-to-texture
+   * matrix; `strength` 0 leaves the sky reflection alone. Only a `mirror` look has the uniforms.
+   */
+  setMirror(texture: THREE.Texture, matrix: THREE.Matrix4, strength: number): void {
+    const u = this.mesh.material.uniforms;
+    if (!u.uMirror) return;
+    u.uMirror.value = texture;
+    (u.uMirrorMatrix!.value as THREE.Matrix4).copy(matrix);
+    const r = TUNING.graphics.reflection;
+    (u.uMirrorLook!.value as THREE.Vector3).set(r.strength, r.distortion, strength);
   }
 
   /** The light (scene space, normalized direction), for the flat shading and the glint. */

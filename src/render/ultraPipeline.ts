@@ -23,9 +23,21 @@ export interface GraphicsEffects {
   haze: boolean;
   /** The sea's sky reflection and sun glint, on High and Ultra. */
   reflection: boolean;
+  /** The boats, islands and sky mirrored on the sea, on the levels with `mirror` (decision 0292). */
+  mirror: boolean;
   /** Ultra's multisampled off-screen render; on unless a `?off=msaa` device test says false. */
   msaa?: boolean;
 }
+
+/** Every effect on: the view's default before Settings are applied. */
+export const allEffects = (): GraphicsEffects => ({
+  shadows: true,
+  occlusion: true,
+  toneMapping: true,
+  haze: true,
+  reflection: true,
+  mirror: true,
+});
 
 /** GTAOPass's hooks for what its normal pass leaves out; not in the published types. */
 interface OcclusionInternals {
@@ -211,9 +223,10 @@ export class UltraPipeline {
     // The scene pass draws into the read buffer: keep it on the multisampled target.
     const composer = this.composer;
     if (composer.readBuffer !== composer.renderTarget2) composer.swapBuffers();
-    // One frame is many render calls here: count them all, so `?perf` and `?bench` stay honest.
+    // One frame is many render calls here: count them all, so `?perf` and `?bench` stay honest
+    // (the view counts from the sea mirror's pass when it drew one first).
     const info = this.renderer.info;
-    info.reset();
+    if (info.autoReset) info.reset();
     info.autoReset = false;
     composer.render(dt);
     info.autoReset = true;

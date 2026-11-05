@@ -232,6 +232,8 @@
   "settings.fx.hazeNote": "Ultra : la mer lointaine se fond dans le ciel",
   "settings.fx.reflection": "Reflets sur l’eau",
   "settings.fx.reflectionNote": "Le ciel et le soleil brillent sur la mer",
+  "settings.fx.mirror": "Reflets des bateaux et des îles",
+  "settings.fx.mirrorNote": "La mer reflète les bateaux, les îles et le ciel",
   "settings.fpsNote": "Images par seconde",
   "settings.soundLanguage": "Son · Langue",
   "settings.voyage": "Voyage",

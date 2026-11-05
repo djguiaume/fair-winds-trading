@@ -45,6 +45,13 @@ uniform vec3 uSkyLight;
 uniform float uReflect;
 uniform float uFresnelPower;
 #endif
+#ifdef MIRROR
+// The boats, islands and sky drawn from under the sea (seaMirror.ts), world → texture, and the
+// look: x the floor of its strength, y the waves' distortion of it, z its strength now (0 = off).
+uniform sampler2D uMirror;
+uniform mat4 uMirrorMatrix;
+uniform vec3 uMirrorLook;
+#endif
 #ifdef REFLECT
 uniform vec3 uSunColor;
 uniform float uGlint;
@@ -177,6 +184,14 @@ void main() {
   float fresnel = pow(1.0 - max(dot(n, toEye), 0.0), uFresnelPower);
 #endif
   col = mix(col, uSkyLight, fresnel * uReflect);
+#endif
+#ifdef MIRROR
+  // Where a boat, an island or the drawn sky was mirrored, it replaces the sky's tint, at least at
+  // the floor so a steep view still shows the hulls; its alpha is clear where nothing was drawn.
+  vec4 mirrorAt = uMirrorMatrix * vec4(vWorld, 1.0);
+  vec2 mirrorUv = mirrorAt.xy / mirrorAt.w + n.xz * uMirrorLook.y;
+  vec4 mirrored = texture2D(uMirror, mirrorUv);
+  col = mix(col, mirrored.rgb, mirrored.a * uMirrorLook.z * max(fresnel * uReflect, uMirrorLook.x));
 #endif
 #ifdef REFLECT
   // A glint belongs to a low view: looking down at a high sun it would blow out half the screen.

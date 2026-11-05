@@ -28,7 +28,8 @@ import { HazeVeil } from './hazeVeil';
 import { Wake } from './wake';
 import { ImpactDebris } from './impactDebris';
 import { WindStreaks } from './windStreaks';
-import type { GraphicsEffects, UltraPipeline } from './ultraPipeline';
+import { type GraphicsEffects, type UltraPipeline, allEffects } from './ultraPipeline';
+import { ViewMirror } from './viewMirror';
 import { Rain, rainMayReachArea } from './rain';
 import { CameraRig } from './cameraRig';
 import { Atmosphere, LAVA_BY_DAY, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from './atmosphere';
@@ -147,25 +148,21 @@ export class GameView {
   /** The Ultra pipeline (decision 0221), loaded the first time Ultra is picked. */
   private ultra?: UltraPipeline;
   private ultraLoading = false;
+  private readonly mirror = new ViewMirror(() => ({
+    boat: () => this.boat.root,
+    traffic: this.traffic.root,
+    islands: this.islands,
+    sky: this.atmosphere.skyMesh,
+  }));
   /** The graphics effects switches (Settings); all on by default. */
-  readonly effects: GraphicsEffects = {
-    shadows: true,
-    occlusion: true,
-    toneMapping: true,
-    haze: true,
-    reflection: true,
-  };
+  readonly effects: GraphicsEffects = allEffects();
   /**
    * Created only when selected, by level and waves on or off; retain GPU programs/buffers for
    * subsequent switches.
    */
   private readonly qualityEffects = new Map<
     `${QualityLevel}:${boolean}`,
-    {
-      ocean: Ocean;
-      streaks: WindStreaks;
-      rain: Rain;
-    }
+    { ocean: Ocean; streaks: WindStreaks; rain: Rain }
   >();
   /** Where the sea camera looks and how the player turned it (decision 0223). */
   readonly rig = new CameraRig(this.camera);
@@ -429,6 +426,7 @@ export class GameView {
     this.boat.setLowDetail?.(profile.lowDetail);
     this.profile = profile;
     if (profile.ultra) this.loadUltra();
+    if (profile.mirror) this.mirror.load(this.renderer, this.scene, this.camera);
     this.ultra?.sceneChanged();
     this.resize(this.width, this.height);
   }
@@ -698,6 +696,7 @@ export class GameView {
       );
     }
 
+    this.mirror.render(dt, this.ocean, this.level, this.target, day.night, this.effects.mirror);
     if (ultra) ultra.render(dt, day.night);
     else if (!this.ultra?.renderHigh(dt, this.profile))
       this.renderer.render(this.scene, this.camera);
@@ -856,6 +855,7 @@ export class GameView {
     this.questMarkers.dispose();
     this.boat.dispose();
     this.ultra?.dispose();
+    this.mirror.dispose();
     this.atmosphere.dispose();
     this.renderer.dispose();
   }
