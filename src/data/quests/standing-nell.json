@@ -28,7 +28,7 @@
       "goal": {
         "is": "landed",
         "place": "snowberry-isle",
-        "good": "timber",
+        "good": "planks",
         "qty": 5
       },
       "reward": {
@@ -40,8 +40,8 @@
       "goal": {
         "is": "landed",
         "place": "snowberry-isle",
-        "good": "timber",
-        "qty": 8
+        "good": "bread",
+        "qty": 5
       },
       "reward": {
         "order": true

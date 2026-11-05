@@ -46,6 +46,18 @@
       "reward": {
         "order": true
       }
+    },
+    {
+      "id": "ask-4",
+      "goal": {
+        "is": "landed",
+        "place": "emberhold",
+        "good": "amberBeads",
+        "qty": 1
+      },
+      "reward": {
+        "order": true
+      }
     }
   ]
 }

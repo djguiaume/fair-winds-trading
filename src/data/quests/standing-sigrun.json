@@ -46,6 +46,18 @@
       "reward": {
         "order": true
       }
+    },
+    {
+      "id": "ask-4",
+      "goal": {
+        "is": "landed",
+        "place": "rimewick",
+        "good": "spicedTea",
+        "qty": 1
+      },
+      "reward": {
+        "order": true
+      }
     }
   ]
 }
