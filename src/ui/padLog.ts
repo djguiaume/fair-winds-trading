@@ -1,8 +1,11 @@
+import type { TvNavigator } from '../input/tv';
+
 /**
  * `?padlog` (decision 0201): what the browser hands the page from a controller, on screen. Edge
  * on Xbox mixes the Gamepad API, keys ("GamepadA", arrows) and pointer clicks, and differs from
  * any desktop browser a test can run, so a photo of this panel says what it really sent: each key,
- * pointer event, Gamepad API press, window focus change and where the focus went after it.
+ * pointer event, Gamepad API press, window focus change and where the focus went after it. Its
+ * first line says how the game sees the browser: TV mode or not, and why (issue #494).
  */
 export class PadLog {
   private lines: string[] = [];
@@ -10,10 +13,14 @@ export class PadLog {
   private readonly t0 = performance.now();
 
   /** Call before the pad's poller listens, so this sees the events it stops. */
-  constructor(private readonly max = 16) {
+  constructor(
+    private readonly header: string,
+    private readonly max = 16,
+  ) {
     this.box = document.createElement('pre');
     this.box.className = 'pad-log';
     this.box.setAttribute('aria-hidden', 'true');
+    this.box.textContent = header;
     document.body.append(this.box);
     const on = (type: string, text: (e: Event) => string) =>
       window.addEventListener(type, (e) => this.add(text(e)), true);
@@ -42,7 +49,7 @@ export class PadLog {
     setTimeout(() => {
       this.lines.push(`${at} ${text} → focus ${name(document.activeElement)}`);
       this.lines = this.lines.slice(-this.max);
-      this.box.textContent = this.lines.join('\n');
+      this.box.textContent = [this.header, ...this.lines].join('\n');
     }, 50);
   }
 }
@@ -53,4 +60,16 @@ function name(el: EventTarget | null): string {
   return el.id
     ? `#${el.id}`
     : `${el.tagName.toLowerCase()}.${[...el.classList].slice(0, 2).join('.')}`;
+}
+
+/** The first line: TV mode, Edge's controller mode and the user agent's platform part. */
+export function padLogHeader(tv: boolean, nav: TvNavigator): string {
+  const platform = /\(([^)]*)\)/.exec(nav.userAgent)?.[1] ?? nav.userAgent;
+  return `tv ${tv ? 'on' : 'off'} · emulation ${nav.gamepadInputEmulation ?? 'none'} · ${platform}`;
+}
+
+/** The log when the page's address asks for it (`?padlog`), else null. */
+export function padLogFromUrl(tv: boolean): PadLog | null {
+  if (!new URLSearchParams(location.search).has('padlog')) return null;
+  return new PadLog(padLogHeader(tv, navigator as TvNavigator));
 }

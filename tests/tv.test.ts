@@ -47,10 +47,21 @@ describe('TV mode (decision 0183)', () => {
   });
 
   it('knows Edge on Xbox, and ?tv wins over the user agent', () => {
-    expect(isTv(XBOX, '')).toBe(true);
-    expect(isTv(DESKTOP, '')).toBe(false);
-    expect(isTv(DESKTOP, '?tv')).toBe(true);
-    expect(isTv(XBOX, '?map=phase4&tv=0')).toBe(false);
+    expect(isTv({ userAgent: XBOX }, '')).toBe(true);
+    expect(isTv({ userAgent: DESKTOP }, '')).toBe(false);
+    expect(isTv({ userAgent: DESKTOP }, '?tv')).toBe(true);
+    expect(isTv({ userAgent: XBOX }, '?map=phase4&tv=0')).toBe(false);
+  });
+
+  it('knows Edge on Xbox by its controller setting when the user agent leaves Xbox out (#494)', () => {
+    // Edge on Xbox with a reduced or desktop-site user agent still has gamepadInputEmulation.
+    const edgeOnXbox = { userAgent: DESKTOP, gamepadInputEmulation: 'mouse' };
+    expect(isTv(edgeOnXbox, '')).toBe(true);
+    expect(isTv(edgeOnXbox, '?tv=0')).toBe(false);
+    const f = fakeWindow(DESKTOP);
+    f.raw.navigator.gamepadInputEmulation = 'mouse';
+    expect(startTvMode(f.win)).toBe(true);
+    expect(f.raw.navigator.gamepadInputEmulation).toBe('gamepad');
   });
 
   it('does nothing on a desktop browser', () => {
