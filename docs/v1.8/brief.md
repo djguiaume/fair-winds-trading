@@ -9,15 +9,15 @@ Guillaume, 2026-11-11: take the picks from the Saltline comparison (mockups and 
 | Order | Issue | Goal | Files | Done when | Effort | Visual | Model |
 |---|---|---|---|---|---|---|---|
 | 1 | #484 | Ultra holds less graphics memory with the same picture, so bloom fits on the Xbox | Ultra render targets, `budget.json › gpuMemory` | Lower memory at 1920x1080@2 (`npm run perf`), budget lowered, ADR | medium | no | Opus high |
-| 2 | #498 | **Sea gusts**: cat's-paw patches running downwind, darker with broken reflections and flecks, calm slicks between | `oceanShader.ts`, `src/data/tuning`, waves controls | On every quality level that has waves; costs under 0.3 ms on phone `?bench`; off with the Waves comfort switch; ocean tool lists the numbers | medium | yes | Opus high |
-| 3 | #499 | **Ground detail**: sand ripples, grass clumps, dry patches, as colour and bump; zone edges and cliffs untouched | `fieldGroundGlsl.ts` (mockup patches `src/ground.ts`), tuning | Looks right from chase and classic camera; fades out under 2 px; no new textures; phone `?bench` measured | medium | yes | Opus high |
+| 2 | #498 | **Sea gusts**: cat's-paw patches running downwind, darker with broken reflections and flecks, calm slicks between | `oceanShader.ts`, `src/data/tuning`, waves controls | On every quality level that has waves; costs under 0.3 ms on phone `?bench`; off with the Waves comfort switch; ocean tool lists the numbers | medium | yes | Fable 5.2 |
+| 3 | #499 | **Ground detail**: sand ripples, grass clumps, dry patches, as colour and bump; zone edges and cliffs untouched | `fieldGroundGlsl.ts` (mockup patches `src/ground.ts`), tuning | Looks right from chase and classic camera; fades out under 2 px; no new textures; phone `?bench` measured | medium | yes | Fable 5.2 |
 | 4 | #500 | **Richer houses**, variant per Guillaume's pick (A recommended): footing, overhanging roofs, ridge, three pitches, taller chimney, door step, lean-to. Today's house stays for far and Low | prop recipes (`fish-house`, then the other town styles), a near/far swap, `budget.json` homes group | All town styles done, swap invisible, High/Ultra only, triangles and draw calls measured, ADR | medium | yes | Sonnet (Opus high if the swap needs engine work) |
-| 5 | #501 | **Bloom** on Ultra: threshold per time of day (1.05 day, 0.7 night), warm glow on windows and lanterns | `ultraPipeline.ts` (before the grade), `graphics.json` | Visible at night, nothing at day, within Xbox memory after #484, Settings switch, ADR | medium | yes | Opus high |
+| 5 | #501 | **Bloom** on Ultra: threshold per time of day (1.05 day, 0.7 night), warm glow on windows and lanterns | `ultraPipeline.ts` (before the grade), `graphics.json` | Visible at night, nothing at day, within Xbox memory after #484, Settings switch, ADR | medium | yes | Fable 5.2 |
 
 Guillaume, 2026-11-11: the believable-towns pass (#503) goes to v1.9, after the richer houses, so v1.8 stays at five parts.
 Order: #484 first and #501 after it (same files). #498, #499, #500 touch different files and run beside #484. One combined visual round for #498 to #501: screenshots to the art director and Guillaume together (desktop, phone for the houses), `visual` label, no `automerge` before `visual-ok`.
 
-Open for Guillaume: the OK on this brief, and Fable or Opus (see the message). Houses: A picked.
+Guillaume OK'd this brief on 2026-11-11, houses A, and Fable 5.2 for the shader parts (#498, #499, #501); #484 Opus high, #500 Sonnet.
 Roles: no storyteller (no story work). Art director asked once for the look of all four visual parts.
 
 ## Art director rules (v1.8 art director, 2026-11-11)
