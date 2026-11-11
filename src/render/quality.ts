@@ -35,6 +35,8 @@ export interface QualityProfile {
   plain: boolean;
   /** Simple boat rig, calm heel and short bow waves. */
   lowDetail: boolean;
+  /** Richer town houses near the camera (issue #500); the plain houses stay for far and Low. */
+  richHouses: boolean;
   /** The Gerstner waves by default (decision 0250); Settings › Waves overrides it. */
   waves: boolean;
 }

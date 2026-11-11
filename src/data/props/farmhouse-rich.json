@@ -1,0 +1,63 @@
+{
+  "id": "farmhouse-rich",
+  "name": "Farmhouse, rich",
+  "group": "homes",
+  "internal": true,
+  "extends": "farmhouse",
+  "vars": {
+    "rh": "0.7 + (variant % 3) * 0.08"
+  },
+  "parts": [
+    {
+      "box": [1.68, 0.1, 0.92],
+      "at": [0, 0.05, 0],
+      "color": "stoneDark"
+    },
+    {
+      "box": [1.6, 0.75, 0.85],
+      "at": [0, 0.375, 0],
+      "color": "walls[variant]"
+    },
+    {
+      "hip": [2.0, 1.25, "rh"],
+      "y": 0.75,
+      "color": "roofs[variant]"
+    },
+    {
+      "box": [0.16, 0.6, 0.16],
+      "at": [0.55, "0.75 + rh * 0.4 + 0.2", -0.1],
+      "color": "chimney"
+    },
+    {
+      "box": [0.23, 0.05, 0.23],
+      "at": [0.55, "0.75 + rh * 0.4 + 0.2 + 0.32", -0.1],
+      "color": "chimneyCap"
+    },
+    {
+      "box": [0.3, 0.46, 0.05],
+      "at": [0.64, 0.29, 0.43],
+      "color": "post"
+    },
+    {
+      "box": [0.42, 0.06, 0.14],
+      "at": [0.64, 0.08, 0.49],
+      "color": "stoneDark"
+    },
+    {
+      "if": "variant % 2 == 0",
+      "parts": [
+        {
+          "box": [0.38, 0.45, 0.6],
+          "at": [1.0, 0.225, 0],
+          "color": "walls[variant + 1]"
+        },
+        {
+          "box": [0.5, 0.04, 0.74],
+          "at": [1.0, 0.49, 0],
+          "color": "roofs[variant + 1]",
+          "ops": [["turnZ", -0.3]]
+        }
+      ]
+    }
+  ]
+}

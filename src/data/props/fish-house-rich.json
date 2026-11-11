@@ -1,0 +1,68 @@
+{
+  "id": "fish-house-rich",
+  "name": "Fisher's house, rich",
+  "group": "homes",
+  "internal": true,
+  "extends": "fish-house",
+  "vars": {
+    "rh": "0.6 + (variant % 3) * 0.14"
+  },
+  "parts": [
+    {
+      "box": [0.86, 0.12, 1.01],
+      "at": [0, 0.06, 0],
+      "color": "stoneDark"
+    },
+    {
+      "box": [0.8, "h", 0.95],
+      "at": [0, "h / 2", 0],
+      "color": "walls[variant]"
+    },
+    {
+      "gable": [1.0, 1.22, "rh"],
+      "y": "h",
+      "color": "roofs[variant * 3]"
+    },
+    {
+      "box": [1.04, 0.06, 0.06],
+      "at": [0, "h + rh - 0.01", 0],
+      "color": "post"
+    },
+    {
+      "box": [0.16, 0.6, 0.16],
+      "at": [0.25, "h + rh * 0.55 + 0.2", -0.15],
+      "color": "chimney"
+    },
+    {
+      "box": [0.23, 0.05, 0.23],
+      "at": [0.25, "h + rh * 0.55 + 0.2 + 0.32", -0.15],
+      "color": "chimneyCap"
+    },
+    {
+      "box": [0.3, 0.45, 0.05],
+      "at": [0, 0.35, 0.49],
+      "color": "post"
+    },
+    {
+      "box": [0.42, 0.06, 0.14],
+      "at": [0, 0.08, 0.55],
+      "color": "stoneDark"
+    },
+    {
+      "if": "variant % 2 == 0",
+      "parts": [
+        {
+          "box": [0.55, "h * 0.55", 0.32],
+          "at": [0, "h * 0.275", -0.63],
+          "color": "walls[variant + 1]"
+        },
+        {
+          "box": [0.62, 0.04, 0.42],
+          "at": [0, "h * 0.55 + 0.06", -0.64],
+          "color": "roofs[variant * 3 + 1]",
+          "ops": [["turnX", -0.45]]
+        }
+      ]
+    }
+  ]
+}

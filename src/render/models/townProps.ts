@@ -9,7 +9,7 @@ import { BEACH_TOP, ISLAND_SCALE } from '../../sim/islandUnits';
 import { createRng, range } from '../../sim/rng';
 import type { ForestClearings } from '../../sim/forest';
 import { FORESTS } from '../../data/forests';
-import { paint } from './geometry';
+import { isGlowing, paint } from './geometry';
 import { PROP_TYPES, WOODLAND_TREES, put, type Parts } from './props';
 import { lanePieces } from './townLanes';
 import type { TerrainLook } from '../terrainLook';
@@ -84,6 +84,24 @@ export function propParts(prop: PropDef, design: IslandDesign, R: number): Parts
   return parts;
 }
 
+/**
+ * A home's richer parts (issue #500), not yet placed; windows are the plain house's. The two are
+ * told apart by `userData.house`, so the island draws one set near and the other far.
+ */
+export function richParts(prop: PropDef, design: IslandDesign, R: number): Parts | undefined {
+  const build = PROP_TYPES[prop.type]?.buildRich;
+  if (!build) return undefined;
+  const rich = build({
+    R,
+    style: design.style,
+    variant: prop.variant ?? 0,
+    shape: prop.shape ?? 0.5,
+    size: prop.size ?? 1,
+  });
+  for (const g of rich) g.userData.house = 'rich';
+  return rich;
+}
+
 /** Is this prop one of the island's numbered residences? */
 export const isResidence = (prop: PropDef) =>
   !!PROP_TYPES[prop.type]?.home && !prop.tags?.includes('outbuilding');
@@ -133,12 +151,19 @@ export function townProps(
 
   // Homes, numbered in file order; lanes appear piece by piece near the ones that stand.
   const homes: Parts[] = [];
+  const richHomes: Parts[] = [];
   const active: { x: number; z: number }[] = [];
   design.props.filter(isResidence).forEach((prop, i) => {
     if (!atLevel(prop, level)) return;
     const parts = propParts(prop, design, R);
     const half = (extent(parts) * (prop.size ?? 1)) / R;
     const clear = place(prop, parts, []);
+    const rich = richParts(prop, design, R);
+    if (rich) {
+      place(prop, rich, []);
+      richHomes.push(rich);
+      for (const g of parts) if (!isGlowing(g)) g.userData.house = 'plain';
+    }
     if (clearings) {
       // A house keeps the forest 1.5 house widths off (art direction, new look §3).
       const margin = half * (1 + 2 * FORESTS.clear.houseWidths);
@@ -174,7 +199,7 @@ export function townProps(
     if (!flat) g.rotateZ(Math.atan2((hb - ha) * R, len));
     put(out, [g], x * R, h * R, z * R, -Math.atan2(bz - az, bx - ax));
   }
-  for (const parts of homes) out.push(...parts);
+  for (const parts of [...homes, ...richHomes]) out.push(...parts);
 
   harbour(out);
 
