@@ -7,6 +7,7 @@ import { ShadowCasters } from './shadowCasters';
 import type { SunShape } from './atmosphere';
 import { GradeShader } from './gradeShader';
 import { leanShadowMap } from './shadowTarget';
+import { UltraBloom } from './ultraBloom';
 
 /** The effects the player can switch off one by one (Settings, decision 0221). */
 export interface GraphicsEffects {
@@ -18,6 +19,8 @@ export interface GraphicsEffects {
   toneMapping: boolean;
   /** Ultra's horizon haze. */
   haze: boolean;
+  /** Ultra's glow round lit windows, lanterns and the moon (decision 0299). */
+  bloom: boolean;
   /** The sea's sky reflection and sun glint, on High and Ultra. */
   reflection: boolean;
   /** The boats, islands and sky mirrored on the sea, on the levels with `mirror` (decision 0292). */
@@ -34,6 +37,7 @@ export const allEffects = (): GraphicsEffects => ({
   occlusion: true,
   toneMapping: true,
   haze: true,
+  bloom: true,
   reflection: true,
   mirror: true,
 });
@@ -58,18 +62,20 @@ interface ShadowSnapshot {
 /**
  * The Ultra render pipeline (decision 0221), for desktop GPUs and the Xbox: neutral tone mapping,
  * soft shadows on every lit mesh round the camera, ambient occlusion at a share of the resolution,
- * multisampled anti-aliasing and a horizon haze. Every number is `TUNING.graphics.ultra`, read
+ * multisampled anti-aliasing, a horizon haze and a glow round the night's lights. Every number is `TUNING.graphics.ultra`, read
  * each frame so the `?tune` page shows a change at once. Loaded only when Ultra is picked, so
  * phones never download it.
  *
  * A frame is two full-screen steps (decision 0297): the scene into one multisampled half-float
- * target, then one pass that multiplies in the occlusion, grades and writes sRGB to the canvas.
+ * target, then one pass that multiplies in the occlusion, adds the bloom, grades and writes sRGB
+ * to the canvas.
  * No full-resolution picture sits between them, which is what an effect composer would keep.
  */
 export class UltraPipeline {
   /** The scene's multisampled colour and depth; replaced when the sample count changes. */
   private sceneTarget = sceneTarget(0);
   private readonly occlusion: GTAOPass;
+  private readonly bloom = new UltraBloom();
   private readonly grade = new THREE.ShaderMaterial({
     name: 'UltraGrade',
     uniforms: THREE.UniformsUtils.clone(GradeShader.uniforms),
@@ -174,6 +180,7 @@ export class UltraPipeline {
     this.pixelRatio = pixelRatio;
     const size = this.renderer.getDrawingBufferSize(this.bufferSize);
     this.sceneTarget.setSize(size.x, size.y);
+    this.bloom.setSize(size.x, size.y);
     const res = (this.aoResolution = TUNING.graphics.ultra.occlusion.resolution);
     this.occlusion.setSize(
       Math.max(1, Math.round(width * pixelRatio * res)),
@@ -202,7 +209,7 @@ export class UltraPipeline {
     u.uHazeStart!.value = ultra.haze.start;
     u.uHazeStrength!.value = this.effects.haze ? ultra.haze.strength : 0;
     const samples = this.effects.msaa !== false ? ultra.antialiasSamples : 0;
-    this.draw(samples, this.effects.occlusion);
+    this.draw(samples, this.effects.occlusion, this.effects.bloom ? night : undefined);
   }
 
   /**
@@ -219,7 +226,8 @@ export class UltraPipeline {
     return true;
   }
 
-  private draw(samples: number, occlusion: boolean) {
+  /** `bloomNight` is how far into the night the bloom's threshold is; left out, no bloom. */
+  private draw(samples: number, occlusion: boolean, bloomNight?: number) {
     this.followSamples(samples);
     // One frame is many render calls here: count them all, so `?perf` and `?bench` stay honest
     // (the view counts from the sea mirror's pass when it drew one first).
@@ -230,7 +238,16 @@ export class UltraPipeline {
     renderer.setRenderTarget(this.sceneTarget);
     renderer.render(this.scene, this.camera);
     if (occlusion) this.occlusion.render(renderer, this.sceneTarget, this.sceneTarget, 0, false);
-    this.grade.uniforms.tDiffuse!.value = this.sceneTarget.texture;
+    const u = this.grade.uniforms;
+    u.tDiffuse!.value = this.sceneTarget.texture;
+    if (bloomNight === undefined) {
+      this.bloom.release();
+      u.uBloom!.value = 0;
+    } else {
+      const glow = this.bloom.render(renderer, this.sceneTarget, bloomNight);
+      u.tBloom!.value = glow.texture;
+      u.uBloom!.value = glow.weight;
+    }
     renderer.setRenderTarget(null);
     this.screen.render(renderer);
     info.autoReset = true;
@@ -304,6 +321,7 @@ export class UltraPipeline {
   dispose() {
     this.setActive(false);
     this.occlusion.dispose();
+    this.bloom.dispose();
     this.grade.dispose();
     this.screen.dispose();
     this.sceneTarget.dispose();

@@ -130,6 +130,14 @@
       "dayColor": "#f2e3c6",
       "nightColor": "#2f4f7a"
     },
+    "bloom": {
+      "strength": 1,
+      "radius": 0.8,
+      "threshold": 1.05,
+      "nightThreshold": 0.7,
+      "knee": 0.1,
+      "levels": 4
+    },
     "night": {
       "lanternSize": 0.7,
       "windowGlow": 1.3

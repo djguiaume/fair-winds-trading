@@ -164,6 +164,7 @@ describe('settings applier', () => {
         occlusion: true,
         toneMapping: true,
         haze: true,
+        bloom: true,
         reflection: true,
         mirror: true,
       },

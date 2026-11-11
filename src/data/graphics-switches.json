@@ -3,6 +3,7 @@
   "ao": "occlusion",
   "tonemap": "toneMapping",
   "haze": "haze",
+  "bloom": "bloom",
   "reflection": "reflection",
   "msaa": "msaa",
   "life": "seaLife",
