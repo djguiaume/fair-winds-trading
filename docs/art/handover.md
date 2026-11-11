@@ -1,6 +1,6 @@
-# Art director handover (v1.6 to the next release, 2026-11-05)
+# Art director handover (v1.8 to the next release, 2026-11-11)
 
-v1.6.387 shipped. Your OK means "ready to show Guillaume", never "merged". Your own PRs are docs only. Replace this file at the end of your release.
+v1.8.402 shipped. Your OK means "ready to show Guillaume", never "merged". Your own PRs are docs only. Replace this file at the end of your release.
 
 ## 1. Open decisions
 
@@ -12,6 +12,22 @@ None waiting on Guillaume from the art side. Items below are small and agreed, n
 - **Quest buoy (#361):** cream hull `#efe6d1` with an ink band and a pale cream-gold lantern. Yellow stays reserved for regatta marks, red for edge buoys.
 - **Skerry flag (#361):** star over a wave, cream on navy, at the pier root left of the path, clear of the plot signs. A flag at 2x size swallowed the island; about 1.4x is the limit there.
 - **Sea life (#476, PR #480):** gulls about 12 at High, 4 harbour plus 2 wake gulls on Low, never more on phone than desktop. Shoals are a soft blue-grey about a quarter darker than the water, with small fish on top, and drop on Low with the dolphins. Gull and foam colours never above `#f6f9fb`.
+
+## 2a. Rulings from v1.8 "A richer look" (keep)
+
+- **Bloom (ADR 0299, PR #510):** Ultra only, rule 1 exception. Strength 1, radius 0.8 (the chain's own units, weaker than the mockup's 0.55 / 0.5). Day threshold 1.05, so nothing blooms by day; only windows, lanterns and the moon glow at night. Sails and foam never bloom.
+- **Gusts (ADR 0295):** soft patches, at most about 8% lightness off the water ramp, never white, half strength at night, off on Low and Medium.
+- **Ground cover (ADR 0298):** grass clumps, dry patches `#a8b45c` family and sand ripples as subtle tints (about 6%) of the zone colour. None on rock, slate, lava or snow. Cliff ledge lines were rejected by Guillaume; do not retry them.
+- **Houses (ADR 0296, variant A):** silhouette parts (eaves, chimney, lean-to, trim), no ink lines; footing in `stoneDark`, caps warm charcoal `#4d4640`, no chimneys on tropic, about 130 triangles. Only ring (Saltmere) was seen in a sheet; check the other styles in game.
+- **Sky probe:** left out because it darkened dusk and night. Do not ship it unless night stays above `#1d3d7a`.
+
+## 2b. Open art items from v1.8
+
+- Believable towns, [#503](https://github.com/djguiaume/fair-winds-trading/issues/503), planned for v1.9.
+- Lean-to roofs share the main roof's colour on some houses; use a slightly different tone.
+- The moon halo is the biggest glow at night; tighten it if Guillaume finds it too big.
+- Chimney cap `#4d4640` may vanish on near-black or olive roofs (fire iron, fog turf); lift it a step or use the stone tone.
+- Low vs Ultra pair and a phone-landscape night shot were asked for but not seen.
 
 ## 3. Pointers
 
