@@ -20,7 +20,13 @@ import { ShallowsWater } from './shallowsWater';
 import { PALETTE } from './palette';
 import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
 import { CourseSpar } from './courseSpar';
-import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
+import {
+  gameRenderer,
+  renderPixelRatio,
+  QUALITY,
+  type QualityLevel,
+  type QualityProfile,
+} from './quality';
 import { type TerrainLook, terrainLook } from './terrainLook';
 import { SeaWaves } from './seaWaves';
 import { toScene } from './sceneSpace';
@@ -55,7 +61,7 @@ import type { FlagDef } from '../sim/regatta';
 import { smoothOutline } from '../sim/flowShapes';
 import { setNightPaper } from '../ui/nightPaper';
 import { designOf } from '../data/islands';
-import { PICTURE_GRADE, pictureUrl } from './pictureGrade';
+import { PICTURE_GRADE, pictureUrl, renderPicture } from './pictureGrade';
 import {
   HARBOUR_VIEW,
   type HarbourLight,
@@ -77,6 +83,8 @@ export interface ScreenPoint {
  */
 export class GameView {
   readonly renderer: THREE.WebGLRenderer;
+  /** The canvas has a depth buffer: false when the game starts on Ultra (decision 0297). */
+  private readonly canvasDepth: boolean;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(40, 1, 1, 600);
   private readonly sun = new THREE.DirectionalLight(PALETTE.sun, 1.7);
@@ -181,12 +189,8 @@ export class GameView {
     /** `?look=v2`: the new look's ground from the shared height field (decision 0222). */
     private readonly look: TerrainLook = terrainLook(location.search),
   ) {
-    this.renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: QUALITY[level].antialias,
-      powerPreference: 'high-performance',
-      stencil: false,
-    });
+    this.renderer = gameRenderer(canvas, QUALITY[level]);
+    this.canvasDepth = this.renderer.getContextAttributes().depth !== false;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.veil = new HazeVeil(
       canvas.parentElement?.querySelector<HTMLElement>('#haze-veil') ?? null,
@@ -698,7 +702,8 @@ export class GameView {
 
     this.mirror.render(dt, this.ocean, this.level, this.target, day.night, this.effects.mirror);
     if (ultra) ultra.render(dt, day.night);
-    else if (!this.ultra?.renderHigh(dt, this.profile))
+    // A canvas made for Ultra has no depth: until its pipeline loads, it draws nothing.
+    else if (!this.ultra?.renderPlain(this.profile) && this.canvasDepth)
       this.renderer.render(this.scene, this.camera);
   }
 
@@ -793,14 +798,7 @@ export class GameView {
     ].filter((o) => o.visible);
     for (const o of hidden) o.visible = false;
 
-    const target = new THREE.WebGLRenderTarget(w, h, { depthBuffer: true });
-    target.texture.colorSpace = THREE.SRGBColorSpace;
-    const pixels = new Uint8Array(w * h * 4);
-    this.renderer.setRenderTarget(target);
-    this.renderer.render(this.scene, camera);
-    this.renderer.readRenderTargetPixels(target, 0, 0, w, h, pixels);
-    this.renderer.setRenderTarget(null);
-    target.dispose();
+    const pixels = renderPicture(this.renderer, this.scene, camera, w, h);
     for (const o of hidden) o.visible = true;
     fog.near = near;
     fog.far = far;

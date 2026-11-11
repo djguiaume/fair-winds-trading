@@ -102,9 +102,11 @@ export function readGpuMemory() {
   const { textures, renderbuffers, buffers } = window.__gpuMemory;
   const gl = window.fwt.view.renderer.getContext();
   const pixels = gl.drawingBufferWidth * gl.drawingBufferHeight;
-  const { antialias } = gl.getContextAttributes();
-  // Colour and depth, 4 bytes each, per sample; a multisampled canvas also keeps a resolved copy.
-  const canvas = antialias ? pixels * 8 * 4 + pixels * 4 : pixels * 8;
+  const { antialias, depth } = gl.getContextAttributes();
+  // Colour, and depth when it has one (Ultra's has none), 4 bytes each per sample; a multisampled
+  // canvas also keeps a resolved colour copy.
+  const perSample = depth ? 8 : 4;
+  const canvas = antialias ? pixels * perSample * 4 + pixels * 4 : pixels * perSample;
   const sum = (values) => [...values].reduce((a, b) => a + b, 0);
   const texture = sum([...textures.values()].map((parts) => sum(parts.values())));
   const renderbuffer = sum(renderbuffers.values());
