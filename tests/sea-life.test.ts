@@ -15,14 +15,12 @@ import { MAX_POD } from '../src/sim/seaLifeChecks';
 import { QUALITY_LEVELS } from '../src/render/quality';
 import {
   LIFE_FILE,
-  addBird,
-  lifeField,
+  SEA_LIFE_DOC,
   lifeProblems,
   lifeText,
-  removeBird,
-  setLifeField,
   shippedLifeDoc,
 } from '../src/editor/seaLife/doc';
+import { addKind, docField, removeKind, setDocField } from '../src/editor/fieldsDoc';
 import type * as THREE from 'three';
 import { SeaBirds } from '../src/render/seaBirds';
 import { Dolphins, type SwimScene, Whale } from '../src/render/seaSwimmers';
@@ -168,23 +166,23 @@ describe('sea life file, page and npm run life (issue #476)', () => {
 
   it('sets numbers, pairs and lists from text and refuses the wrong shape', () => {
     const doc = shippedLifeDoc();
-    expect(setLifeField(doc, 'birds.gull.count', '18')).toBeNull();
+    expect(setDocField(doc, 'birds.gull.count', '18', 'life')).toBeNull();
     expect(doc.birds.gull!.count).toBe(18);
-    expect(setLifeField(doc, 'whale.every', '40, 90')).toBeNull();
+    expect(setDocField(doc, 'whale.every', '40, 90', 'life')).toBeNull();
     expect(doc.whale.every).toEqual([40, 90]);
-    expect(setLifeField(doc, 'dolphins.seas', 'ring, south')).toBeNull();
+    expect(setDocField(doc, 'dolphins.seas', 'ring, south', 'life')).toBeNull();
     expect(doc.dolphins.seas).toEqual(['ring', 'south']);
-    expect(setLifeField(doc, 'whale.every', '40')).toMatch(/two numbers/);
-    expect(setLifeField(doc, 'whale.colour', '1')).toMatch(/unknown field/);
-    expect(lifeField(doc, 'whale.every')).toBe('40, 90');
+    expect(setDocField(doc, 'whale.every', '40', 'life')).toMatch(/two numbers/);
+    expect(setDocField(doc, 'whale.colour', '1', 'life')).toMatch(/unknown field/);
+    expect(docField(doc, 'whale.every')).toBe('40, 90');
   });
 
   it('adds a bird kind as a copy and writes the file as Prettier does', () => {
     const doc = shippedLifeDoc();
-    expect(addBird(doc, 'puffin', 'tern')).toBeNull();
+    expect(addKind(SEA_LIFE_DOC, doc, 'puffin', 'tern')).toBeNull();
     expect(doc.birds.puffin).toEqual(doc.birds.tern);
-    expect(addBird(doc, 'puffin')).toMatch(/already exists/);
-    expect(removeBird(doc, 'puffin')).toBe(true);
+    expect(addKind(SEA_LIFE_DOC, doc, 'puffin')).toMatch(/already exists/);
+    expect(removeKind(SEA_LIFE_DOC, doc, 'puffin')).toBe(true);
     expect(lifeText(doc)).toBe(readFileSync(LIFE_FILE, 'utf8'));
   });
 });

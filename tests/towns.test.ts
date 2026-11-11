@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import { buildHighlandIslands } from '../src/render/models/highlandIslands';
 import { type TownLevel, townIslandParts } from '../src/render/models/towns';
+import { isFarHouses } from '../src/render/models/houseDetail';
 
 const levels = [1, 2, 3, 4] as const;
 const kinds = ['fish', 'timber', 'grain', 'stone', 'yard'];
@@ -28,7 +29,7 @@ function built(levelsByPort?: Record<string, TownLevel>) {
   const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false, levels: levelsByPort });
   let triangles = 0;
   mesh.traverse((o) => {
-    if (o instanceof THREE.Mesh && o.name !== 'windows')
+    if (o instanceof THREE.Mesh && o.name !== 'windows' && !isFarHouses(o))
       triangles += o.geometry.attributes.position!.count / 3;
   });
   const result = {

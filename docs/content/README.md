@@ -142,7 +142,13 @@ new id and change its parts. A new file shows up in the island builder's palette
 
 **Expressions** (`"h / 2"`, `"k * pi / 2 + 0.4"`, `"variant == 0 ? 2 : variant"`) use numbers, the names `R` (island radius), `variant`, `shape`, `size`, `length`, the vars and repeat names, `pi`, `+ - * / %`, comparisons, `&& || !`, `? :`, and `floor abs min max sin cos sqrt pow`.
 
-**Checks** (`tests/prop-files.test.ts`): a typo in a key, an unknown colour or name, or a part with no shape fails with the file and part named; every file must build in every style for variants 0 to 5, within its group's triangle budget (`src/data/prop-groups.json`: homes 120, nature 60…) because islands must stay light for the old tablet. Changing a shipped recipe changes the islands that use it: the island golden hashes in `tests/island-files.test.ts` then need the new values, after a look at the island.
+**Checks** (`tests/prop-files.test.ts`): a typo in a key, an unknown colour or name, or a part with no shape fails with the file and part named; every file must build in every style for variants 0 to 5, within its group's triangle budget (`src/data/prop-groups.json`: homes 130, nature 60…) because islands must stay light for the old tablet. Changing a shipped recipe changes the islands that use it: the island golden hashes in `tests/island-files.test.ts` then need the new values, after a look at the island.
+
+A home (`home: true`) also needs a richer twin (decision 0296): an internal `<id>-rich` recipe that
+`extends` it, named in the home's `rich` field. Keep the walls and `vars` (so the swap changes
+details only), leave the windows out (the plain recipe's lit panes are shared), and stay within the
+`homes` budget with those windows counted. High and Ultra draw it near the camera, Low and Medium
+the plain house (`graphics.json › quality.*.richHouses`, `houses.richWithin`).
 
 ## A new ground or island style ([0168](../decisions/0168-ground-materials-and-island-styles-as-data.md))
 
@@ -270,6 +276,16 @@ A lesson step with a `speaker` is that person's card instead of a bubble, coach 
 ## Quests ([0125](../decisions/0125-quest-engine.md))
 
 The **quest builder** in the map editor (`editor.html` › Quests, [how to use](../quest-builder/builder/README.md), [0142](../decisions/0142-quest-builder.md)) edits all of this with forms, places on the chart and text side by side, and exports the files.
+
+**Where the quest code lives (#422).** Engine, in `src/sim/`: `quests.ts` (the `QuestBook`, and
+it passes on the rest) on `questBookBase.ts` (what it knows) and `questBookSteps.ts` (how quests
+move on); `questTypes.ts` (the file format), `questFlow.ts` (step to step), `questChecks.ts`,
+`questSave.ts`, `questRewards.ts`. Conditions: `questLibrary.ts` (passes them on),
+`conditionBasics.ts`, `questConditions.ts` (every kind), one file per family
+(`conditionsVoyage.ts`, `conditionsCargo.ts`, `conditionsSailing.ts`), `conditionChecks.ts`.
+Builder, in `src/editor/quest/`: `doc.ts` with `docText`, `docWords`, `docPlaces`, `docStory`,
+`docChecks`; `form.ts` with `formFields.ts`, `seaFields.ts`, `rewardForm.ts`. Game, in `src/ui/`:
+`questView.ts` (cards) with `questWords`, `questJournal`, `questPlaces`, `questLesson`.
 
 Every file in `src/data/quests/` is a quest the engine runs (`src/sim/quests.ts`), several at
 once, saved with the voyage. Example (a test file: [`tests/fixtures/quests/test-pier.json`](../../tests/fixtures/quests/test-pier.json)):

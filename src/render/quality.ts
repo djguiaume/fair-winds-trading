@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { TUNING } from '../data/tuning';
 
 /**
@@ -27,18 +28,38 @@ export interface QualityProfile {
   chartFogBlur: boolean;
   /** Fresnel sky reflection and sun glint on the sea (decision 0221). */
   waterReflection: boolean;
+  /** The boats, islands and sky mirrored on the sea (decision 0292); needs `waterReflection`. */
+  mirror: boolean;
   /** Desktop and Xbox pipeline (decision 0221): tone mapping, soft shadows, occlusion, haze. */
   ultra: boolean;
   /** Plain water and ground for fill-rate bound tablets (decision 0247): no per-pixel lighting. */
   plain: boolean;
   /** Simple boat rig, calm heel and short bow waves. */
   lowDetail: boolean;
+  /** Richer town houses near the camera (issue #500); the plain houses stay for far and Low. */
+  richHouses: boolean;
   /** The Gerstner waves by default (decision 0250); Settings › Waves overrides it. */
   waves: boolean;
+  /** The wind's gusts on the sea (decision 0295); needs the waves on and `fancyWater`. */
+  gusts: boolean;
 }
 
 /** The levels' numbers live in `graphics.json › quality` (decision 0093). */
 export const QUALITY: Record<QualityLevel, QualityProfile> = TUNING.graphics.quality;
+
+/** The game's renderer. Ultra draws into its own target, so its canvas has no depth (decision 0297). */
+export function gameRenderer(
+  canvas: HTMLCanvasElement,
+  profile: QualityProfile,
+): THREE.WebGLRenderer {
+  return new THREE.WebGLRenderer({
+    canvas,
+    antialias: profile.antialias,
+    depth: !profile.ultra,
+    powerPreference: 'high-performance',
+    stencil: false,
+  });
+}
 
 /** `?perf&aa=1` test aid (decision 0154): multisample on every level, to measure its cost. */
 export function forceAntialias(): void {

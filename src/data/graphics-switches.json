@@ -3,7 +3,12 @@
   "ao": "occlusion",
   "tonemap": "toneMapping",
   "haze": "haze",
+  "bloom": "bloom",
   "reflection": "reflection",
   "msaa": "msaa",
-  "life": "seaLife"
+  "life": "seaLife",
+  "folk": "townFolk",
+  "mirror": "mirror",
+  "gusts": "gusts",
+  "cover": "groundCover"
 }

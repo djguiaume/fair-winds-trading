@@ -98,4 +98,15 @@ describe('ground materials and island styles as data (decision 0168)', () => {
     const peak = stepFromArgs('mountain', parseArgs(['--at=0,-0.3', '--material', 'slate']), []);
     expect(peak).toMatchObject({ do: 'mountain', material: 'slate' });
   });
+
+  it('gives grass and sand their cover and leaves rock, snow, ice and lava bare (issue #499)', () => {
+    const bare = ['rock', 'cut', 'snow', 'ice', 'slate', 'blackbasalt', 'lavafield', 'volcanic'];
+    for (const id of bare) expect(GROUNDS[id]!.cover, id).toBeUndefined();
+    expect(GROUNDS.downs!.cover).toBe('grass');
+    expect(GROUNDS.ringsand!.cover).toBe('sand');
+    // Moss and heath get the relief, not the dry grass.
+    expect(GROUNDS.moss!.cover).toBe('heath');
+    for (const [id, ground] of Object.entries(GROUNDS))
+      if (ground.cover === 'sand') expect(ground.beach, id).toBe(true);
+  });
 });

@@ -159,12 +159,22 @@ describe('settings applier', () => {
   it('pushes every setting to the world, the view and the HUD', () => {
     const world = createWorld(PHASE1_MAP, SLOOP);
     const view = {
-      effects: { shadows: true, occlusion: true, toneMapping: true, haze: true, reflection: true },
+      effects: {
+        shadows: true,
+        occlusion: true,
+        toneMapping: true,
+        haze: true,
+        bloom: true,
+        reflection: true,
+        mirror: true,
+        groundCover: true,
+      },
       setWaves: vi.fn(),
       dayNight: true,
       eruptions: true,
       wakeStyles: true,
       seaLife: { on: true },
+      townFolk: { on: true },
     };
     const hud = { quiet: false, compassOff: false };
     const camera = { sync: vi.fn() };
@@ -175,6 +185,7 @@ describe('settings applier', () => {
       weather: false,
       ships: false,
       seaLife: false,
+      townFolk: false,
       quietHud: true,
       windCompass: false,
       dayNight: false,
@@ -188,6 +199,7 @@ describe('settings applier', () => {
     expect(world.hazeOff).toContain('fog');
     expect(view.dayNight).toBe(false);
     expect(view.seaLife.on).toBe(false);
+    expect(view.townFolk.on).toBe(false);
     expect(view.effects.shadows).toBe(false);
     expect(hud).toEqual({ quiet: true, compassOff: true });
     expect(padGlyphs).toHaveBeenCalledWith('playstation');

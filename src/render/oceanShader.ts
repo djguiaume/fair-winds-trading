@@ -3,11 +3,12 @@ import { seabedShader } from './seabedTexture';
 import { seaFoamFunctions, seaFoamShader } from './seaFoam';
 import { waveFineShader, waveShadingVaryings } from './oceanWaves';
 import { surfFunctions, surfLinesShader } from './shoreWash';
+import { gustFunctions, gustShader } from './seaGusts';
 
 /**
  * The ocean's colours (`ocean.ts`): flat shaded, by the seabed's depth or the classic shallow
  * tint, shore foam, the sky's reflection (High and Ultra, and any faceted depth-coloured sea) and
- * on High and Ultra the sun's glint.
+ * on High and Ultra the sun's glint and the wind's gusts (`seaGusts.ts`).
  */
 export const oceanFragmentShader = /* glsl */ `
 uniform float uTime;
@@ -45,6 +46,13 @@ uniform vec3 uSkyLight;
 uniform float uReflect;
 uniform float uFresnelPower;
 #endif
+#ifdef MIRROR
+// The boats, islands and sky drawn from under the sea (seaMirror.ts), world → texture, and the
+// look: x the floor of its strength, y the waves' distortion of it, z its strength now (0 = off).
+uniform sampler2D uMirror;
+uniform mat4 uMirrorMatrix;
+uniform vec3 uMirrorLook;
+#endif
 #ifdef REFLECT
 uniform vec3 uSunColor;
 uniform float uGlint;
@@ -55,6 +63,12 @@ uniform vec3 uGlintFade;
 #if defined(REFLECT) || defined(DEPTH)
 // Soft shore foam: full strength out to x, fading over y, opacity z, outer line w.
 uniform vec4 uFoamLook;
+#endif
+#if defined(COAST) || defined(GUSTS)
+${seaFoamFunctions}
+#endif
+#ifdef GUSTS
+${gustFunctions}
 #endif
 #ifdef COAST
 // The sea now (x: how rough, y: how wide the shore foam grows, z: surf, w: whitecaps), and per
@@ -67,7 +81,6 @@ uniform vec4 uSeaWind;
 uniform float uFoamBreakup;
 uniform vec3 uFoamCap;
 varying vec3 vSea;
-${seaFoamFunctions}
 #ifdef FANCY
 // The surf's thin breaking lines, in time with the wash up the beach (issue #397).
 varying float vSurfOpen;
@@ -144,6 +157,15 @@ void main() {
   vec3 col = mix(uWater, uWaterLight, smoothstep(-0.35, 0.45, height));
   col = mix(col, uShallow, (1.0 - smoothstep(0.0, 14.0, d)) * 0.85);
 #endif
+#ifdef GUSTS
+  // The wind's gusts on the water's own colour, under the foam; none in a closed harbour.
+#ifdef COAST
+  float shelter = vSea.z;
+#else
+  float shelter = 1.0;
+#endif
+  ${gustShader}
+#endif
 #ifdef FANCY
   float ripple = sin(vWorld.x * 0.45 + uTime * 1.3) * sin(vWorld.z * 0.5 - uTime * 1.7);
 #else
@@ -176,7 +198,22 @@ void main() {
   vec3 toEye = normalize(cameraPosition - vWorld);
   float fresnel = pow(1.0 - max(dot(n, toEye), 0.0), uFresnelPower);
 #endif
+#ifdef GUSTS
+  // A gust's ruffled water breaks the reflections up.
+  float mirrorKept = mix(1.0, uGustEdge.w, gust);
+  col = mix(col, uSkyLight, fresnel * uReflect * mix(1.0, uGustEdge.z, gust));
+#else
+  float mirrorKept = 1.0;
   col = mix(col, uSkyLight, fresnel * uReflect);
+#endif
+#endif
+#ifdef MIRROR
+  // Where a boat, an island or the drawn sky was mirrored, it replaces the sky's tint, at least at
+  // the floor so a steep view still shows the hulls; its alpha is clear where nothing was drawn.
+  vec4 mirrorAt = uMirrorMatrix * vec4(vWorld, 1.0);
+  vec2 mirrorUv = mirrorAt.xy / mirrorAt.w + n.xz * uMirrorLook.y;
+  vec4 mirrored = texture2D(uMirror, mirrorUv);
+  col = mix(col, mirrored.rgb, mirrored.a * mirrorKept * uMirrorLook.z * max(fresnel * uReflect, uMirrorLook.x));
 #endif
 #ifdef REFLECT
   // A glint belongs to a low view: looking down at a high sun it would blow out half the screen.

@@ -31,5 +31,6 @@
       "pane": 1.5,
       "seed": "variant"
     }
-  ]
+  ],
+  "rich": "cabin-rich"
 }

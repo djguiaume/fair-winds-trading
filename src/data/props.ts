@@ -83,6 +83,11 @@ export interface PropRecipe {
   /** Copies another recipe and changes some of its `vars` (`windmill-bare`). */
   extends?: string;
   home?: boolean;
+  /**
+   * An internal recipe with this home's richer parts (issue #500), drawn near the camera on High
+   * and Ultra. The windows stay this recipe's own, so the rich recipe leaves them out.
+   */
+  rich?: string;
   building?: boolean;
   water?: boolean;
   /**
@@ -137,7 +142,8 @@ export type PropGroup =
   | 'landmarks'
   | 'figureheads'
   | 'boats'
-  | 'life';
+  | 'life'
+  | 'folk';
 
 /** The prop groups in the builder's order, each with its triangle budget per prop. */
 export const PROP_GROUPS = groupsFile.groups as Record<PropGroup, { budget: number }>;
@@ -165,6 +171,7 @@ function resolved(
     internal: file.internal,
     // A lamp is the base's own: the tumbled cairn is dark (decision 0170).
     lamp: file.lamp,
+    rich: file.rich,
     vent: file.vent,
     vars: { ...from.vars, ...file.vars },
     parts: file.parts ?? from.parts,

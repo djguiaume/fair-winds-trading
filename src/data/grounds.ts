@@ -7,6 +7,12 @@ import { PALETTE } from './props';
  * touching the file, while a file can still name any ground outright. The beach is the ground
  * named `sand`, swapped the same way (`shingle`, black sand).
  */
+/**
+ * The small cover a ground's flat wears in the new look (issue #499): `grass` is clumps, tufts
+ * and dry patches, `heath` the same without dry patches, `sand` wind ripples and grit.
+ */
+export type GroundCover = 'grass' | 'heath' | 'sand' | 'none';
+
 export interface GroundLook {
   /** Its name in the island builder. */
   name: string;
@@ -33,6 +39,8 @@ export interface GroundLook {
    * (`terrain.json › draw.sharpSlope`, `edge.sharpWidth`; issue #373).
    */
   sharp?: boolean;
+  /** Its cover (default none: rock, snow, ice, lava and shingle stay bare). */
+  cover?: GroundCover;
   /** Woods may grow on it (default true). */
   trees?: boolean;
   /** A beach: what a style's `sand` may become. */

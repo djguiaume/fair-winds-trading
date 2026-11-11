@@ -32,6 +32,10 @@ const TOOLS = {
     about: 'birds and sea life (sea-life.json): list, check, set, add and remove bird kinds',
     module: '/tools/fw/life.ts',
   },
+  folk: {
+    about: 'people of the towns (town-folk.json): list, check, set, add and remove kinds',
+    module: '/tools/fw/folk.ts',
+  },
   free: {
     about: 'Free Sailing presets: list, add, edit, check; walk proves the voyage stays untouched',
     file: './free.mjs',

@@ -40,16 +40,29 @@ export function tvProblems(c: TvConfig = TV): string[] {
   return out;
 }
 
-/** Whether this browser is a console on a TV: `?tv` / `?tv=0` win, else the user agent. */
-export function isTv(userAgent: string, search: string, c: TvConfig = TV): boolean {
+/** What TV mode reads of `navigator`. */
+export interface TvNavigator {
+  userAgent: string;
+  gamepadInputEmulation?: string;
+}
+
+/**
+ * Whether this browser is a console on a TV: `?tv` / `?tv=0` win, else the user agent, else
+ * `navigator.gamepadInputEmulation`, which only Edge on Xbox has. The user agent alone is not
+ * enough: Edge can leave "Xbox" out of it (a reduced or desktop-site user agent), and then the
+ * controller drove Edge's pointer and the game saw almost none of it (issue #494).
+ */
+export function isTv(nav: TvNavigator, search: string, c: TvConfig = TV): boolean {
   const q = new URLSearchParams(search);
   if (q.has('tv')) return q.get('tv') !== '0';
-  return c.userAgents.some((word) => userAgent.includes(word));
+  return (
+    c.userAgents.some((word) => nav.userAgent.includes(word)) || 'gamepadInputEmulation' in nav
+  );
 }
 
 /** The slices of `window` TV mode touches (easy to fake in tests). */
 export interface TvWindow {
-  navigator: { userAgent: string; gamepadInputEmulation?: string };
+  navigator: TvNavigator;
   location: { search: string };
   history: Pick<History, 'state' | 'pushState'>;
   document: { documentElement: Pick<HTMLElement, 'classList' | 'style'> };
@@ -63,7 +76,7 @@ const STATE = { fairWindsTv: true };
  * Returns whether TV mode is on.
  */
 export function startTvMode(win: TvWindow = window as unknown as TvWindow, c: TvConfig = TV) {
-  if (!isTv(win.navigator.userAgent, win.location.search, c)) return false;
+  if (!isTv(win.navigator, win.location.search, c)) return false;
   try {
     // Edge on Xbox reads this to stop moving a pointer with the pad; other browsers ignore it.
     win.navigator.gamepadInputEmulation = c.gamepadInputEmulation;

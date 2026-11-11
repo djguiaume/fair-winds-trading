@@ -148,7 +148,7 @@ import {
 import { character, firstName } from './ui/portraits';
 import { TransferPanel } from './ui/transferPanel';
 import { startTvMode } from './input/tv';
-import { PadLog } from './ui/padLog';
+import { padLogFromUrl } from './ui/padLog';
 import { usePadBrand } from './ui/padGlyphs';
 import { ScreenStack } from './ui/screens/stack';
 import { type TitleState, TitleScreen } from './ui/screens/title';
@@ -1318,7 +1318,7 @@ hud.onSailStep = (step) => input.setSail(step);
  */
 // On a TV the arrows and Enter are the pad's too (Edge's pointer mode, decision 0199).
 // `?padlog`: what the controller really sends, on screen, for a photo from the Xbox (0201).
-const padLog = new URLSearchParams(location.search).has('padlog') ? new PadLog() : null;
+const padLog = padLogFromUrl(tvMode);
 const pad = new GamepadPoller(undefined, undefined, undefined, tvMode);
 if (padLog) pad.onPress((p) => padLog.press(p.button, p.repeat));
 // The pad's own button names on glyphs and in texts: A on Xbox, ✕ on PlayStation (decision 0186).

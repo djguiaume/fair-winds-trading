@@ -3,6 +3,11 @@ import * as THREE from 'three';
 import { QUALITY, ultraCapable } from '../src/render/quality';
 import { ShadowCasters } from '../src/render/shadowCasters';
 import { leanShadowMap } from '../src/render/shadowTarget';
+import { drawsBelowUltra } from '../src/render/ultraPipeline';
+import { GradeShader } from '../src/render/gradeShader';
+import { bloomSizes } from '../src/render/ultraBloom';
+import { TUNING } from '../src/data/tuning';
+import { applyGraphicsOverrides } from '../src/perf/graphicsOverrides';
 
 describe('Ultra quality (decision 0221)', () => {
   it('is guessed only for a real graphics card with enough cores', () => {
@@ -54,5 +59,51 @@ describe('Ultra quality (decision 0221)', () => {
     expect(depth.format).toBe(THREE.DepthFormat);
     expect(depth.compareFunction).toBe(THREE.LessEqualCompare);
     expect(leanShadowMap(1024, true).depthTexture!.compareFunction).toBe(THREE.GreaterEqualCompare);
+  });
+
+  it('draws every level through the pipeline on a canvas made for Ultra (decision 0297)', () => {
+    const ultraCanvas = { antialias: false, depth: false };
+    expect(drawsBelowUltra(ultraCanvas, { antialias: true })).toBe(true);
+    expect(drawsBelowUltra(ultraCanvas, { antialias: false })).toBe(true);
+    // A canvas made for another level draws itself, unless the level wants anti-aliasing it lacks.
+    expect(drawsBelowUltra({ antialias: true, depth: true }, { antialias: true })).toBe(false);
+    expect(drawsBelowUltra({ antialias: false, depth: true }, { antialias: false })).toBe(false);
+    expect(drawsBelowUltra({ antialias: false, depth: true }, { antialias: true })).toBe(true);
+  });
+
+  it('grades, multiplies in the occlusion and writes sRGB in one pass', () => {
+    expect(GradeShader.uniforms.tOcclusion).toBeDefined();
+    expect(GradeShader.fragmentShader).toContain('#include <colorspace_fragment>');
+  });
+
+  it('blurs the bloom in a chain of small pictures, the first at half the screen', () => {
+    expect(bloomSizes(2564, 1442, 4)).toEqual([
+      [1282, 721],
+      [641, 361],
+      [321, 180],
+      [160, 90],
+    ]);
+    expect(bloomSizes(3, 1, 2)).toEqual([
+      [2, 1],
+      [1, 1],
+    ]);
+    // Half-float RGBA, 8 bytes a pixel: the whole chain stays near 10 MB on a 4K TV.
+    const bytes = bloomSizes(2564, 1442, 5).reduce((sum, [w, h]) => sum + w * h * 8, 0);
+    expect(bytes / 1048576).toBeLessThan(10);
+  });
+
+  it('adds the bloom in the grade pass, by day only above what sails and foam reach', () => {
+    expect(GradeShader.uniforms.tBloom).toBeDefined();
+    expect(GradeShader.uniforms.uBloom.value).toBe(0);
+    const bloom = TUNING.graphics.ultra.bloom;
+    expect(bloom.threshold - bloom.knee).toBeGreaterThanOrEqual(0.95);
+    expect(bloom.nightThreshold).toBeLessThan(bloom.threshold);
+    expect(Number.isInteger(bloom.levels)).toBe(true);
+  });
+
+  it('switches the bloom off for a device test with ?off=bloom', () => {
+    const settings = { quality: 'auto' as const, effects: {}, seaLife: true, townFolk: true };
+    expect(applyGraphicsOverrides('?off=bloom', settings)).toBe(true);
+    expect(settings.effects).toEqual({ bloom: false });
   });
 });

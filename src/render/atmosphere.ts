@@ -189,6 +189,11 @@ export class Atmosphere {
     scene.add(this.dome.mesh);
   }
 
+  /** The drawn sky's mesh, for the sea mirror (decision 0292). */
+  get skyMesh(): THREE.Object3D {
+    return this.dome.mesh;
+  }
+
   /**
    * `low` (0..1) is how low the camera looks: the chase camera (issue #469) sees the sky, so the
    * fog turns the drawn sky's horizon colour, the sea mirrors a bluer sky and the dome shows.

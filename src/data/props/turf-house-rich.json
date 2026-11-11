@@ -1,0 +1,52 @@
+{
+  "id": "turf-house-rich",
+  "name": "Turf-roofed house, rich",
+  "group": "homes",
+  "internal": true,
+  "extends": "turf-house",
+  "vars": {
+    "rh": "0.45 + (variant % 3) * 0.06"
+  },
+  "parts": [
+    {
+      "box": ["w + 0.14", 0.18, 0.98],
+      "at": [0, 0.09, 0],
+      "color": "#7d7f7c"
+    },
+    {
+      "box": ["w", "h", 0.82],
+      "at": [0, "h / 2 + 0.18", 0],
+      "color": "walls[variant]"
+    },
+    {
+      "gable": ["w + 0.44", 1.18, "rh"],
+      "y": "h + 0.14",
+      "color": "#2f3035"
+    },
+    {
+      "gable": ["w + 0.34", 1.1, "rh"],
+      "y": "h + 0.18",
+      "color": "roofs[variant]"
+    },
+    {
+      "box": [0.16, 0.4, 0.16],
+      "at": ["w / 2 - 0.3", "h + rh * 0.5 + 0.3", -0.15],
+      "color": "chimney"
+    },
+    {
+      "box": [0.23, 0.05, 0.23],
+      "at": ["w / 2 - 0.3", "h + rh * 0.5 + 0.3 + 0.22", -0.15],
+      "color": "stone"
+    },
+    {
+      "box": [0.26, 0.48, 0.05],
+      "at": [-0.2, 0.42, 0.42],
+      "color": "trim"
+    },
+    {
+      "box": [0.38, 0.06, 0.14],
+      "at": [-0.2, 0.08, 0.48],
+      "color": "stoneDark"
+    }
+  ]
+}

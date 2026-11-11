@@ -20,7 +20,13 @@ import { ShallowsWater } from './shallowsWater';
 import { PALETTE } from './palette';
 import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
 import { CourseSpar } from './courseSpar';
-import { renderPixelRatio, QUALITY, type QualityLevel, type QualityProfile } from './quality';
+import {
+  gameRenderer,
+  renderPixelRatio,
+  QUALITY,
+  type QualityLevel,
+  type QualityProfile,
+} from './quality';
 import { type TerrainLook, terrainLook } from './terrainLook';
 import { SeaWaves } from './seaWaves';
 import { toScene } from './sceneSpace';
@@ -28,13 +34,14 @@ import { HazeVeil } from './hazeVeil';
 import { Wake } from './wake';
 import { ImpactDebris } from './impactDebris';
 import { WindStreaks } from './windStreaks';
-import type { GraphicsEffects, UltraPipeline } from './ultraPipeline';
+import { type GraphicsEffects, type UltraPipeline, allEffects } from './ultraPipeline';
+import { ViewMirror } from './viewMirror';
 import { Rain, rainMayReachArea } from './rain';
 import { CameraRig } from './cameraRig';
 import { Atmosphere, LAVA_BY_DAY, WINDOWS_AT_NIGHT, WINDOWS_BY_DAY } from './atmosphere';
 import { LighthouseBeams } from './lighthouseBeams';
 import { BeaconLights } from './beaconLights';
-import { Lanterns } from './lanterns';
+import { Lanterns, harbourLanternSpots } from './lanterns';
 import { Castaway } from './castaway';
 import { SeaMarks } from './seaMarks';
 import { DriftingBergs } from './driftingBergs';
@@ -42,6 +49,7 @@ import { TrafficView } from './traffic';
 import type { SeaMarkDef } from '../sim/map';
 import { QuestMarkers } from './questMarkers';
 import { SeaLife } from './seaLife';
+import { TownFolk } from './townFolk';
 import type { StepMarker } from '../ui/questView';
 import { daylightAt, shownDaylightAt } from '../sim/daylight';
 import { StormClouds } from './stormClouds';
@@ -53,7 +61,7 @@ import type { FlagDef } from '../sim/regatta';
 import { smoothOutline } from '../sim/flowShapes';
 import { setNightPaper } from '../ui/nightPaper';
 import { designOf } from '../data/islands';
-import { PICTURE_GRADE, pictureUrl } from './pictureGrade';
+import { PICTURE_GRADE, pictureUrl, renderPicture } from './pictureGrade';
 import {
   HARBOUR_VIEW,
   type HarbourLight,
@@ -75,6 +83,8 @@ export interface ScreenPoint {
  */
 export class GameView {
   readonly renderer: THREE.WebGLRenderer;
+  /** The canvas has a depth buffer: false when the game starts on Ultra (decision 0297). */
+  private readonly canvasDepth: boolean;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(40, 1, 1, 600);
   private readonly sun = new THREE.DirectionalLight(PALETTE.sun, 1.7);
@@ -93,6 +103,7 @@ export class GameView {
   /** Other boats on the sea (decision 0215). */
   private readonly traffic: TrafficView;
   readonly seaLife: SeaLife;
+  readonly townFolk: TownFolk;
   /** The tracked quest step's places at sea (decision 0130). */
   private readonly questMarkers = new QuestMarkers();
   private readonly sea = new SeaWaves(() => this.world);
@@ -145,25 +156,21 @@ export class GameView {
   /** The Ultra pipeline (decision 0221), loaded the first time Ultra is picked. */
   private ultra?: UltraPipeline;
   private ultraLoading = false;
+  private readonly mirror = new ViewMirror(() => ({
+    boat: () => this.boat.root,
+    traffic: this.traffic.root,
+    islands: this.islands,
+    sky: this.atmosphere.skyMesh,
+  }));
   /** The graphics effects switches (Settings); all on by default. */
-  readonly effects: GraphicsEffects = {
-    shadows: true,
-    occlusion: true,
-    toneMapping: true,
-    haze: true,
-    reflection: true,
-  };
+  readonly effects: GraphicsEffects = allEffects();
   /**
    * Created only when selected, by level and waves on or off; retain GPU programs/buffers for
    * subsequent switches.
    */
   private readonly qualityEffects = new Map<
     `${QualityLevel}:${boolean}`,
-    {
-      ocean: Ocean;
-      streaks: WindStreaks;
-      rain: Rain;
-    }
+    { ocean: Ocean; streaks: WindStreaks; rain: Rain }
   >();
   /** Where the sea camera looks and how the player turned it (decision 0223). */
   readonly rig = new CameraRig(this.camera);
@@ -182,12 +189,8 @@ export class GameView {
     /** `?look=v2`: the new look's ground from the shared height field (decision 0222). */
     private readonly look: TerrainLook = terrainLook(location.search),
   ) {
-    this.renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: QUALITY[level].antialias,
-      powerPreference: 'high-performance',
-      stencil: false,
-    });
+    this.renderer = gameRenderer(canvas, QUALITY[level]);
+    this.canvasDepth = this.renderer.getContextAttributes().depth !== false;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.veil = new HazeVeil(
       canvas.parentElement?.querySelector<HTMLElement>('#haze-veil') ?? null,
@@ -226,10 +229,12 @@ export class GameView {
     this.bergs = new DriftingBergs(world.map);
     this.traffic = new TrafficView(world.map, this.sea.heightAt);
     this.seaLife = new SeaLife(world, () => this.level, this.sea.heightAt);
+    this.townFolk = new TownFolk(world, () => this.level, look, this.levels);
     this.scene.add(
       this.bergs.root,
       this.traffic.root,
       this.seaLife.root,
+      this.townFolk.root,
       this.castaway.root,
       this.seaMarks.root,
       this.questMarkers.root,
@@ -305,22 +310,10 @@ export class GameView {
       this.scene.remove(this.lanterns.points);
       this.lanterns.dispose();
     }
-    const spots: THREE.Vector3[] = [];
-    for (const port of this.world.map.ports) {
-      // No light on an empty island not founded yet (decision 0157).
-      if (this.levels[port.id] === 0) continue;
-      const pier = this.harbours[port.id];
-      const island = this.world.land.islands.find((i) => i.id === port.islandId);
-      if (!pier || !island) continue;
-      spots.push(toScene(pier.x, pier.y, new THREE.Vector3()).setY(4));
-      const town = toScene(
-        pier.x + (island.x - pier.x) * 0.35,
-        pier.y + (island.y - pier.y) * 0.35,
-        new THREE.Vector3(),
-      );
-      spots.push(town.setY(7));
-    }
-    this.lanterns = new Lanterns(spots);
+    const { map, land } = this.world;
+    this.lanterns = new Lanterns(
+      harbourLanternSpots(map.ports, this.levels, this.harbours, land.islands),
+    );
     this.scene.add(this.lanterns.points);
   }
 
@@ -437,6 +430,7 @@ export class GameView {
     this.boat.setLowDetail?.(profile.lowDetail);
     this.profile = profile;
     if (profile.ultra) this.loadUltra();
+    if (profile.mirror) this.mirror.load(this.renderer, this.scene, this.camera);
     this.ultra?.sceneChanged();
     this.resize(this.width, this.height);
   }
@@ -517,6 +511,7 @@ export class GameView {
     if (founded) this.buildLanterns();
     this.lighthouseBeams.setLevels(this.islandLevels(levels));
     this.beaconLights.setLevels(this.islandLevels(levels));
+    this.townFolk.setLevels(levels);
   }
 
   /** Town levels by port id, keyed by the port's island instead. */
@@ -665,7 +660,7 @@ export class GameView {
     // An eruption brightens the lava past its night glow (one shared material, decision 0178).
     lava?.color.multiplyScalar(1 + (TUNING.weather.volcano.eruptions.lavaGain - 1) * erupting);
     this.boat.setNightLighting?.(day.night);
-    this.ocean.update(time, this.rig.seaCentre, this.effects.reflection, this.sea);
+    this.ocean.update(time, this.rig.seaCentre, this.effects, this.sea);
     this.currentWater?.update(time, this.ocean, this.world.currentsOn);
     this.calmWater?.update(time, this.ocean, this.world.windZones);
     this.roughWater?.update(time, this.ocean, this.world.windZones);
@@ -684,6 +679,7 @@ export class GameView {
       conditions,
     );
     this.seaLife.update(dt, time, day.night);
+    this.townFolk.update(dt, time, day.night);
     this.questMarkers.update(this.stepMarkers(), time, this.sea.heightAt);
     const course = this.world.destination;
     this.courseSpar.update(
@@ -704,8 +700,10 @@ export class GameView {
       );
     }
 
+    this.mirror.render(dt, this.ocean, this.level, this.target, day.night, this.effects.mirror);
     if (ultra) ultra.render(dt, day.night);
-    else if (!this.ultra?.renderHigh(dt, this.profile))
+    // A canvas made for Ultra has no depth: until its pipeline loads, it draws nothing.
+    else if (!this.ultra?.renderPlain(this.profile) && this.canvasDepth)
       this.renderer.render(this.scene, this.camera);
   }
 
@@ -779,7 +777,7 @@ export class GameView {
     fog.near = 1e4;
     fog.far = 2e4;
     this.ocean.setFog(fog.near, fog.far);
-    this.ocean.update(this.world.time, aim, this.effects.reflection, this.sea);
+    this.ocean.update(this.world.time, aim, this.effects, this.sea);
     const glow = day.night;
     this.lanterns.update(glow, this.boatLantern, time);
     this.lighthouseBeams.update(time, glow);
@@ -800,14 +798,7 @@ export class GameView {
     ].filter((o) => o.visible);
     for (const o of hidden) o.visible = false;
 
-    const target = new THREE.WebGLRenderTarget(w, h, { depthBuffer: true });
-    target.texture.colorSpace = THREE.SRGBColorSpace;
-    const pixels = new Uint8Array(w * h * 4);
-    this.renderer.setRenderTarget(target);
-    this.renderer.render(this.scene, camera);
-    this.renderer.readRenderTargetPixels(target, 0, 0, w, h, pixels);
-    this.renderer.setRenderTarget(null);
-    target.dispose();
+    const pixels = renderPicture(this.renderer, this.scene, camera, w, h);
     for (const o of hidden) o.visible = true;
     fog.near = near;
     fog.far = far;
@@ -851,6 +842,7 @@ export class GameView {
     this.bergs.dispose();
     this.traffic.dispose();
     this.seaLife.dispose();
+    this.townFolk.dispose();
     this.calmWater?.dispose();
     this.roughWater?.dispose();
     this.shallowsWater?.dispose();
@@ -861,6 +853,7 @@ export class GameView {
     this.questMarkers.dispose();
     this.boat.dispose();
     this.ultra?.dispose();
+    this.mirror.dispose();
     this.atmosphere.dispose();
     this.renderer.dispose();
   }

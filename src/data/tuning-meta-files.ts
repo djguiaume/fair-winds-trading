@@ -5,6 +5,7 @@ import { BUOYS_META } from './tuning-meta-buoys';
 import { STORMS_META } from './tuning-meta-storms';
 import { TERRAIN_META } from './tuning-meta-terrain';
 import { SMOOTH_META } from './tuning-meta-smooth';
+import { COVER_META } from './tuning-meta-cover';
 import { WATER_DEPTH_META } from './tuning-meta-water-depth';
 import { WAVES_META } from './tuning-meta-waves';
 import { MOTION_META } from './tuning-meta-motion';
@@ -14,6 +15,8 @@ import { QUALITY_META } from './tuning-meta-quality';
 import { HUD_META } from './tuning-meta-hud';
 import { UI_META } from './tuning-meta-ui';
 import { SKY_META } from './tuning-meta-sky';
+import { REFLECTION_META } from './tuning-meta-reflection';
+import { GUSTS_META } from './tuning-meta-gusts';
 
 /** The meta entries kept in their own files, one subject each, so tuning-meta.ts stays readable. */
 export const FILE_METAS: Readonly<Record<string, TuningMeta>> = {
@@ -24,6 +27,7 @@ export const FILE_METAS: Readonly<Record<string, TuningMeta>> = {
   ...STORMS_META,
   ...TERRAIN_META,
   ...SMOOTH_META,
+  ...COVER_META,
   ...WATER_DEPTH_META,
   ...WAVES_META,
   ...MOTION_META,
@@ -32,4 +36,6 @@ export const FILE_METAS: Readonly<Record<string, TuningMeta>> = {
   ...HUD_META,
   ...UI_META,
   ...SKY_META,
+  ...REFLECTION_META,
+  ...GUSTS_META,
 };

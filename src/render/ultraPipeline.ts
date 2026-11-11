@@ -1,15 +1,13 @@
 import * as THREE from 'three';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import { TUNING } from '../data/tuning';
 import { DEG } from '../sim/math';
 import { ShadowCasters } from './shadowCasters';
 import type { SunShape } from './atmosphere';
 import { GradeShader } from './gradeShader';
 import { leanShadowMap } from './shadowTarget';
+import { UltraBloom } from './ultraBloom';
 
 /** The effects the player can switch off one by one (Settings, decision 0221). */
 export interface GraphicsEffects {
@@ -21,11 +19,31 @@ export interface GraphicsEffects {
   toneMapping: boolean;
   /** Ultra's horizon haze. */
   haze: boolean;
+  /** Ultra's glow round lit windows, lanterns and the moon (decision 0299). */
+  bloom: boolean;
   /** The sea's sky reflection and sun glint, on High and Ultra. */
   reflection: boolean;
+  /** The boats, islands and sky mirrored on the sea, on the levels with `mirror` (decision 0292). */
+  mirror: boolean;
+  /** The ground's cover on grass and sand, on the levels of `terrain.json › draw.cover.on` (0298). */
+  groundCover: boolean;
   /** Ultra's multisampled off-screen render; on unless a `?off=msaa` device test says false. */
   msaa?: boolean;
+  /** The wind's gusts on the sea; on unless a `?off=gusts` device test says false (issue #498). */
+  gusts?: boolean;
 }
+
+/** Every effect on: the view's default before Settings are applied. */
+export const allEffects = (): GraphicsEffects => ({
+  shadows: true,
+  occlusion: true,
+  toneMapping: true,
+  haze: true,
+  bloom: true,
+  reflection: true,
+  mirror: true,
+  groundCover: true,
+});
 
 /** GTAOPass's hooks for what its normal pass leaves out; not in the published types. */
 interface OcclusionInternals {
@@ -47,14 +65,29 @@ interface ShadowSnapshot {
 /**
  * The Ultra render pipeline (decision 0221), for desktop GPUs and the Xbox: neutral tone mapping,
  * soft shadows on every lit mesh round the camera, ambient occlusion at a share of the resolution,
- * multisampled anti-aliasing and a horizon haze. Every number is `TUNING.graphics.ultra`, read
+ * multisampled anti-aliasing, a horizon haze and a glow round the night's lights. Every number is `TUNING.graphics.ultra`, read
  * each frame so the `?tune` page shows a change at once. Loaded only when Ultra is picked, so
  * phones never download it.
+ *
+ * A frame is two full-screen steps (decision 0297): the scene into one multisampled half-float
+ * target, then one pass that multiplies in the occlusion, adds the bloom, grades and writes sRGB
+ * to the canvas.
+ * No full-resolution picture sits between them, which is what an effect composer would keep.
  */
 export class UltraPipeline {
-  private readonly composer: EffectComposer;
+  /** The scene's multisampled colour and depth; replaced when the sample count changes. */
+  private sceneTarget = sceneTarget(0);
   private readonly occlusion: GTAOPass;
-  private readonly grade = new ShaderPass(GradeShader);
+  private readonly bloom = new UltraBloom();
+  private readonly grade = new THREE.ShaderMaterial({
+    name: 'UltraGrade',
+    uniforms: THREE.UniformsUtils.clone(GradeShader.uniforms),
+    vertexShader: GradeShader.vertexShader,
+    fragmentShader: GradeShader.fragmentShader,
+    depthTest: false,
+    depthWrite: false,
+  });
+  private readonly screen = new FullScreenQuad(this.grade);
   private readonly casters = new ShadowCasters();
   private readonly highShadow: ShadowSnapshot;
   private readonly sun: SunShape = { height: 1, turn: 0, distance: 60 };
@@ -67,25 +100,25 @@ export class UltraPipeline {
   private pixelRatio = 1;
   private aoResolution = 0;
   private readonly hazeNight = new THREE.Color();
-  /** The canvas was made with multisampling (it cannot change later). */
-  private readonly canvasAntialias: boolean;
+  /** How the canvas was made (it cannot change later). */
+  private readonly canvas: CanvasBuffers;
+  private readonly bufferSize = new THREE.Vector2();
 
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
     private readonly scene: THREE.Scene,
-    camera: THREE.PerspectiveCamera,
+    private readonly camera: THREE.PerspectiveCamera,
     private readonly light: THREE.DirectionalLight,
     /** Which effects are on: the player's Settings, shared with the view. */
     private readonly effects: Readonly<GraphicsEffects>,
   ) {
-    this.canvasAntialias = !!renderer.getContext().getContextAttributes()?.antialias;
-    this.composer = new EffectComposer(renderer, this.target(0));
-    this.composer.addPass(new RenderPass(scene, camera));
+    const made = renderer.getContext().getContextAttributes();
+    this.canvas = { antialias: !!made?.antialias, depth: made?.depth !== false };
     this.occlusion = new GTAOPass(scene, camera);
+    // Only its occlusion picture is used: the grade multiplies it in (no copy of the scene).
+    this.occlusion.output = GTAOPass.OUTPUT.Off;
+    this.grade.uniforms.tOcclusion!.value = this.occlusion.pdRenderTarget.texture;
     this.hideFromOcclusion();
-    this.composer.addPass(this.occlusion);
-    this.composer.addPass(this.grade);
-    this.composer.addPass(new OutputPass());
     const s = light.shadow;
     this.highShadow = {
       mapSize: s.mapSize.x,
@@ -113,16 +146,6 @@ export class UltraPipeline {
         pass._visibilityCache.push(o);
       }
     };
-  }
-
-  /** No pass reads the scene's depth after it is drawn, so a multisampled target skips copying it. */
-  private target(samples: number, depthBuffer = true) {
-    return new THREE.WebGLRenderTarget(1, 1, {
-      type: THREE.HalfFloatType,
-      samples,
-      depthBuffer,
-      resolveDepthBuffer: false,
-    });
   }
 
   /** Lantern glow size and lit-window brightness at night on Ultra (from the tuning). */
@@ -158,8 +181,9 @@ export class UltraPipeline {
     this.width = width;
     this.height = height;
     this.pixelRatio = pixelRatio;
-    this.composer.setPixelRatio(pixelRatio);
-    this.composer.setSize(width, height);
+    const size = this.renderer.getDrawingBufferSize(this.bufferSize);
+    this.sceneTarget.setSize(size.x, size.y);
+    this.bloom.setSize(size.x, size.y);
     const res = (this.aoResolution = TUNING.graphics.ultra.occlusion.resolution);
     this.occlusion.setSize(
       Math.max(1, Math.round(width * pixelRatio * res)),
@@ -176,9 +200,8 @@ export class UltraPipeline {
       this.setSize(this.width, this.height, this.pixelRatio);
     this.followOcclusion();
     const ao = ultra.occlusion;
-    this.occlusion.enabled = this.effects.occlusion;
-    this.occlusion.blendIntensity = lerp(ao.strength, ao.nightStrength, night);
     const u = this.grade.uniforms;
+    u.uOcclusion!.value = this.effects.occlusion ? lerp(ao.strength, ao.nightStrength, night) : 0;
     u.uToneMap!.value = this.effects.toneMapping ? 1 : 0;
     u.uExposure!.value = lerp(ultra.exposure, ultra.nightExposure, night);
     u.uToe!.value = lerp(ultra.toe, ultra.nightToe, night);
@@ -188,34 +211,48 @@ export class UltraPipeline {
       .lerp(this.hazeNight.set(haze.nightColor), night);
     u.uHazeStart!.value = ultra.haze.start;
     u.uHazeStrength!.value = this.effects.haze ? ultra.haze.strength : 0;
-    this.compose(dt);
+    const samples = this.effects.msaa !== false ? ultra.antialiasSamples : 0;
+    this.draw(samples, this.effects.occlusion, this.effects.bloom ? night : undefined);
   }
 
   /**
-   * A level below Ultra after a step down. A canvas made for Ultra has no anti-aliasing of its own
-   * (decision 0246), so a level that wants it goes through the multisampled target with no
-   * effects. False when the view should draw the frame itself.
+   * A level below Ultra after a step down, drawn plain through the scene target when the canvas
+   * cannot draw it itself (`drawsBelowUltra`). False when the view should draw the frame.
    */
-  renderHigh(dt: number, level: { antialias: boolean }): boolean {
-    if (!level.antialias || this.canvasAntialias) return false;
-    this.occlusion.enabled = false;
-    this.grade.enabled = false;
-    this.compose(dt);
-    this.grade.enabled = true;
+  renderPlain(level: { antialias: boolean }): boolean {
+    if (!drawsBelowUltra(this.canvas, level)) return false;
+    const u = this.grade.uniforms;
+    u.uOcclusion!.value = 0;
+    u.uHazeStrength!.value = 0;
+    u.uToneMap!.value = 0;
+    this.draw(level.antialias ? TUNING.graphics.ultra.antialiasSamples : 0, false);
     return true;
   }
 
-  private compose(dt: number) {
-    const samples = TUNING.graphics.ultra.antialiasSamples;
-    this.followSamples(this.effects.msaa !== false ? samples : 0);
-    // The scene pass draws into the read buffer: keep it on the multisampled target.
-    const composer = this.composer;
-    if (composer.readBuffer !== composer.renderTarget2) composer.swapBuffers();
-    // One frame is many render calls here: count them all, so `?perf` and `?bench` stay honest.
-    const info = this.renderer.info;
-    info.reset();
+  /** `bloomNight` is how far into the night the bloom's threshold is; left out, no bloom. */
+  private draw(samples: number, occlusion: boolean, bloomNight?: number) {
+    this.followSamples(samples);
+    // One frame is many render calls here: count them all, so `?perf` and `?bench` stay honest
+    // (the view counts from the sea mirror's pass when it drew one first).
+    const renderer = this.renderer;
+    const info = renderer.info;
+    if (info.autoReset) info.reset();
     info.autoReset = false;
-    composer.render(dt);
+    renderer.setRenderTarget(this.sceneTarget);
+    renderer.render(this.scene, this.camera);
+    if (occlusion) this.occlusion.render(renderer, this.sceneTarget, this.sceneTarget, 0, false);
+    const u = this.grade.uniforms;
+    u.tDiffuse!.value = this.sceneTarget.texture;
+    if (bloomNight === undefined) {
+      this.bloom.release();
+      u.uBloom!.value = 0;
+    } else {
+      const glow = this.bloom.render(renderer, this.sceneTarget, bloomNight);
+      u.tBloom!.value = glow.texture;
+      u.uBloom!.value = glow.weight;
+    }
+    renderer.setRenderTarget(null);
+    this.screen.render(renderer);
     info.autoReset = true;
   }
 
@@ -254,19 +291,12 @@ export class UltraPipeline {
     }
   }
 
-  /**
-   * A new sample count needs new render targets. Only the scene needs multisampling and depth;
-   * the passes after it draw full-screen pictures, so their target saves that memory
-   * (decision 0246: the full Ultra ran the Xbox out of graphics memory).
-   */
+  /** A new sample count needs a new scene target. */
   private followSamples(samples: number) {
     if (samples === this.samples) return;
     this.samples = samples;
-    const composer = this.composer;
-    composer.renderTarget1.dispose();
-    composer.renderTarget2.dispose();
-    composer.renderTarget1 = composer.writeBuffer = this.target(0, false);
-    composer.renderTarget2 = composer.readBuffer = this.target(samples);
+    this.sceneTarget.dispose();
+    this.sceneTarget = sceneTarget(samples);
     this.setSize(this.width, this.height, this.pixelRatio);
   }
 
@@ -294,9 +324,35 @@ export class UltraPipeline {
   dispose() {
     this.setActive(false);
     this.occlusion.dispose();
+    this.bloom.dispose();
     this.grade.dispose();
-    this.composer.dispose();
+    this.screen.dispose();
+    this.sceneTarget.dispose();
   }
+}
+
+/** What the canvas was made with. */
+export interface CanvasBuffers {
+  antialias: boolean;
+  depth: boolean;
+}
+
+/**
+ * Whether the pipeline draws a level below Ultra. A canvas made for Ultra has no anti-aliasing
+ * (decision 0246) and no depth (0297) of its own: every level goes through the scene target on
+ * it. A canvas with depth draws the level itself, unless the level wants anti-aliasing it lacks.
+ */
+export function drawsBelowUltra(canvas: CanvasBuffers, level: { antialias: boolean }): boolean {
+  return !canvas.depth || (level.antialias && !canvas.antialias);
+}
+
+/** Half-float for the tone mapping's headroom; nothing reads its depth, so it is never resolved. */
+function sceneTarget(samples: number) {
+  return new THREE.WebGLRenderTarget(1, 1, {
+    type: THREE.HalfFloatType,
+    samples,
+    resolveDepthBuffer: false,
+  });
 }
 
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;

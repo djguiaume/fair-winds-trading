@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { TUNING } from '../../data/tuning';
-import { GROUNDS, STYLES, groundColors, styleColor } from '../../data/grounds';
+import { GROUNDS, type GroundCover, STYLES, groundColors, styleColor } from '../../data/grounds';
 import type { TerrainDef } from '../../sim/map';
 import { type Heightfield, fieldLod } from '../../sim/heightfield';
 import { valueNoise } from '../../sim/noise';
@@ -22,6 +22,8 @@ export interface FieldGroundLook {
   side: readonly string[];
   /** Rock: its slope and zone edges drawn sharp (palette.json `sharp`). */
   sharp?: boolean;
+  /** The small cover its flat wears (palette.json `cover`; `fieldGroundCover.ts`). */
+  cover?: GroundCover;
 }
 
 /** An island's ground colours: each ground of its field, and the wet band at the waterline. */
@@ -37,7 +39,8 @@ export function designPalette(style: string): FieldPalette {
       const look = groundColors(ground, style);
       // A beach stays sand where it slopes into the sea: no cliff colours on it.
       const def = GROUNDS[look.id];
-      return { top: look.top, side: def?.beach ? look.top : look.slope, sharp: def?.sharp };
+      const side = def?.beach ? look.top : look.slope;
+      return { top: look.top, side, sharp: def?.sharp, cover: def?.cover ?? 'none' };
     },
     wet: STYLES[style]?.wet ?? groundColors('sand', style).side[0]!,
   };
@@ -47,9 +50,9 @@ export function designPalette(style: string): FieldPalette {
 export function featurePalette(feature: TerrainDef): FieldPalette {
   const sand = feature.look?.color ?? B2.sand;
   const looks: Record<string, FieldGroundLook> = {
-    sand: { top: [sand], side: [sand] },
+    sand: { top: [sand], side: [sand], cover: 'sand' },
     rock: { top: [B2.rock2], side: [B2.rock, B2.rock2] },
-    grass: { top: [B2.grass], side: [B2.rock, B2.rock2] },
+    grass: { top: [B2.grass], side: [B2.rock, B2.rock2], cover: 'grass' },
   };
   return {
     look: (ground) => looks[ground] ?? looks.sand!,
@@ -246,6 +249,8 @@ export interface FieldGroundTextures {
   heights: [number, number];
   /** A row per ground: its cliff band colours, repeated to the width every row can share. */
   sides: THREE.DataTexture;
+  /** What each ground wears, in the field's order. */
+  covers: readonly GroundCover[];
   /** The wet band's colour. */
   wet: string;
   /** World units per texel. */
@@ -331,6 +336,7 @@ export function fieldGroundTextures(
     shape: dataTexture(shape, w, h, THREE.NoColorSpace, false),
     heights: [low, span],
     sides: sidesTexture(looks.map((look) => look.side)),
+    covers: looks.map((look) => look.cover ?? 'none'),
     wet: palette.wet,
     texel: cell,
     centre: [

@@ -70,6 +70,8 @@ export interface Settings {
   ships: boolean;
   /** Gulls, terns, dolphins, a whale and fish shoals (issue #476); drawing only. */
   seaLife: boolean;
+  /** People on the quays and in the towns (issue #477); drawing only. */
+  townFolk: boolean;
   /** Haze switches (`fog`, `ash`, decision 0169): false turns that haze off. Left out = on. */
   haze: Record<string, boolean>;
   /** Graphics effect switches (`shadows`, `reflection`…, decision 0221). Left out = on. */
@@ -117,6 +119,7 @@ const DEFAULTS: Settings = {
   bergs: true,
   ships: true,
   seaLife: true,
+  townFolk: true,
   haze: {},
   effects: {},
   seenCurrentHint: false,

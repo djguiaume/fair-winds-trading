@@ -5,6 +5,7 @@ const fresh = () => ({
   quality: 'auto' as const,
   effects: {} as Record<string, boolean>,
   seaLife: true,
+  townFolk: true,
 });
 
 describe('?quality and ?off device-test switches (issue #377)', () => {
@@ -34,6 +35,16 @@ describe('?quality and ?off device-test switches (issue #377)', () => {
     expect(applyGraphicsOverrides('?bench&off=life', s)).toBe(true);
     expect(s.seaLife).toBe(false);
     expect(s.effects).toEqual({});
+    const t = fresh();
+    applyGraphicsOverrides('?bench&off=folk', t);
+    expect(t.townFolk).toBe(false);
+    expect(t.seaLife).toBe(true);
+  });
+
+  it('switches the ground cover off for a device test (issue #499)', () => {
+    const s = fresh();
+    applyGraphicsOverrides('?bench&quality=high&off=cover', s);
+    expect(s.effects).toEqual({ groundCover: false });
   });
 
   it('says in the report what ran', () => {

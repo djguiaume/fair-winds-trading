@@ -14,7 +14,10 @@
       "ultra": false,
       "plain": true,
       "lowDetail": true,
-      "waves": false
+      "waves": false,
+      "mirror": false,
+      "gusts": false,
+      "richHouses": false
     },
     "low": {
       "maxRenderPixels": 400000,
@@ -30,7 +33,10 @@
       "ultra": false,
       "plain": false,
       "lowDetail": true,
-      "waves": false
+      "waves": false,
+      "mirror": false,
+      "gusts": false,
+      "richHouses": false
     },
     "medium": {
       "maxRenderPixels": 1250000,
@@ -46,7 +52,10 @@
       "ultra": false,
       "plain": false,
       "lowDetail": false,
-      "waves": true
+      "waves": true,
+      "mirror": false,
+      "gusts": false,
+      "richHouses": false
     },
     "high": {
       "maxRenderPixels": 2500000,
@@ -62,7 +71,10 @@
       "ultra": false,
       "plain": false,
       "lowDetail": false,
-      "waves": true
+      "waves": true,
+      "mirror": false,
+      "gusts": true,
+      "richHouses": true
     },
     "ultra": {
       "maxRenderPixels": 3700000,
@@ -78,7 +90,10 @@
       "ultra": true,
       "plain": false,
       "lowDetail": false,
-      "waves": true
+      "waves": true,
+      "mirror": true,
+      "gusts": true,
+      "richHouses": true
     }
   },
   "auto": {
@@ -119,6 +134,14 @@
       "strength": 0.12,
       "dayColor": "#f2e3c6",
       "nightColor": "#2f4f7a"
+    },
+    "bloom": {
+      "strength": 1,
+      "radius": 0.8,
+      "threshold": 1.05,
+      "nightThreshold": 0.7,
+      "knee": 0.1,
+      "levels": 4
     },
     "night": {
       "lanternSize": 0.7,
@@ -222,5 +245,28 @@
       "haze": 0.45,
       "driftDegPerKn": 0.04
     }
+  },
+  "reflection": {
+    "strength": 0.55,
+    "nightStrength": 0.8,
+    "distortion": 0.06,
+    "levels": {
+      "ultra": {
+        "resolution": 0.5,
+        "everyFrames": 1,
+        "range": 220,
+        "islands": true
+      },
+      "high": {
+        "resolution": 0.25,
+        "everyFrames": 2,
+        "range": 120,
+        "islands": false
+      }
+    }
+  },
+  "houses": {
+    "richWithin": 140,
+    "hysteresis": 0.1
   }
 }

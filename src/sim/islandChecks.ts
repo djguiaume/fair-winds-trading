@@ -46,8 +46,9 @@ export interface IslandCheckKit {
   harbour?: boolean;
 }
 
-export const TRIANGLE_BUDGET = 6000;
-export const TRIANGLE_WARNING = 5000;
+/** Raised from 6000 / 5000 for the rich homes (issue #500): about 80 more triangles each near. */
+export const TRIANGLE_BUDGET = 8500;
+export const TRIANGLE_WARNING = 7000;
 const LEVELS = SETTLEMENT_LEVELS;
 const TOP = MAX_SETTLEMENT_LEVEL;
 /** The arrival pier's lane, kept for the player's ship (the pier sits at x 0.08). */

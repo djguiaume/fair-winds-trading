@@ -1,22 +1,18 @@
 import * as THREE from 'three';
 import { groundColors, styleColor } from '../../data/grounds';
-import { atLevel, LANE_WIDTH, type IslandDesign, type PropDef } from '../../data/islands';
+import { atLevel, type IslandDesign, type PropDef } from '../../data/islands';
 import { coastDistance } from '../../sim/coast';
 import type { IslandDef } from '../../sim/map';
-import { type Heightfield, SEA_LEVEL, heightAt } from '../../sim/heightfield';
-import {
-  crossesCliff,
-  islandLayout,
-  islandPoint,
-  layoutGround,
-  type IslandLayout,
-} from '../../sim/islandLayout';
+import { type Heightfield, SEA_LEVEL, heightAt, islandHeightfield } from '../../sim/heightfield';
+import { islandLayout, islandPoint, layoutGround, type IslandLayout } from '../../sim/islandLayout';
 import { BEACH_TOP, ISLAND_SCALE } from '../../sim/islandUnits';
 import { createRng, range } from '../../sim/rng';
 import type { ForestClearings } from '../../sim/forest';
 import { FORESTS } from '../../data/forests';
-import { paint } from './geometry';
+import { isGlowing, paint } from './geometry';
 import { PROP_TYPES, WOODLAND_TREES, put, type Parts } from './props';
+import { lanePieces } from './townLanes';
+import type { TerrainLook } from '../terrainLook';
 
 /** The height a prop stands at over a point of its island (reference units, harbour toward +Z). */
 export type Stand = (x: number, z: number) => number;
@@ -37,6 +33,21 @@ export function standHeight(layout: IslandLayout, x: number, z: number, R: numbe
     !(layout.lake && coastDistance(x, z, layout.lake).distance < 0)
     ? BEACH_TOP
     : 0;
+}
+
+/**
+ * Where a prop stands on an island at a level: on the shared height field under the new look
+ * (decision 0222), on the classic tiers otherwise.
+ */
+export function propStand(
+  island: IslandDef,
+  design: IslandDesign,
+  level: number,
+  look: TerrainLook,
+): Stand {
+  if (look === 'v2') return fieldStand(island, islandHeightfield(island, level));
+  const layout = islandLayout(design, level);
+  return (x, z) => standHeight(layout, x, z, island.radius / ISLAND_SCALE);
 }
 
 /** The half-diagonal of a model's plan, the footprint the old town code checked with. */
@@ -71,6 +82,28 @@ export function propParts(prop: PropDef, design: IslandDesign, R: number): Parts
   if (yard) parts[0]!.userData.logYard = yard.slice('log-yard:'.length);
   if (prop.type === 'field') parts[0]!.userData.field = { x: prop.x, z: prop.z };
   return parts;
+}
+
+/** Parts drawn near the camera: the plain houses are only the far drawing of the rich ones. */
+export const nearParts = (parts: THREE.BufferGeometry[]) =>
+  parts.filter((g) => g.userData.house !== 'plain');
+
+/**
+ * A home's richer parts (issue #500), not yet placed; windows are the plain house's. The two are
+ * told apart by `userData.house`, so the island draws one set near and the other far.
+ */
+export function richParts(prop: PropDef, design: IslandDesign, R: number): Parts | undefined {
+  const build = PROP_TYPES[prop.type]?.buildRich;
+  if (!build) return undefined;
+  const rich = build({
+    R,
+    style: design.style,
+    variant: prop.variant ?? 0,
+    shape: prop.shape ?? 0.5,
+    size: prop.size ?? 1,
+  });
+  for (const g of rich) g.userData.house = 'rich';
+  return rich;
 }
 
 /** Is this prop one of the island's numbered residences? */
@@ -122,12 +155,19 @@ export function townProps(
 
   // Homes, numbered in file order; lanes appear piece by piece near the ones that stand.
   const homes: Parts[] = [];
+  const richHomes: Parts[] = [];
   const active: { x: number; z: number }[] = [];
   design.props.filter(isResidence).forEach((prop, i) => {
     if (!atLevel(prop, level)) return;
     const parts = propParts(prop, design, R);
     const half = (extent(parts) * (prop.size ?? 1)) / R;
     const clear = place(prop, parts, []);
+    const rich = richParts(prop, design, R);
+    if (rich) {
+      place(prop, rich, []);
+      richHomes.push(rich);
+      for (const g of parts) if (!isGlowing(g)) g.userData.house = 'plain';
+    }
     if (clearings) {
       // A house keeps the forest 1.5 house widths off (art direction, new look §3).
       const margin = half * (1 + 2 * FORESTS.clear.houseWidths);
@@ -151,41 +191,19 @@ export function townProps(
   });
   // Lane pieces near standing homes, with no roads across water or cliffs.
   const clearedLanes: { x: number; z: number }[] = [];
-  for (const lane of design.lanes) {
-    if (lane.kind && lane.kind !== 'lane') continue;
-    const street = new THREE.CatmullRomCurve3(
-      lane.points.map(([x, z]) => new THREE.Vector3(x, 0, z)),
-      false,
-      'centripetal',
+  for (const piece of lanePieces(design, layout, active)) {
+    const { ax, az, bx, bz, x, z, h, ha, hb, flat, width } = piece;
+    clearedLanes.push({ x, z });
+    clearings?.lanes.push([ax, az, bx, bz, width / 2]);
+    const len = Math.hypot(bx - ax, bz - az) * R;
+    const g = paint(
+      new THREE.PlaneGeometry(len + 0.01, R * width).rotateX(-Math.PI / 2).translate(0, 0.012, 0),
+      pathColor,
     );
-    const points = street.getSpacedPoints(110);
-    for (let i = 1; i < points.length; i++) {
-      const a = points[i - 1]!,
-        b = points[i]!;
-      const x = (a.x + b.x) / 2,
-        z = (a.z + b.z) / 2;
-      const h = layoutGround(layout, x, z, 0.025);
-      if (h === null || !active.some((p) => Math.hypot(p.x - x, p.z - z) < 0.3)) continue;
-      const ha = layoutGround(layout, a.x, a.z, 0.025),
-        hb = layoutGround(layout, b.x, b.z, 0.025);
-      // On one level, or climbing a slope (never across a cliff).
-      const flat = ha === h && hb === h;
-      if (!flat && (ha === null || hb === null || crossesCliff(layout, a.x, a.z, b.x, b.z)))
-        continue;
-      clearedLanes.push({ x, z });
-      clearings?.lanes.push([a.x, a.z, b.x, b.z, (lane.width ?? LANE_WIDTH) / 2]);
-      const len = a.distanceTo(b) * R;
-      const g = paint(
-        new THREE.PlaneGeometry(len + 0.01, R * (lane.width ?? LANE_WIDTH))
-          .rotateX(-Math.PI / 2)
-          .translate(0, 0.012, 0),
-        pathColor,
-      );
-      if (!flat) g.rotateZ(Math.atan2((hb! - ha!) * R, len));
-      put(out, [g], x * R, h * R, z * R, -Math.atan2(b.z - a.z, b.x - a.x));
-    }
+    if (!flat) g.rotateZ(Math.atan2((hb - ha) * R, len));
+    put(out, [g], x * R, h * R, z * R, -Math.atan2(bz - az, bx - ax));
   }
-  for (const parts of homes) out.push(...parts);
+  for (const parts of [...homes, ...richHomes]) out.push(...parts);
 
   harbour(out);
 
