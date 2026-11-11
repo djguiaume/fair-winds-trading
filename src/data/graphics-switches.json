@@ -8,5 +8,6 @@
   "life": "seaLife",
   "folk": "townFolk",
   "mirror": "mirror",
-  "gusts": "gusts"
+  "gusts": "gusts",
+  "cover": "groundCover"
 }

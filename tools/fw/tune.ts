@@ -1,6 +1,7 @@
 // `npm run tune` (decisions 0153 and 0268): the tuning files' numbers from the command line, with
 // the ?tune panel's own ranges (src/data/tuning-meta*.ts) shared through src/tune/tuningDoc.ts.
 import { readFileSync, writeFileSync } from 'node:fs';
+import { formatJson } from '../../src/data/jsonFormat';
 import { SHIPPED_TUNING } from '../../src/data/tuning';
 import { tuningRows, valueProblem, withValue } from '../../src/tune/tuningDoc';
 
@@ -33,7 +34,7 @@ export function run(args: Args): number {
     if (problem) return fail(problem);
     const file = fileOf(a.split('.')[0]!);
     const next = withValue(JSON.parse(readFileSync(file, 'utf8')), a, Number(b));
-    if (!args.dry) writeFileSync(file, `${JSON.stringify(next, null, 2)}\n`);
+    if (!args.dry) writeFileSync(file, formatJson(next));
     console.log(`${a} = ${b}${args.dry ? ' (dry run)' : ` (${file} written)`}`);
     return 0;
   }

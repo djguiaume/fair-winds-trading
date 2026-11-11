@@ -2,6 +2,7 @@
   "colors": {
     "sand": "#f2d9a0",
     "wetsand": "#d9bf86",
+    "drygrass": "#a8b45c",
     "grass": "#7cc04f",
     "meadow": "#8fcc5a",
     "rock": "#c2ad8c",
@@ -272,17 +273,20 @@
   "grounds": {
     "sand": {
       "name": "Sand",
+      "cover": "sand",
       "top": "sand",
       "side": "sand",
       "beach": true
     },
     "grass": {
       "name": "Grass",
+      "cover": "grass",
       "top": "grass",
       "side": "rock"
     },
     "downs": {
       "name": "Ring downs",
+      "cover": "grass",
       "top": ["#7cc04f", "#6aab43", "#84c858"],
       "side": ["#c2ad8c", "#b29c7a", "#cdb894", "#a8916f"]
     },
@@ -294,6 +298,7 @@
     },
     "ringsand": {
       "name": "Ring sand",
+      "cover": "sand",
       "top": ["#f2d9a0", "#efd49a"],
       "side": ["#dcc08a", "#d2b47e"],
       "beach": true
@@ -358,6 +363,7 @@
     },
     "moor": {
       "name": "Cloudberry moor",
+      "cover": "heath",
       "top": ["#8a8a4a", "#9a6a3a", "#8f8450"],
       "side": ["#5b6068", "#6e747c"]
     },
@@ -389,6 +395,7 @@
     },
     "blacksand": {
       "name": "Black sand",
+      "cover": "sand",
       "top": ["#3d3c3e", "#454347", "#38373a"],
       "side": ["#3d3c3e", "#454347"],
       "beach": true
@@ -396,6 +403,7 @@
     "moss": {
       "sharp": true,
       "name": "Moss",
+      "cover": "heath",
       "top": ["#7fa852", "#6f9848", "#86b05a"],
       "side": ["#3d3839", "#4b4547", "#363132"],
       "specks": "#3a3536"
@@ -403,6 +411,7 @@
     "moss-dark": {
       "sharp": true,
       "name": "Dark moss",
+      "cover": "heath",
       "top": ["#6f9848", "#668c42", "#78a04e"],
       "side": ["#3d3839", "#4b4547", "#363132"],
       "specks": "#3a3536"
@@ -417,6 +426,7 @@
     "turf": {
       "sharp": true,
       "name": "Turf",
+      "cover": "grass",
       "top": "#6a9548",
       "side": ["#3f434a", "#4f535a", "#61666d", "#74787e"],
       "peak": "#6a9548"
@@ -436,35 +446,41 @@
     },
     "dune": {
       "name": "Dune sand",
+      "cover": "sand",
       "top": ["#e6d6a8", "#ecdcb0"],
       "side": ["#e6d6a8", "#d9c898"],
       "beach": true
     },
     "heath": {
       "name": "Heath and bracken",
+      "cover": "heath",
       "top": ["#6f5666", "#8a6a5c", "#7a5e62", "#7d6a58"],
       "side": ["#61666d", "#74787e"],
       "trees": false
     },
     "marram": {
       "name": "Marram dunes",
+      "cover": "heath",
       "top": ["#a8aa6a", "#b4b474", "#9ea062"],
       "side": ["#e6d6a8", "#d9c898"],
       "trees": false
     },
     "coralsand": {
       "name": "Coral sand",
+      "cover": "sand",
       "top": ["#f5ecd4", "#f1e6c8"],
       "side": ["#f1e6c8", "#ebdcba"],
       "beach": true
     },
     "jungle": {
       "name": "Jungle",
+      "cover": "grass",
       "top": ["#5aa63a", "#62ad3c", "#539e38"],
       "side": ["#b8743f", "#a8603a", "#c08048"]
     },
     "terrace": {
       "name": "Jungle terrace",
+      "cover": "grass",
       "top": ["#5aa63a", "#62ad3c", "#539e38"],
       "side": ["#c08048", "#c88c55"]
     },

@@ -1,9 +1,11 @@
 import { groundWashShader, surfFunctions } from '../shoreWash';
+import { COVER_HEAD, COVER_NORMAL } from './fieldGroundCover';
 
 /**
  * The new look's ground shader text (`fieldGroundShader.ts` puts it into the Lambert shaders):
  * the colour per pixel from the field's textures, its cliff bands, zone edges, detail noise and
- * wet band, and the swell's wash up the beach (`shoreWash.ts`).
+ * wet band, the swell's wash up the beach (`shoreWash.ts`) and the small cover on grass and sand
+ * (`fieldGroundCover.ts`).
  */
 export const VERTEX_HEAD = /* glsl */ `
 uniform float groundScale;
@@ -43,16 +45,26 @@ float groundHash(vec2 p) {
   return fract((p3.x + p3.y) * p3.z);
 }
 
-// Value noise in [-1, 1].
-float groundNoise(vec2 p) {
+// Value noise in [-1, 1] (x) and its slope along p's two axes (y, z).
+vec3 groundNoiseD(vec2 p) {
   vec2 i = floor(p);
   vec2 f = fract(p);
-  f = f * f * (3.0 - 2.0 * f);
-  return mix(
-    mix(groundHash(i), groundHash(i + vec2(1.0, 0.0)), f.x),
-    mix(groundHash(i + vec2(0.0, 1.0)), groundHash(i + vec2(1.0, 1.0)), f.x),
-    f.y
-  ) * 2.0 - 1.0;
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  vec2 du = 6.0 * f * (1.0 - f);
+  float a = groundHash(i);
+  float b = groundHash(i + vec2(1.0, 0.0));
+  float c = groundHash(i + vec2(0.0, 1.0));
+  float d = groundHash(i + vec2(1.0, 1.0));
+  float twist = a - b - c + d;
+  return vec3(
+    mix(mix(a, b, u.x), mix(c, d, u.x), u.y) * 2.0 - 1.0,
+    2.0 * du * vec2(b - a + twist * u.y, c - a + twist * u.x)
+  );
+}
+
+// Value noise in [-1, 1].
+float groundNoise(vec2 p) {
+  return groundNoiseD(p).x;
 }
 
 // 1 where a noise of this frequency still has two pixels a wave, fading to 0 below that.
@@ -164,6 +176,7 @@ vec3 groundTint(int g, int ground[4], vec3 tint[4], float weight[4]) {
   }
   return total > 1e-4 ? sum / total : fallback;
 }
+${COVER_HEAD}
 
 vec3 groundColour() {
   vec2 p = vGround.xz - groundCentre;
@@ -179,6 +192,7 @@ vec3 groundColour() {
 
   vec3 colour;
   float steep;
+  vec3 wear = vec3(0.0);
   if (groundPlain) {
     // Ultra-low (decision 0247): the filtered texture, and on slopes the nearest texel's cliff
     // colour in its band by the pixel's height. Two reads, no noise.
@@ -198,6 +212,10 @@ vec3 groundColour() {
       vec4 cliff = groundCliff(t, size, p, streakDepth);
       steep = groundSteep(filtered.a, cliff.a);
       colour = mix(colour, cliff.rgb, steep);
+    }
+    // A texel is under a pixel here (the cover is off on Low), so the nearest one's ground does.
+    if (groundCover) {
+      wear = groundCoverOf(groundAt(texelFetch(groundShape, clamp(ivec2(t), ivec2(0), size - 1), 0)));
     }
   } else {
     // Close up: the four texels round the pixel. Slope and the bands' smoothed height blend
@@ -235,6 +253,7 @@ vec3 groundColour() {
     int b = groundWinner(ground, share, weight, a);
     if (b < 0) {
       colour = tint[0] * weight[0] + tint[1] * weight[1] + tint[2] * weight[2] + tint[3] * weight[3];
+      wear = groundCoverOf(a);
     } else {
       // How far ground a's share leads b's, a bilinear field over the four texels.
       float lead[4];
@@ -248,11 +267,9 @@ vec3 groundColour() {
       float texels = ahead / max(length(slope), 1e-4);
       // A rock ground's edges are narrower, whichever side of the edge it is on.
       float halfWidth = 0.5 * max(mix(groundEdge.x, groundEdge.y, sharpest), texelsPerPixel * 1.5);
-      colour = mix(
-        groundTint(b, ground, tint, weight),
-        groundTint(a, ground, tint, weight),
-        smoothstep(-halfWidth, halfWidth, texels)
-      );
+      float ofA = smoothstep(-halfWidth, halfWidth, texels);
+      colour = mix(groundTint(b, ground, tint, weight), groundTint(a, ground, tint, weight), ofA);
+      wear = mix(groundCoverOf(b), groundCoverOf(a), ofA);
     }
   }
 
@@ -264,6 +281,11 @@ vec3 groundColour() {
       groundResolved(frequency, unitsPerPixel);
   }
   colour *= 1.0 + detail * (1.0 - steep);
+  // Grass thins out towards a cliff; a beach has none, so its ripples run down to the water.
+  if (groundCover) {
+    wear.xy *= 1.0 - steep;
+    colour = groundCovered(colour, p, wear, unitsPerPixel);
+  }
   colour = mix(colour, groundWet, 1.0 - smoothstep(groundWetBand.x, groundWetBand.y, height));
   return groundWash(colour, vWashAt, height, filtered.a, steep);
 }`;
@@ -271,3 +293,6 @@ vec3 groundColour() {
 // Replaces the plain map read; the texture's alpha is the slope, so it never reaches the output.
 export const FRAGMENT_BODY = /* glsl */ `
 diffuseColor.rgb *= groundColour();`;
+
+// After three.js's own normal: the cover's bump.
+export const FRAGMENT_NORMAL = COVER_NORMAL;

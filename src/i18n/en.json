@@ -234,6 +234,8 @@
   "settings.fx.reflectionNote": "The sky and the sun shine on the sea",
   "settings.fx.mirror": "Boat and island reflections",
   "settings.fx.mirrorNote": "The sea mirrors the boats, the islands and the sky",
+  "settings.fx.groundCover": "Ground detail",
+  "settings.fx.groundCoverNote": "Grass clumps, dry patches and sand ripples that catch the light",
   "settings.fpsNote": "Frames per second",
   "settings.soundLanguage": "Sound · Language",
   "settings.voyage": "Voyage",

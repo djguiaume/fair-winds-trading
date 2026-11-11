@@ -41,6 +41,12 @@ describe('?quality and ?off device-test switches (issue #377)', () => {
     expect(t.seaLife).toBe(true);
   });
 
+  it('switches the ground cover off for a device test (issue #499)', () => {
+    const s = fresh();
+    applyGraphicsOverrides('?bench&quality=high&off=cover', s);
+    expect(s.effects).toEqual({ groundCover: false });
+  });
+
   it('says in the report what ran', () => {
     expect(describeOverrides('?off=ao,msaa&quality=ultra')).toBe(
       'look v2 · quality forced ultra · off ao,msaa',
