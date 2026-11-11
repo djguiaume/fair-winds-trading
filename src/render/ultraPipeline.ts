@@ -25,6 +25,8 @@ export interface GraphicsEffects {
   reflection: boolean;
   /** The boats, islands and sky mirrored on the sea, on the levels with `mirror` (decision 0292). */
   mirror: boolean;
+  /** The ground's cover on grass and sand, on the levels of `terrain.json › draw.cover.on` (0298). */
+  groundCover: boolean;
   /** Ultra's multisampled off-screen render; on unless a `?off=msaa` device test says false. */
   msaa?: boolean;
   /** The wind's gusts on the sea; on unless a `?off=gusts` device test says false (issue #498). */
@@ -40,6 +42,7 @@ export const allEffects = (): GraphicsEffects => ({
   bloom: true,
   reflection: true,
   mirror: true,
+  groundCover: true,
 });
 
 /** GTAOPass's hooks for what its normal pass leaves out; not in the published types. */

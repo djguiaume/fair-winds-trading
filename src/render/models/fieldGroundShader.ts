@@ -2,7 +2,14 @@ import * as THREE from 'three';
 import { TUNING } from '../../data/tuning';
 import { QUALITY, type QualityLevel } from '../quality';
 import type { FieldGroundTextures } from './fieldGround';
-import { FRAGMENT_BODY, FRAGMENT_HEAD, VERTEX_BODY, VERTEX_HEAD } from './fieldGroundGlsl';
+import { type CoverUniforms, coverUniforms } from './fieldGroundCover';
+import {
+  FRAGMENT_BODY,
+  FRAGMENT_HEAD,
+  FRAGMENT_NORMAL,
+  VERTEX_BODY,
+  VERTEX_HEAD,
+} from './fieldGroundGlsl';
 import { SHORE_WASH_UNIFORMS } from '../shoreWash';
 
 /**
@@ -15,7 +22,7 @@ import { SHORE_WASH_UNIFORMS } from '../shoreWash';
  */
 
 /** The shader's inputs, kept on the material so quality changes and disposal can reach them. */
-interface GroundUniforms {
+interface GroundUniforms extends CoverUniforms {
   groundShape: THREE.IUniform<THREE.Texture>;
   groundHeights: THREE.IUniform<THREE.Vector2>;
   groundSides: THREE.IUniform<THREE.Texture>;
@@ -51,12 +58,16 @@ export function groundShaderSources(vertexShader: string, fragmentShader: string
     ),
     fragmentShader: inject(
       inject(
-        fragmentShader,
-        '#include <map_pars_fragment>',
-        `#include <map_pars_fragment>${FRAGMENT_HEAD}`,
+        inject(
+          fragmentShader,
+          '#include <map_pars_fragment>',
+          `#include <map_pars_fragment>${FRAGMENT_HEAD}`,
+        ),
+        '#include <map_fragment>',
+        FRAGMENT_BODY,
       ),
-      '#include <map_fragment>',
-      FRAGMENT_BODY,
+      '#include <normal_fragment_maps>',
+      `#include <normal_fragment_maps>${FRAGMENT_NORMAL}`,
     ),
   };
 }
@@ -94,6 +105,7 @@ function groundUniforms(textures: FieldGroundTextures, quality: QualityLevel, sc
     },
     groundCrisp: { value: edge.crisp[quality] },
     groundPlain: { value: QUALITY[quality].plain },
+    ...coverUniforms(textures.covers),
   };
   return uniforms;
 }
@@ -120,7 +132,7 @@ export function fieldGroundMaterial(
 
 /**
  * The ground's detail at a quality level: Low drops the finest noise and the crisp zone edges,
- * Ultra-low draws it plain.
+ * Ultra-low draws it plain. (The cover on grass and sand has one switch for all: `setGroundCover`.)
  */
 export function setFieldGroundQuality(material: THREE.Material, quality: QualityLevel) {
   const uniforms = material.userData.ground as GroundUniforms | undefined;

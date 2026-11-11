@@ -6,7 +6,7 @@ import { SHAPE_KEYS, buildProp, partsTriangles } from './propRecipe';
 const RECIPE_KEYS = new Set([
   ...['id', 'name', 'group', 'internal', 'extends', 'home', 'building', 'water', 'lamp', 'vent'],
   ...['sizedInModel', 'fit', 'fitRadius', 'edge', 'style', 'defaults', 'vars', 'parts', 'scale'],
-  'protect',
+  ...['protect', 'rich'],
 ]);
 const PART_KEYS = new Set([
   ...SHAPE_KEYS,

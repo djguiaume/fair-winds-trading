@@ -16,7 +16,8 @@
       "lowDetail": true,
       "waves": false,
       "mirror": false,
-      "gusts": false
+      "gusts": false,
+      "richHouses": false
     },
     "low": {
       "maxRenderPixels": 400000,
@@ -34,7 +35,8 @@
       "lowDetail": true,
       "waves": false,
       "mirror": false,
-      "gusts": false
+      "gusts": false,
+      "richHouses": false
     },
     "medium": {
       "maxRenderPixels": 1250000,
@@ -52,7 +54,8 @@
       "lowDetail": false,
       "waves": true,
       "mirror": false,
-      "gusts": false
+      "gusts": false,
+      "richHouses": false
     },
     "high": {
       "maxRenderPixels": 2500000,
@@ -70,7 +73,8 @@
       "lowDetail": false,
       "waves": true,
       "mirror": false,
-      "gusts": true
+      "gusts": true,
+      "richHouses": true
     },
     "ultra": {
       "maxRenderPixels": 3700000,
@@ -88,7 +92,8 @@
       "lowDetail": false,
       "waves": true,
       "mirror": true,
-      "gusts": true
+      "gusts": true,
+      "richHouses": true
     }
   },
   "auto": {
@@ -259,5 +264,9 @@
         "islands": false
       }
     }
+  },
+  "houses": {
+    "richWithin": 140,
+    "hysteresis": 0.1
   }
 }

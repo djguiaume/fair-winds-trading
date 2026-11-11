@@ -167,6 +167,7 @@ describe('settings applier', () => {
         bloom: true,
         reflection: true,
         mirror: true,
+        groundCover: true,
       },
       setWaves: vi.fn(),
       dayNight: true,

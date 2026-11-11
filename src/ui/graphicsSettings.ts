@@ -1,5 +1,6 @@
 import { t } from '../i18n';
 import { QUALITY, QUALITY_LEVELS, type QualityLevel } from '../render/quality';
+import { coverOn, setGroundCover } from '../render/models/fieldGroundCover';
 import type { GraphicsEffects } from '../render/ultraPipeline';
 import type { SwitchSpec } from './screens/settings/rows';
 import type { Settings } from './settings';
@@ -21,6 +22,7 @@ const EFFECTS: readonly (keyof GraphicsEffects)[] = [
   'bloom',
   'reflection',
   'mirror',
+  'groundCover',
 ];
 
 /** Whether a level draws an effect, so its switch shows only there. */
@@ -28,6 +30,7 @@ function drawn(id: keyof GraphicsEffects, level: QualityLevel): boolean {
   const profile = QUALITY[level];
   if (id === 'reflection') return profile.waterReflection;
   if (id === 'mirror') return profile.mirror;
+  if (id === 'groundCover') return coverOn(level);
   return profile.ultra;
 }
 
@@ -42,6 +45,7 @@ export function applyGraphics(view: GraphicsView, settings: Settings) {
   view.effects.msaa = settings.effects.msaa !== false;
   view.effects.gusts = settings.effects.gusts !== false;
   for (const id of EFFECTS) view.effects[id] = settings.effects[id] !== false;
+  setGroundCover({ switchedOn: view.effects.groundCover });
 }
 
 /**

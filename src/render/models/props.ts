@@ -118,6 +118,8 @@ export interface PropType {
   /** Its name in the island builder, when the file gives one. */
   name?: string;
   build: (a: PropArgs) => Parts;
+  /** The home's richer parts, without windows (issue #500). */
+  buildRich?: (a: PropArgs) => Parts;
   /** A residence: numbered in file order, lanes grow near it, it clears woods round it. */
   home?: boolean;
   /** Buildings must not overlap each other (a warning in the checks). */
@@ -138,6 +140,7 @@ const typeOf = (r: PropRecipe): PropType => ({
   group: r.group,
   name: r.name,
   build: (a) => buildProp(r.id, a),
+  buildRich: r.rich ? (a) => buildProp(r.rich!, a) : undefined,
   home: r.home,
   building: r.building,
   water: r.water,

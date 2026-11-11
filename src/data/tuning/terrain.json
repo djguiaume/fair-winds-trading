@@ -95,6 +95,49 @@
         "ultra": true
       }
     },
+    "cover": {
+      "on": {
+        "ultralow": false,
+        "low": false,
+        "medium": false,
+        "high": true,
+        "ultra": true
+      },
+      "grass": {
+        "clumps": {
+          "scale": 0.7,
+          "tint": 0.03,
+          "height": 0.16
+        },
+        "tufts": {
+          "scale": 1.8,
+          "tint": 0.02,
+          "height": 0.08
+        },
+        "blades": {
+          "scale": 5.3,
+          "tint": 0.01,
+          "height": 0.025
+        }
+      },
+      "dry": {
+        "scale": 0.22,
+        "from": 0.45,
+        "to": 0.7,
+        "amount": 0.7
+      },
+      "ripples": {
+        "length": 1.2,
+        "heading": 23,
+        "wobbleScale": 0.35,
+        "wobble": 3,
+        "height": 0.04
+      },
+      "grit": {
+        "scale": 9,
+        "tint": 0.03
+      }
+    },
     "fineTexels": 256,
     "fineMax": 3
   },
