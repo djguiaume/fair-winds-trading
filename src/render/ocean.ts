@@ -65,6 +65,10 @@ export function oceanFor(
   return new Ocean(land.islands, oceanSegments, look, OCEAN_SIZE, land.terrain, shore, material);
 }
 
+/** The view's switches the ocean reads each frame (`GraphicsEffects`). */
+export type OceanSwitches = { reflection?: boolean; gusts?: boolean };
+const ALL_ON: OceanSwitches = {};
+
 /** Which water shader a quality level draws. */
 export interface WaterLook {
   /** Moving foam and per-pixel coasts (Medium and up). */
@@ -309,16 +313,16 @@ export class Ocean {
 
   /**
    * Keep the grid centered on the camera target, snapped to whole cells so waves don't swim.
-   * `reflect` is the Settings switch for the sky reflection and glint (where the shader has them),
-   * `gusts` the device test's for the wind's gusts.
+   * `effects` are the switches for the sky reflection and glint (Settings, where the shader has
+   * them) and for the wind's gusts (a device test's); a missing one is on.
    */
   update(
     time: number,
     center: THREE.Vector3,
-    reflect = true,
+    effects: OceanSwitches = ALL_ON,
     waves?: SeaWaves | null,
-    gusts = true,
   ): void {
+    const reflect = effects.reflection !== false;
     const u = this.mesh.material.uniforms;
     u.uTime!.value = time;
     if (waves && 'GERSTNER' in this.mesh.material.defines) {
@@ -335,7 +339,13 @@ export class Ocean {
         bounds: u.uDepthBounds as { value: THREE.Vector4 },
       });
       if ('GUSTS' in this.mesh.material.defines)
-        waves.writeGusts(u as unknown as GustUniforms, center, day, this.ramp.night, gusts);
+        waves.writeGusts(
+          u as unknown as GustUniforms,
+          center,
+          day,
+          this.ramp.night,
+          effects.gusts !== false,
+        );
       // The fine waves and facets fade in fog distances, so they follow the camera's zoom.
       const { facets, detailFrom, detailTo, slopeGain } = TUNING.waves.look;
       const near = u.uFogNear!.value as number;

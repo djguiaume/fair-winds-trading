@@ -114,12 +114,12 @@ describe('where the gusts are drawn', () => {
     const ocean = oceanOf('high', true);
     const sea = new SeaWaves(() => world, '?waves=wind');
     const look = ocean.mesh.material.uniforms.uGustLook!.value as THREE.Vector4;
-    ocean.update(1, new THREE.Vector3(), true, sea);
+    ocean.update(1, new THREE.Vector3(), {}, sea);
     expect(look.x).toBeGreaterThan(0);
     const effects: Record<string, boolean> = { ...allEffects() };
     const settings = { quality: 'auto' as const, effects, seaLife: true, townFolk: true };
     expect(applyGraphicsOverrides('?off=gusts', settings)).toBe(true);
-    ocean.update(2, new THREE.Vector3(), true, sea, settings.effects.gusts !== false);
+    ocean.update(2, new THREE.Vector3(), settings.effects, sea);
     expect(look.x).toBe(0);
   });
 
