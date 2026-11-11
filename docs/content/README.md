@@ -142,7 +142,13 @@ new id and change its parts. A new file shows up in the island builder's palette
 
 **Expressions** (`"h / 2"`, `"k * pi / 2 + 0.4"`, `"variant == 0 ? 2 : variant"`) use numbers, the names `R` (island radius), `variant`, `shape`, `size`, `length`, the vars and repeat names, `pi`, `+ - * / %`, comparisons, `&& || !`, `? :`, and `floor abs min max sin cos sqrt pow`.
 
-**Checks** (`tests/prop-files.test.ts`): a typo in a key, an unknown colour or name, or a part with no shape fails with the file and part named; every file must build in every style for variants 0 to 5, within its group's triangle budget (`src/data/prop-groups.json`: homes 120, nature 60…) because islands must stay light for the old tablet. Changing a shipped recipe changes the islands that use it: the island golden hashes in `tests/island-files.test.ts` then need the new values, after a look at the island.
+**Checks** (`tests/prop-files.test.ts`): a typo in a key, an unknown colour or name, or a part with no shape fails with the file and part named; every file must build in every style for variants 0 to 5, within its group's triangle budget (`src/data/prop-groups.json`: homes 130, nature 60…) because islands must stay light for the old tablet. Changing a shipped recipe changes the islands that use it: the island golden hashes in `tests/island-files.test.ts` then need the new values, after a look at the island.
+
+A home (`home: true`) also needs a richer twin (decision 0296): an internal `<id>-rich` recipe that
+`extends` it, named in the home's `rich` field. Keep the walls and `vars` (so the swap changes
+details only), leave the windows out (the plain recipe's lit panes are shared), and stay within the
+`homes` budget with those windows counted. High and Ultra draw it near the camera, Low and Medium
+the plain house (`graphics.json › quality.*.richHouses`, `houses.richWithin`).
 
 ## A new ground or island style ([0168](../decisions/0168-ground-materials-and-island-styles-as-data.md))
 

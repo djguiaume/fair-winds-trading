@@ -63,7 +63,7 @@ import type { ForestClearings } from '../../sim/forest';
 import { riverParts } from './rivers';
 import { groundSpecks, lavaCracks } from './lavaCracks';
 import { designedGround, facetedGround, lakeRim, outlineShape } from './ground';
-import { type Stand, extent, propParts, townProps } from './townProps';
+import { type Stand, extent, nearParts, propParts, townProps } from './townProps';
 import { stairs, withoutUndersides } from './townPieces';
 
 /**
@@ -668,7 +668,7 @@ export function islandCheckKit(design: IslandDesign, R: number, harbour = true):
     triangles: (level) => {
       const count = (d: IslandDesign) => {
         const parts = designedTownParts(d, R, level as TownLevel, harbour);
-        const n = parts.reduce((t, g) => t + g.getAttribute('position').count / 3, 0);
+        const n = nearParts(parts).reduce((t, g) => t + g.getAttribute('position').count / 3, 0);
         parts.forEach((g) => g.dispose());
         return n;
       };

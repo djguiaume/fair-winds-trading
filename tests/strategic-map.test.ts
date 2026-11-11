@@ -15,6 +15,7 @@ import { type SailRoute, clearAt, sailRoute } from '../src/sim/mapChecks';
 import { buildHighlandIslands } from '../src/render/models/highlandIslands';
 import { terrainProps } from '../src/render/models/terrainProps';
 import { triangleCount } from '../src/render/models/geometry';
+import { drawnTriangles } from '../src/render/models/houseDetail';
 import { Ocean } from '../src/render/ocean';
 
 const terrain = PHASE1_MAP.terrain!;
@@ -179,12 +180,10 @@ describe('Windward Ring trading map', () => {
       }
     }
     const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false });
-    let triangles = 0;
-    mesh.traverse((o) => {
-      if (o instanceof THREE.Mesh) triangles += triangleCount(o.geometry);
-    });
     // Decision 0073: preserve the complete land + window triangle budget despite local batches.
-    expect(triangles).toBeLessThan(21000);
+    // The phones' levels draw the plain homes (21000); the rich homes add about 1,000 (#500).
+    expect(drawnTriangles(mesh, 'far')).toBeLessThan(21000);
+    expect(drawnTriangles(mesh, 'near')).toBeLessThan(23000);
     mesh.dispose();
   });
   it('gives every scenery island a landmark and keeps islands inside the world edge', () => {

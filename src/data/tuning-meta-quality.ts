@@ -73,6 +73,26 @@ export const QUALITY_META: Readonly<Record<string, TuningMeta>> = {
     'Gusts on the sea',
     'Soft darker patches running downwind (decision 0295); needs the waves on and Moving foam.',
   ),
+  'graphics.quality.*.richHouses': toggle(
+    'Rich town houses',
+    'Footing, overhanging roof, ridge, chimney cap and door step on the homes near the camera (issue #500); the plain homes show far away.',
+  ),
+  'graphics.houses.richWithin': num(
+    'Rich houses: within',
+    30,
+    200,
+    5,
+    'units',
+    'A town draws its rich houses when the camera is this close to its edge, the plain ones beyond. Past about 140 the extras are under a pixel.',
+  ),
+  'graphics.houses.hysteresis': num(
+    'Rich houses: swap margin',
+    0,
+    0.5,
+    0.05,
+    undefined,
+    'The share of the distance a town must pass before the houses swap back, so they never flicker.',
+  ),
   'graphics.auto.minFps': num(
     'Auto: frame budget',
     20,

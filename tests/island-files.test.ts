@@ -82,8 +82,8 @@ describe('island files (decision 0101)', () => {
     expect(checksOf(broken((d) => d.lake!.push([0, 1.5])))).toContain('ground');
     expect(checksOf(broken((d) => (prop(d, 'cabin').to = 2)))).toEqual(['growth']);
     // Old phones.
-    expect(checksOf(broken(() => {}, 6400))).toEqual(['budget']);
-    expect(broken(() => {}, 5400).map((i) => i.check)).toContain('budget');
+    expect(checksOf(broken(() => {}, 8900))).toEqual(['budget']);
+    expect(broken(() => {}, 7400).map((i) => i.check)).toContain('budget');
   });
 
   it('warns about overlapping buildings and props that go with nothing in their place', () => {
@@ -104,7 +104,10 @@ describe('island files (decision 0101)', () => {
     const hashes: Record<string, string[]> = {};
     for (const { design, R, harbour } of shipped)
       hashes[design.id] = ([1, 2, 3, 4] as TownLevel[]).map((level) => {
-        const parts = designedTownParts(design, R, level, harbour);
+        // The plain homes only: the rich ones have their own tests (issue #500).
+        const parts = designedTownParts(design, R, level, harbour).filter(
+          (g) => g.userData.house !== 'rich',
+        );
         let h = 0x811c9dc5;
         const mix = (text: string) => {
           for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193);
