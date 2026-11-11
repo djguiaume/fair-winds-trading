@@ -14,6 +14,9 @@ Every part: switchable in Settings or a quality level it is allowed on, data dri
 | 4 | #500 | **Richer houses**, variant per Guillaume's pick (A recommended): footing, overhanging roofs, ridge, three pitches, taller chimney, door step, lean-to. Today's house stays for far and Low | prop recipes (`fish-house`, then the other town styles), a near/far swap, `budget.json` homes group | All town styles done, swap invisible, High/Ultra only, triangles and draw calls measured, ADR | medium | yes | Sonnet (Opus high if the swap needs engine work) |
 | 5 | #501 | **Bloom** on Ultra: threshold per time of day (1.05 day, 0.7 night), warm glow on windows and lanterns | `ultraPipeline.ts` (before the grade), `graphics.json` | Visible at night, nothing at day, within Xbox memory after #484, Settings switch, ADR | medium | yes | Opus high |
 
+| 6 | #503 | **Believable towns**: audit every island's terrain and asset placement, fix with the island CLI so towns read as real (houses on flat ground facing the water, streets and quays following the shore) | island files, town layouts, `npm run island`, `chart`, art bible town rules | Rules list, every island audited and fixed, before/after charts, Guillaume's `visual-ok` | high | yes | Opus high |
+
+Guillaume, 2026-11-11: #503 is in v1.8. That makes six parts, so run two waves. Wave 1: #484, #498, #499, #500. Wave 2: #501 (after #484) and #503 (after #500, so layouts fit the new house sizes; it touches island files, so nothing else edits them then).
 Order: #484 first and #501 after it (same files). #498, #499, #500 touch different files and run beside #484. One combined visual round for #498 to #501: screenshots to the art director and Guillaume together (desktop, phone for the houses), `visual` label, no `automerge` before `visual-ok`.
 
 Open for Guillaume: houses A or B (A recommended: B's extra detail only shows up close and doubles the triangles); fold #484 in; Fable or Opus (see the message).
