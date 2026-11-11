@@ -24,3 +24,20 @@ Picks and rejections: waiting for Guillaume.
 Re-run: `npm run shots -- --quality ultra --chase --script docs/reviews/saltline-lighting/src/run.js`
 (`run-night.js` for `--night`, `wait.js` for the same moment without the mockup). The first run
 can reload the page while Vite bundles the two new three.js helpers; run it again.
+
+## Round 2: detailed island ground (2026-11-11)
+
+Guillaume asked whether the terrain should get the same detail. The ground already has a
+per-pixel shader (decision 0239) with faint colour noise and rock strata, but no relief that
+catches the light. This mockup patches that shader (`src/ground.ts`) inside each zone only, zone
+edges untouched: grass clumps and tufts with dry yellow patches, wind ripples and grit on sand,
+lumps on flat rock, broad ledges on cliffs, as colour and as bumps on the normal, each fading out
+before it is smaller than two pixels.
+
+![Today vs detailed ground: Saltmere and Sunreach chase views, close-ups at full size](ground-sheet.jpg)
+
+Sand ripples and cliff ledges show most; grass reads as soft undulation from the chase camera.
+Cost: about 15 noise lookups per ground pixel; no new textures or memory.
+
+Re-run: `npm run shots -- --quality ultra --chase --script docs/reviews/saltline-lighting/src/run-ground.js`
+(Sunreach: `--at -95,-485 --heading 180`). Picks: waiting for Guillaume.
