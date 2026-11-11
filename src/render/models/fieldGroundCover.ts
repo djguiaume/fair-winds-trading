@@ -31,14 +31,17 @@ export interface CoverUniforms {
 export const coverOn = (quality: QualityLevel) => TUNING.terrain.draw.cover.on[quality];
 
 /**
- * Every ground material's cover switch: one object, so the view flips them all at once. On until
- * a view says otherwise (the island builder has none and draws High).
+ * Every ground material's cover switch: one object, so a change flips them all at once. On until
+ * the game says otherwise (the island builder never does, and draws High).
  */
 const COVER_SWITCH: THREE.IUniform<boolean> = { value: true };
+const cover = { levelDraws: true, switchedOn: true };
 
-/** Draws the cover or not: the level's own choice and the player's Settings switch. */
-export function setGroundCover(quality: QualityLevel, switchedOn: boolean) {
-  COVER_SWITCH.value = switchedOn && coverOn(quality);
+/** Draws the cover or not: the level's own choice, or the player's Settings switch. */
+export function setGroundCover(choice: { quality?: QualityLevel; switchedOn?: boolean }) {
+  if (choice.quality) cover.levelDraws = coverOn(choice.quality);
+  if (choice.switchedOn !== undefined) cover.switchedOn = choice.switchedOn;
+  COVER_SWITCH.value = cover.levelDraws && cover.switchedOn;
 }
 
 /** The grounds (by index) that pass `wears`, as four 32-bit masks. */

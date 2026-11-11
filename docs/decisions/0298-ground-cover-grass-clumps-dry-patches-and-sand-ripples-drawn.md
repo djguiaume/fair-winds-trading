@@ -29,7 +29,7 @@ The ground shader (decision 0239) draws a small cover inside each zone (`fieldGr
   art director's limits: the `?tune` panel and `npm run tune -- list terrain` / `set
   terrain.draw.cover.ripples.height 0.03` edit them (decision 0153).
 - **Quality:** on for High and Ultra (`draw.cover.on`), off below; one shared switch uniform, set
-  by the view each frame from the level and the Settings switch. Every layer fades out before
+  when the level or the Settings switch changes. Every layer fades out before
   one of its waves is under two pixels (`groundResolved`), so there is no shimmer far off.
 - The noise gives its value and its slope in one evaluation, so the bump needs no extra samples:
   4 noise evaluations on a grass pixel and 2 on a sand pixel, against the mockup's 15 or so.

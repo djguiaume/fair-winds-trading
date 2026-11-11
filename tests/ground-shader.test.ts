@@ -119,11 +119,13 @@ describe('the ground shader (issue #373)', () => {
       const u = compiled(fieldGroundMaterial(textures(), 'high')).uniforms;
       // On before any view speaks (the island builder), then the level and the Settings switch.
       expect(u.groundCover!.value).toBe(true);
-      setGroundCover('low', true);
+      setGroundCover({ quality: 'low' });
       expect(u.groundCover!.value).toBe(false);
-      setGroundCover('ultra', false);
+      setGroundCover({ quality: 'ultra' });
+      expect(u.groundCover!.value).toBe(true);
+      setGroundCover({ switchedOn: false });
       expect(u.groundCover!.value).toBe(false);
-      setGroundCover('ultra', true);
+      setGroundCover({ switchedOn: true });
       expect(u.groundCover!.value).toBe(true);
     });
 

@@ -1,6 +1,6 @@
 import { t } from '../i18n';
 import { QUALITY, QUALITY_LEVELS, type QualityLevel } from '../render/quality';
-import { coverOn } from '../render/models/fieldGroundCover';
+import { coverOn, setGroundCover } from '../render/models/fieldGroundCover';
 import type { GraphicsEffects } from '../render/ultraPipeline';
 import type { SwitchSpec } from './screens/settings/rows';
 import type { Settings } from './settings';
@@ -44,6 +44,7 @@ export function applyGraphics(view: GraphicsView, settings: Settings) {
   view.effects.msaa = settings.effects.msaa !== false;
   view.effects.gusts = settings.effects.gusts !== false;
   for (const id of EFFECTS) view.effects[id] = settings.effects[id] !== false;
+  setGroundCover({ switchedOn: view.effects.groundCover });
 }
 
 /**

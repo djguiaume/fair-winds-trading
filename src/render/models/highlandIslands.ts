@@ -7,6 +7,7 @@ import { PROP_RECIPES } from '../../data/props';
 import { islandLayout, islandPoint } from '../../sim/islandLayout';
 import { ISLAND_SCALE } from '../../sim/islandUnits';
 import { type Heightfield, islandHeightfield, terrainHeightfield } from '../../sim/heightfield';
+import { setGroundCover } from './fieldGroundCover';
 import type { QualityLevel } from '../quality';
 import type { TerrainLook } from '../terrainLook';
 import { isGlowing, isMolten, mergeAll, vertexColorMaterial } from './geometry';
@@ -66,6 +67,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   ) {
     super();
     this.quality = quality;
+    setGroundCover({ quality });
     this.groundStep = TUNING.terrain.groundStep[quality];
     this.levels = { ...levels };
     this.userData.harbours = {};
@@ -180,6 +182,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   /** Redraw the new look's ground at a quality level's detail; the field itself never changes. */
   setQuality(level: QualityLevel) {
     this.quality = level;
+    setGroundCover({ quality: level });
     for (const group of this.batches.values()) {
       const forest = group.getObjectByName('forest');
       if (forest) setForestQuality(forest, level);

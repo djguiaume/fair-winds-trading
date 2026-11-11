@@ -132,7 +132,7 @@ export function fieldGroundMaterial(
 
 /**
  * The ground's detail at a quality level: Low drops the finest noise and the crisp zone edges,
- * Ultra-low draws it plain. (The cover on grass and sand has its own switch: `setGroundCover`.)
+ * Ultra-low draws it plain. (The cover on grass and sand has one switch for all: `setGroundCover`.)
  */
 export function setFieldGroundQuality(material: THREE.Material, quality: QualityLevel) {
   const uniforms = material.userData.ground as GroundUniforms | undefined;
