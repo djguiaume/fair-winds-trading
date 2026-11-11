@@ -1,10 +1,10 @@
-# Storyteller handover to v1.7 (2026-11-05, after v1.6)
+# Storyteller handover to v1.9 (2026-11-11, after v1.6)
 
 From "Storyteller (v1.6)" to the next storyteller thread. Format: [roles.md](../roles.md). The voice, cast and every ruling live in the [storyteller brief](storyteller-brief.md); this file only says what is open.
 
 ## Open decisions
 
-Nothing waits on Guillaume. v1.6 "The far seas' story" shipped as v1.6.387. The brief's Status line (end of file) is still stale; bring it up to date with your first ruling.
+Nothing waits on Guillaume. v1.6 "The far seas' story" shipped as v1.6.387. v1.9 "Believable towns" is a look and performance release, so story work is small: town text and any new people, in EN and FR. The brief's Status line (end of file) is still stale; bring it up to date with your first ruling.
 
 ## What v1.6 ruled
 
@@ -17,7 +17,7 @@ Nothing waits on Guillaume. v1.6 "The far seas' story" shipped as v1.6.387. The 
 - #362 (Ness wants a word) and #363 (Wren's order at Abbey Head) done.
 - Lines live in `src/i18n`; the drafts are in project files `story/v1.6/` and `docs/story/v1.6/`. The built text is the truth.
 
-## Open for v1.7
+## Open for v1.9 and later
 
 Possible later work, none planned: a deeper per-sea restructure (each sea its own shape, needs new step kinds and balance work); a 13th Skerry logo and themed cosmetic sets (names from the storyteller, see [customisation.md](customisation.md)); more standing-order variety.
 
