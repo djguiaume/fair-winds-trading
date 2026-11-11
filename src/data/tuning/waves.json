@@ -114,6 +114,19 @@
     "top": 1.2,
     "look": 3
   },
+  "gusts": {
+    "length": 55,
+    "width": 28,
+    "speedPerKn": 0.25,
+    "wind": [3, 9],
+    "cover": [0.46, 0.58],
+    "darken": 0.07,
+    "slick": 0.035,
+    "ruffle": 0.01,
+    "reflect": 0.5,
+    "mirror": 0.35,
+    "night": 0.5
+  },
   "look": {
     "facets": 0.35,
     "detailFrom": 0.8,
