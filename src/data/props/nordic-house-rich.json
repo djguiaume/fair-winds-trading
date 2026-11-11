@@ -1,0 +1,60 @@
+{
+  "id": "nordic-house-rich",
+  "name": "Nordic house, rich",
+  "group": "homes",
+  "internal": true,
+  "extends": "nordic-house",
+  "vars": {
+    "rh": "0.62 + (variant % 3) * 0.1"
+  },
+  "parts": [
+    {
+      "box": [1.16, 0.1, 0.92],
+      "at": [0, 0.05, 0],
+      "color": "stoneDark"
+    },
+    {
+      "box": [1.1, "h", 0.85],
+      "at": [0, "h / 2", 0],
+      "color": "walls[variant]"
+    },
+    {
+      "repeat": {
+        "x": [-0.55, 0.55]
+      },
+      "box": [0.06, "h", 0.06],
+      "at": ["x", "h / 2", 0.43],
+      "color": "cream"
+    },
+    {
+      "gable": [1.4, 1.2, "rh"],
+      "y": "h",
+      "color": "roofs[variant]"
+    },
+    {
+      "gable": [1.42, 0.66, "rh * 0.57"],
+      "y": "h + rh * 0.45",
+      "color": "#eef4f8"
+    },
+    {
+      "box": [0.18, 0.7, 0.18],
+      "at": [-0.32, "h + rh * 0.5 + 0.2", -0.15],
+      "color": "chimney"
+    },
+    {
+      "box": [0.25, 0.05, 0.25],
+      "at": [-0.32, "h + rh * 0.5 + 0.2 + 0.37", -0.15],
+      "color": "chimneyCap"
+    },
+    {
+      "box": [0.28, 0.5, 0.05],
+      "at": [0.18, 0.27, 0.44],
+      "color": "cream"
+    },
+    {
+      "box": [0.4, 0.06, 0.14],
+      "at": [0.18, 0.08, 0.5],
+      "color": "stoneDark"
+    }
+  ]
+}

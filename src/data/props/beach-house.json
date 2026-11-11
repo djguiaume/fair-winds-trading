@@ -36,5 +36,6 @@
       "windows": [1.05, 0.85, "h * 0.7 + 0.16", 2, 1],
       "seed": "variant"
     }
-  ]
+  ],
+  "rich": "beach-house-rich"
 }

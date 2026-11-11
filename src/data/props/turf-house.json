@@ -7,8 +7,12 @@
   "fit": 0.9,
   "style": "fog",
   "vars": {
-    "h": { "range": [0.7, 1] },
-    "w": { "range": [1, 1.35] }
+    "h": {
+      "range": [0.7, 1]
+    },
+    "w": {
+      "range": [1, 1.35]
+    }
   },
   "parts": [
     {
@@ -40,5 +44,6 @@
       "windows": ["w", 0.82, "h * 0.6 + 0.18", 3, 1],
       "seed": "variant"
     }
-  ]
+  ],
+  "rich": "turf-house-rich"
 }

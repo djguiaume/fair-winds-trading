@@ -7,8 +7,9 @@ import { PROP_RECIPES } from '../../data/props';
 import { islandLayout, islandPoint } from '../../sim/islandLayout';
 import { ISLAND_SCALE } from '../../sim/islandUnits';
 import { type Heightfield, islandHeightfield, terrainHeightfield } from '../../sim/heightfield';
+import { QUALITY, type QualityLevel } from '../quality';
 import { setGroundCover } from './fieldGroundCover';
-import type { QualityLevel } from '../quality';
+import { houseLod, setRichHouses } from './houseDetail';
 import type { TerrainLook } from '../terrainLook';
 import { isGlowing, isMolten, mergeAll, vertexColorMaterial } from './geometry';
 import type { Crater, IslandModel, IslandsBuilder } from './types';
@@ -111,7 +112,11 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     const group = new THREE.Group();
     for (const [name, selected, material] of [
       ['terrain', parts.filter((g) => g.userData.islandTerrain), this.land],
-      ['town', parts.filter((g) => !g.userData.islandTerrain && !isGlowing(g)), this.land],
+      [
+        'town',
+        parts.filter((g) => !g.userData.islandTerrain && !isGlowing(g) && !g.userData.house),
+        this.land,
+      ],
       ['windows', parts.filter((g) => isGlowing(g) && !isMolten(g)), this.glass],
       ['lava', parts.filter(isMolten), this.lava],
     ] as const) {
@@ -120,6 +125,17 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       mesh.name = name;
       group.add(mesh);
     }
+    const [plain, rich] = (['plain', 'rich'] as const).map((kind) =>
+      parts.filter((g) => g.userData.house === kind),
+    );
+    if (rich?.length)
+      group.add(
+        houseLod(
+          this.mesh(plain!, this.land),
+          this.mesh(rich, this.land),
+          QUALITY[this.quality].richHouses,
+        ),
+      );
     return group;
   }
 
@@ -184,6 +200,8 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     this.quality = level;
     setGroundCover({ quality: level });
     for (const group of this.batches.values()) {
+      const houses = group.getObjectByName('houses');
+      if (houses) setRichHouses(houses as THREE.LOD, QUALITY[level].richHouses);
       const forest = group.getObjectByName('forest');
       if (forest) setForestQuality(forest, level);
     }

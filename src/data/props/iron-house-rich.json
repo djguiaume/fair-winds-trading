@@ -1,0 +1,68 @@
+{
+  "id": "iron-house-rich",
+  "name": "Tin-clad house, rich",
+  "group": "homes",
+  "internal": true,
+  "extends": "iron-house",
+  "vars": {
+    "rh": "0.5 + (variant % 3) * 0.12"
+  },
+  "parts": [
+    {
+      "box": [0.96, 0.18, 1.06],
+      "at": [0, 0.09, 0],
+      "color": "#5b5658"
+    },
+    {
+      "box": [0.85, "h", 0.95],
+      "at": [0, "0.18 + h / 2", 0],
+      "color": "walls[variant]"
+    },
+    {
+      "gable": [1.1, 1.2, "rh"],
+      "y": "0.18 + h",
+      "color": "roofs[variant]"
+    },
+    {
+      "box": [1.14, 0.05, 0.05],
+      "at": [0, "0.18 + h + rh", 0],
+      "color": "post"
+    },
+    {
+      "box": [0.15, 0.6, 0.15],
+      "at": [-0.25, "0.18 + h + rh * 0.5 + 0.2", -0.15],
+      "color": "chimney"
+    },
+    {
+      "box": [0.22, 0.05, 0.22],
+      "at": [-0.25, "0.18 + h + rh * 0.5 + 0.2 + 0.32", -0.15],
+      "color": "stone"
+    },
+    {
+      "box": [0.28, 0.45, 0.05],
+      "at": [0, 0.4, 0.49],
+      "color": "#f4ede0"
+    },
+    {
+      "box": [0.4, 0.06, 0.14],
+      "at": [0, 0.08, 0.55],
+      "color": "stoneDark"
+    },
+    {
+      "if": "variant % 2 == 0",
+      "parts": [
+        {
+          "box": [0.38, 0.45, 0.6],
+          "at": [0.65, 0.225, 0],
+          "color": "walls[variant + 1]"
+        },
+        {
+          "box": [0.5, 0.04, 0.74],
+          "at": [0.65, 0.49, 0],
+          "color": "roofs[variant + 1]",
+          "ops": [["turnZ", -0.3]]
+        }
+      ]
+    }
+  ]
+}

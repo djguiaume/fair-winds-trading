@@ -26,7 +26,10 @@
       "gable": [0.92, 0.06, 0.5],
       "y": 0.5,
       "at": [0, 0, 0.6],
-      "color": { "pick": "variant % 2", "of": ["#b8402e", "walls[1]"] }
+      "color": {
+        "pick": "variant % 2",
+        "of": ["#b8402e", "walls[1]"]
+      }
     },
     {
       "box": [0.22, 0.38, 0.04],
@@ -37,5 +40,6 @@
       "windows": [0.92, 1.2, 0.6, 1, 0],
       "seed": "variant"
     }
-  ]
+  ],
+  "rich": "turf-cottage-rich"
 }
