@@ -16,6 +16,7 @@
       "lowDetail": true,
       "waves": false,
       "mirror": false,
+      "gusts": false,
       "richHouses": false
     },
     "low": {
@@ -34,6 +35,7 @@
       "lowDetail": true,
       "waves": false,
       "mirror": false,
+      "gusts": false,
       "richHouses": false
     },
     "medium": {
@@ -52,6 +54,7 @@
       "lowDetail": false,
       "waves": true,
       "mirror": false,
+      "gusts": false,
       "richHouses": false
     },
     "high": {
@@ -70,6 +73,7 @@
       "lowDetail": false,
       "waves": true,
       "mirror": false,
+      "gusts": true,
       "richHouses": true
     },
     "ultra": {
@@ -88,6 +92,7 @@
       "lowDetail": false,
       "waves": true,
       "mirror": true,
+      "gusts": true,
       "richHouses": true
     }
   },

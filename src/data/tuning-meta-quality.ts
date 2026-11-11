@@ -69,6 +69,10 @@ export const QUALITY_META: Readonly<Record<string, TuningMeta>> = {
     'Waves',
     'The wind and storm waves (decision 0250); off draws the classic sea. Settings › Waves overrides it.',
   ),
+  'graphics.quality.*.gusts': toggle(
+    'Gusts on the sea',
+    'Soft darker patches running downwind (decision 0295); needs the waves on and Moving foam.',
+  ),
   'graphics.quality.*.richHouses': toggle(
     'Rich town houses',
     'Footing, overhanging roof, ridge, chimney cap and door step on the homes near the camera (issue #500); the plain homes show far away.',

@@ -11,7 +11,7 @@ const HEADINGS: Record<OceanEffect, string> = {
   drawing: 'Drawing (how the ocean draws and shades it)',
   comfort:
     'Comfort (boat and camera motion on screen; Settings › Gentle sea motion, Camera rides the waves)',
-  level: 'Levels (Waves on by default; Settings › Waves overrides it)',
+  level: 'Levels (Waves on by default; Settings › Waves overrides it; gusts need the waves)',
   review: 'Review seas (?waves=calm|wind|storm)',
 };
 
