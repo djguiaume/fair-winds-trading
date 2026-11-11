@@ -19,6 +19,7 @@ const EFFECTS: readonly (keyof GraphicsEffects)[] = [
   'occlusion',
   'toneMapping',
   'haze',
+  'bloom',
   'reflection',
   'mirror',
   'groundCover',

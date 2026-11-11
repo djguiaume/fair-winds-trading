@@ -230,6 +230,8 @@
   "settings.fx.toneMappingNote": "Ultra : couleurs et lumière façon film",
   "settings.fx.haze": "Brume d’horizon",
   "settings.fx.hazeNote": "Ultra : la mer lointaine se fond dans le ciel",
+  "settings.fx.bloom": "Halo lumineux",
+  "settings.fx.bloomNote": "Ultra : fenêtres éclairées, lanternes et lune rayonnent la nuit",
   "settings.fx.reflection": "Reflets sur l’eau",
   "settings.fx.reflectionNote": "Le ciel et le soleil brillent sur la mer",
   "settings.fx.mirror": "Reflets des bateaux et des îles",
