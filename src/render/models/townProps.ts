@@ -84,6 +84,10 @@ export function propParts(prop: PropDef, design: IslandDesign, R: number): Parts
   return parts;
 }
 
+/** Parts drawn near the camera: the plain houses are only the far drawing of the rich ones. */
+export const nearParts = (parts: THREE.BufferGeometry[]) =>
+  parts.filter((g) => g.userData.house !== 'plain');
+
 /**
  * A home's richer parts (issue #500), not yet placed; windows are the plain house's. The two are
  * told apart by `userData.house`, so the island draws one set near and the other far.

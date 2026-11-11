@@ -15,7 +15,7 @@ import { type SailRoute, clearAt, sailRoute } from '../src/sim/mapChecks';
 import { buildHighlandIslands } from '../src/render/models/highlandIslands';
 import { terrainProps } from '../src/render/models/terrainProps';
 import { triangleCount } from '../src/render/models/geometry';
-import { isFarHouses } from '../src/render/models/houseDetail';
+import { drawnTriangles } from '../src/render/models/houseDetail';
 import { Ocean } from '../src/render/ocean';
 
 const terrain = PHASE1_MAP.terrain!;
@@ -180,23 +180,10 @@ describe('Windward Ring trading map', () => {
       }
     }
     const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false });
-    let near = 0;
-    let far = 0;
-    mesh.traverse((o) => {
-      if (!(o instanceof THREE.Mesh)) return;
-      // Every town is counted at once, with its rich homes (near) or its plain ones (far).
-      const tris = triangleCount(o.geometry);
-      if (isFarHouses(o)) far += tris;
-      else if (o.parent instanceof THREE.LOD) near += tris;
-      else {
-        near += tris;
-        far += tris;
-      }
-    });
     // Decision 0073: preserve the complete land + window triangle budget despite local batches.
     // The phones' levels draw the plain homes (21000); the rich homes add about 1,000 (#500).
-    expect(far).toBeLessThan(21000);
-    expect(near).toBeLessThan(23000);
+    expect(drawnTriangles(mesh, 'far')).toBeLessThan(21000);
+    expect(drawnTriangles(mesh, 'near')).toBeLessThan(23000);
     mesh.dispose();
   });
   it('gives every scenery island a landmark and keeps islands inside the world edge', () => {

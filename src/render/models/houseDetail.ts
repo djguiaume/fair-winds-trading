@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { TUNING } from '../../data/tuning';
+import { triangleCount } from './geometry';
 
 /**
  * A town's homes in two drawings (issue #500): the rich houses near the camera, today's plain
@@ -32,10 +33,17 @@ export function setRichHouses(lod: THREE.LOD, enabled: boolean) {
   plain!.visible = true;
 }
 
-/** Parts drawn near the camera: the plain houses are only the far drawing of the rich ones. */
-export const nearParts = (parts: THREE.BufferGeometry[]) =>
-  parts.filter((g) => g.userData.house !== 'plain');
-
 /** Is this mesh the plain houses, the far drawing that never shows with the near one? */
 export const isFarHouses = (mesh: THREE.Object3D) =>
   mesh.parent instanceof THREE.LOD && mesh.parent.levels.at(-1)!.object === mesh;
+
+/** Triangles of a town model drawn with its near (rich) or its far (plain) homes. */
+export function drawnTriangles(root: THREE.Object3D, set: 'near' | 'far') {
+  let n = 0;
+  root.traverse((o) => {
+    if (!(o instanceof THREE.Mesh) || (set === 'near' && isFarHouses(o))) return;
+    if (set === 'far' && o.parent instanceof THREE.LOD && !isFarHouses(o)) return;
+    n += triangleCount(o.geometry);
+  });
+  return n;
+}

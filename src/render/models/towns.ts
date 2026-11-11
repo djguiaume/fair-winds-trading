@@ -63,9 +63,8 @@ import type { ForestClearings } from '../../sim/forest';
 import { riverParts } from './rivers';
 import { groundSpecks, lavaCracks } from './lavaCracks';
 import { designedGround, facetedGround, lakeRim, outlineShape } from './ground';
-import { type Stand, extent, propParts, townProps } from './townProps';
+import { type Stand, extent, nearParts, propParts, townProps } from './townProps';
 import { stairs, withoutUndersides } from './townPieces';
-import { nearParts } from './houseDetail';
 
 /**
  * Settlement growth (decision 0060): a port island's town grows in four steps, hamlet, village,
