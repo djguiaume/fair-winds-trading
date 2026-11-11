@@ -29,6 +29,7 @@ import { Wake } from './wake';
 import { ImpactDebris } from './impactDebris';
 import { WindStreaks } from './windStreaks';
 import { type GraphicsEffects, type UltraPipeline, allEffects } from './ultraPipeline';
+import { setGroundCover } from './models/fieldGroundCover';
 import { ViewMirror } from './viewMirror';
 import { Rain, rainMayReachArea } from './rain';
 import { CameraRig } from './cameraRig';
@@ -696,6 +697,7 @@ export class GameView {
       );
     }
 
+    setGroundCover(this.level, this.effects.groundCover);
     this.mirror.render(dt, this.ocean, this.level, this.target, day.night, this.effects.mirror);
     if (ultra) ultra.render(dt, day.night);
     else if (!this.ultra?.renderHigh(dt, this.profile))

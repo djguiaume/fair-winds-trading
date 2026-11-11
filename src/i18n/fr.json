@@ -234,6 +234,8 @@
   "settings.fx.reflectionNote": "Le ciel et le soleil brillent sur la mer",
   "settings.fx.mirror": "Reflets des bateaux et des îles",
   "settings.fx.mirrorNote": "La mer reflète les bateaux, les îles et le ciel",
+  "settings.fx.groundCover": "Détails du sol",
+  "settings.fx.groundCoverNote": "Touffes d’herbe, plaques sèches et rides de sable qui accrochent la lumière",
   "settings.fpsNote": "Images par seconde",
   "settings.soundLanguage": "Son · Langue",
   "settings.voyage": "Voyage",
