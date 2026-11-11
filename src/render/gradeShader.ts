@@ -1,14 +1,18 @@
 import * as THREE from 'three';
 
 /**
- * Ultra's last pass before the screen (decision 0221): the horizon haze, then the tone mapping.
- * The curve is three's Khronos PBR Neutral, with its toe (the black-level offset that saturates
- * dark colours) scaled by `uToe`: full by day, eased off at night so moonlit grass stays a muted
- * green instead of turning emerald. Works in linear colour; the output pass converts to sRGB.
+ * Ultra's one pass from the scene to the screen (decisions 0221, 0295): the ambient occlusion,
+ * the horizon haze, the tone mapping, then sRGB. The curve is three's Khronos PBR Neutral, with its
+ * toe (the black-level offset that saturates dark colours) scaled by `uToe`: full by day, eased off
+ * at night so moonlit grass stays a muted green instead of turning emerald. Doing it all in one pass
+ * spares a full-screen half-float picture between the steps.
  */
 export const GradeShader = {
   uniforms: {
     tDiffuse: { value: null as THREE.Texture | null },
+    /** The occlusion, darkest where it is 0; read at `uOcclusion` strength (0 = off). */
+    tOcclusion: { value: null as THREE.Texture | null },
+    uOcclusion: { value: 0 },
     uHazeColor: { value: new THREE.Color() },
     uHazeStart: { value: 0.75 },
     uHazeStrength: { value: 0 },
@@ -25,6 +29,8 @@ void main() {
 }`,
   fragmentShader: /* glsl */ `
 uniform sampler2D tDiffuse;
+uniform sampler2D tOcclusion;
+uniform float uOcclusion;
 uniform vec3 uHazeColor;
 uniform float uHazeStart;
 uniform float uHazeStrength;
@@ -51,8 +57,11 @@ vec3 neutral(vec3 color) {
 
 void main() {
   vec4 c = texture2D(tDiffuse, vUv);
+  // As three's GTAO blend: the colour times the occlusion, eased toward 1 by its strength.
+  c.rgb *= mix(vec3(1.0), texture2D(tOcclusion, vUv).rgb, uOcclusion);
   // The top of the picture is the farthest sea: it fades toward a pale sky.
   vec3 col = mix(c.rgb, uHazeColor, smoothstep(uHazeStart, 1.0, vUv.y) * uHazeStrength);
   gl_FragColor = vec4(uToneMap > 0.5 ? neutral(col) : col, c.a);
+  #include <colorspace_fragment>
 }`,
 };

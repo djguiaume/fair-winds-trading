@@ -32,7 +32,7 @@ Xbox-only Ultra, no cap at High):
 
 - Ultra's canvas has no multisampling (`QUALITY.ultra.antialias: false`). After a step down to
   High on that canvas, the view draws High through Ultra's multisampled target with no effects
-  (`UltraPipeline.renderHigh`), so High stays smooth.
+  (`UltraPipeline.renderHigh`, now `renderPlain`), so High stays smooth.
 - The composer keeps one multisampled target with depth for the scene pass and one plain target
   without depth for the passes after it; each frame starts with the scene's target as the read
   buffer.
@@ -49,3 +49,6 @@ Xbox-only Ultra, no cap at High):
   colour texture (64 MB, three.js keeps one next to the depth) and the composer's half-float
   precision, both measured with `npm run perf` before any change.
 - A rendering change that adds graphics memory on Ultra now shows in CI.
+
+**Update (2026-11-11):** decision 0295 drops the effect composer and the canvas's depth on Ultra
+(363 → 321 MB on a 4K TV).

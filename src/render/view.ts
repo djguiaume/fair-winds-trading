@@ -77,6 +77,8 @@ export interface ScreenPoint {
  */
 export class GameView {
   readonly renderer: THREE.WebGLRenderer;
+  /** The canvas has a depth buffer: false when the game starts on Ultra (decision 0295). */
+  private readonly canvasDepth: boolean;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(40, 1, 1, 600);
   private readonly sun = new THREE.DirectionalLight(PALETTE.sun, 1.7);
@@ -181,9 +183,12 @@ export class GameView {
     /** `?look=v2`: the new look's ground from the shared height field (decision 0222). */
     private readonly look: TerrainLook = terrainLook(location.search),
   ) {
+    // Ultra draws into its own target, so its canvas needs no depth (decision 0295).
+    this.canvasDepth = !QUALITY[level].ultra;
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: QUALITY[level].antialias,
+      depth: this.canvasDepth,
       powerPreference: 'high-performance',
       stencil: false,
     });
@@ -698,8 +703,14 @@ export class GameView {
 
     this.mirror.render(dt, this.ocean, this.level, this.target, day.night, this.effects.mirror);
     if (ultra) ultra.render(dt, day.night);
-    else if (!this.ultra?.renderHigh(dt, this.profile))
-      this.renderer.render(this.scene, this.camera);
+    else this.renderBelowUltra();
+  }
+
+  /** A level below Ultra; a canvas made for Ultra has no depth, so its pipeline draws it. */
+  private renderBelowUltra() {
+    if (this.ultra?.renderPlain(this.profile)) return;
+    // Without depth the picture would be wrong: wait for the pipeline to load instead.
+    if (this.canvasDepth) this.renderer.render(this.scene, this.camera);
   }
 
   /** Bumped whenever a town's look may change: its pictures are taken again (decision 0211). */
