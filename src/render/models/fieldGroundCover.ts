@@ -4,7 +4,7 @@ import { type GroundCover, styleColor } from '../../data/grounds';
 import type { QualityLevel } from '../quality';
 
 /**
- * The ground's small cover (issue #499, decision 0297): grass clumps and tufts with dry patches,
+ * The ground's small cover (issue #499, decision 0298): grass clumps and tufts with dry patches,
  * wind ripples and grit on sand. Each is a faint tint of the zone's colour and a bump that leans
  * the normal, so the relief catches the sun without a texture or a triangle. Which grounds wear
  * it is palette data (`grounds.*.cover`), its numbers are `terrain.json › draw.cover`. Each layer

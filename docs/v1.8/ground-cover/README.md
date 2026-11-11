@@ -1,4 +1,4 @@
-# Ground detail (issue #499, decision 0297)
+# Ground detail (issue #499, decision 0298)
 
 Before and after, Ultra, same camera. Left: today (`?off=cover`). Right: with the ground cover.
 
