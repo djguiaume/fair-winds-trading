@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { QUALITY, ultraCapable } from '../src/render/quality';
 import { ShadowCasters } from '../src/render/shadowCasters';
 import { leanShadowMap } from '../src/render/shadowTarget';
+import { drawsBelowUltra } from '../src/render/ultraPipeline';
+import { GradeShader } from '../src/render/gradeShader';
 
 describe('Ultra quality (decision 0221)', () => {
   it('is guessed only for a real graphics card with enough cores', () => {
@@ -54,5 +56,20 @@ describe('Ultra quality (decision 0221)', () => {
     expect(depth.format).toBe(THREE.DepthFormat);
     expect(depth.compareFunction).toBe(THREE.LessEqualCompare);
     expect(leanShadowMap(1024, true).depthTexture!.compareFunction).toBe(THREE.GreaterEqualCompare);
+  });
+
+  it('draws every level through the pipeline on a canvas made for Ultra (decision 0297)', () => {
+    const ultraCanvas = { antialias: false, depth: false };
+    expect(drawsBelowUltra(ultraCanvas, { antialias: true })).toBe(true);
+    expect(drawsBelowUltra(ultraCanvas, { antialias: false })).toBe(true);
+    // A canvas made for another level draws itself, unless the level wants anti-aliasing it lacks.
+    expect(drawsBelowUltra({ antialias: true, depth: true }, { antialias: true })).toBe(false);
+    expect(drawsBelowUltra({ antialias: false, depth: true }, { antialias: false })).toBe(false);
+    expect(drawsBelowUltra({ antialias: false, depth: true }, { antialias: true })).toBe(true);
+  });
+
+  it('grades, multiplies in the occlusion and writes sRGB in one pass', () => {
+    expect(GradeShader.uniforms.tOcclusion).toBeDefined();
+    expect(GradeShader.fragmentShader).toContain('#include <colorspace_fragment>');
   });
 });

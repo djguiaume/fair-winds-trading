@@ -15,6 +15,9 @@ vi.mock('three', async (importOriginal) => {
       shadowMap = {};
       setPixelRatio() {}
       setSize() {}
+      getContextAttributes() {
+        return { depth: true };
+      }
       dispose() {}
     },
   };
