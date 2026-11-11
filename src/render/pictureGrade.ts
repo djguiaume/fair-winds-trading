@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import HARBOUR_VIEW from '../data/harbour-view.json';
 
 /**
@@ -118,4 +119,26 @@ export function pictureUrl(
   const bytes = new Uint8Array(data.length);
   for (let i = 0; i < data.length; i++) bytes[i] = data.charCodeAt(i);
   return URL.createObjectURL(new Blob([bytes], { type: 'image/jpeg' }));
+}
+
+/**
+ * The scene drawn off screen from a camera, as sRGB pixels. Its own target has depth, so it works
+ * on a canvas made for Ultra, which has none (decision 0295).
+ */
+export function renderPicture(
+  renderer: THREE.WebGLRenderer,
+  scene: THREE.Scene,
+  camera: THREE.Camera,
+  width: number,
+  height: number,
+): Uint8Array {
+  const target = new THREE.WebGLRenderTarget(width, height, { depthBuffer: true });
+  target.texture.colorSpace = THREE.SRGBColorSpace;
+  const pixels = new Uint8Array(width * height * 4);
+  renderer.setRenderTarget(target);
+  renderer.render(scene, camera);
+  renderer.readRenderTargetPixels(target, 0, 0, width, height, pixels);
+  renderer.setRenderTarget(null);
+  target.dispose();
+  return pixels;
 }
