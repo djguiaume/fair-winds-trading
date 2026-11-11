@@ -50,5 +50,5 @@ Xbox-only Ultra, no cap at High):
   precision, both measured with `npm run perf` before any change.
 - A rendering change that adds graphics memory on Ultra now shows in CI.
 
-**Update (2026-11-11):** decision 0295 drops the effect composer and the canvas's depth on Ultra
+**Update (2026-11-11):** decision 0297 drops the effect composer and the canvas's depth on Ultra
 (363 → 321 MB on a 4K TV).

@@ -1,4 +1,4 @@
-# 0295. Ultra draws the scene straight to the screen in one graded pass
+# 0297. Ultra draws the scene straight to the screen in one graded pass
 
 **Status:** Accepted (2026-11-11). Issue #484. Follows [0246](0246-ultra-keeps-only-the-graphics-memory-it-uses.md) and [0289](0289-ultras-shadow-map-keeps-only-what-pcf-reads.md).
 

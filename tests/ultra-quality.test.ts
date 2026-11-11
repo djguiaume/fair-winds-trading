@@ -58,7 +58,7 @@ describe('Ultra quality (decision 0221)', () => {
     expect(leanShadowMap(1024, true).depthTexture!.compareFunction).toBe(THREE.GreaterEqualCompare);
   });
 
-  it('draws every level through the pipeline on a canvas made for Ultra (decision 0295)', () => {
+  it('draws every level through the pipeline on a canvas made for Ultra (decision 0297)', () => {
     const ultraCanvas = { antialias: false, depth: false };
     expect(drawsBelowUltra(ultraCanvas, { antialias: true })).toBe(true);
     expect(drawsBelowUltra(ultraCanvas, { antialias: false })).toBe(true);

@@ -24,6 +24,8 @@ export interface GraphicsEffects {
   mirror: boolean;
   /** Ultra's multisampled off-screen render; on unless a `?off=msaa` device test says false. */
   msaa?: boolean;
+  /** The wind's gusts on the sea; on unless a `?off=gusts` device test says false (issue #498). */
+  gusts?: boolean;
 }
 
 /** Every effect on: the view's default before Settings are applied. */
@@ -60,7 +62,7 @@ interface ShadowSnapshot {
  * each frame so the `?tune` page shows a change at once. Loaded only when Ultra is picked, so
  * phones never download it.
  *
- * A frame is two full-screen steps (decision 0295): the scene into one multisampled half-float
+ * A frame is two full-screen steps (decision 0297): the scene into one multisampled half-float
  * target, then one pass that multiplies in the occlusion, grades and writes sRGB to the canvas.
  * No full-resolution picture sits between them, which is what an effect composer would keep.
  */
@@ -316,7 +318,7 @@ export interface CanvasBuffers {
 
 /**
  * Whether the pipeline draws a level below Ultra. A canvas made for Ultra has no anti-aliasing
- * (decision 0246) and no depth (0295) of its own: every level goes through the scene target on
+ * (decision 0246) and no depth (0297) of its own: every level goes through the scene target on
  * it. A canvas with depth draws the level itself, unless the level wants anti-aliasing it lacks.
  */
 export function drawsBelowUltra(canvas: CanvasBuffers, level: { antialias: boolean }): boolean {

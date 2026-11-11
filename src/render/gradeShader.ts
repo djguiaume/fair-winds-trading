@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 /**
- * Ultra's one pass from the scene to the screen (decisions 0221, 0295): the ambient occlusion,
+ * Ultra's one pass from the scene to the screen (decisions 0221, 0297): the ambient occlusion,
  * the horizon haze, the tone mapping, then sRGB. The curve is three's Khronos PBR Neutral, with its
  * toe (the black-level offset that saturates dark colours) scaled by `uToe`: full by day, eased off
  * at night so moonlit grass stays a muted green instead of turning emerald. Doing it all in one pass

@@ -83,7 +83,7 @@ export interface ScreenPoint {
  */
 export class GameView {
   readonly renderer: THREE.WebGLRenderer;
-  /** The canvas has a depth buffer: false when the game starts on Ultra (decision 0295). */
+  /** The canvas has a depth buffer: false when the game starts on Ultra (decision 0297). */
   private readonly canvasDepth: boolean;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(40, 1, 1, 600);
@@ -660,7 +660,7 @@ export class GameView {
     // An eruption brightens the lava past its night glow (one shared material, decision 0178).
     lava?.color.multiplyScalar(1 + (TUNING.weather.volcano.eruptions.lavaGain - 1) * erupting);
     this.boat.setNightLighting?.(day.night);
-    this.ocean.update(time, this.rig.seaCentre, this.effects.reflection, this.sea);
+    this.ocean.update(time, this.rig.seaCentre, this.effects, this.sea);
     this.currentWater?.update(time, this.ocean, this.world.currentsOn);
     this.calmWater?.update(time, this.ocean, this.world.windZones);
     this.roughWater?.update(time, this.ocean, this.world.windZones);
@@ -777,7 +777,7 @@ export class GameView {
     fog.near = 1e4;
     fog.far = 2e4;
     this.ocean.setFog(fog.near, fog.far);
-    this.ocean.update(this.world.time, aim, this.effects.reflection, this.sea);
+    this.ocean.update(this.world.time, aim, this.effects, this.sea);
     const glow = day.night;
     this.lanterns.update(glow, this.boatLantern, time);
     this.lighthouseBeams.update(time, glow);

@@ -123,7 +123,7 @@ export function pictureUrl(
 
 /**
  * The scene drawn off screen from a camera, as sRGB pixels. Its own target has depth, so it works
- * on a canvas made for Ultra, which has none (decision 0295).
+ * on a canvas made for Ultra, which has none (decision 0297).
  */
 export function renderPicture(
   renderer: THREE.WebGLRenderer,

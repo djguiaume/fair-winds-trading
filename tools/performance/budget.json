@@ -12,7 +12,7 @@
     "docking": { "calls": 40, "triangles": 54500 }
   },
   "gpuMemory": {
-    "note": "Graphics memory (MB) a report may hold at a level (decision 0246), measured by CI at 1920x1080 scale 2, as on a 4K TV (PERF_SCREEN=1920x1080@2). Ultra went past the Xbox Edge's share at 711 MB and crashed its graphics; after the cut it held 428 MB, 349 MB after the lean shadow map (decision 0289), and 321 MB once Ultra drew straight to a canvas without depth (decision 0295). Set about 10% above; a raise needs its reason in the PR and an Xbox re-test.",
+    "note": "Graphics memory (MB) a report may hold at a level (decision 0246), measured by CI at 1920x1080 scale 2, as on a 4K TV (PERF_SCREEN=1920x1080@2). Ultra went past the Xbox Edge's share at 711 MB and crashed its graphics; after the cut it held 428 MB, 349 MB after the lean shadow map (decision 0289), and 321 MB once Ultra drew straight to a canvas without depth (decision 0297). Set about 10% above; a raise needs its reason in the PR and an Xbox re-test.",
     "limitsMB": { "ultra": 355 }
   }
 }
