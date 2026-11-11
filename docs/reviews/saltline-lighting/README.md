@@ -46,3 +46,27 @@ Re-run: `npm run shots -- --quality ultra --chase --script docs/reviews/saltline
 |---|---|---|
 | 2a (`ground-sheet.jpg`) | sand ripples, grass clumps | cliff ledges: "looks worse with all those terrain lines on cliffs" (Guillaume) |
 | 2b (`ground-sheet-2.jpg`) | waiting for Guillaume | cliffs keep today's strata only |
+
+## Round 3: richer low-poly houses (2026-11-11)
+
+Guillaume asked whether houses should stay this simple or get more detailed while staying low
+poly. Saltmere's 33 houses are the `fish-house` recipe (56 triangles, `homes` budget 120). Two
+richer versions of it (`src/houses/`), flat-shaded with the same palette:
+
+- **A, outline (128 triangles):** stone footing, roof overhanging the walls, ridge beam, three roof
+  pitches by variant, taller chimney with a cap, door step, a lean-to on every other house.
+- **B, outline and depth (244 triangles):** A plus framed front windows with shutters, a door
+  frame, corner beams on every other house and a porch on the others.
+
+![Today, A and B in the game, close to Saltmere](houses-ingame.jpg)
+
+![Today, A and B up close (model sheet)](houses-models.jpg)
+
+From the sailing camera A's outline reads (chimneys, ridges, steeper roofs); most of B's extra
+detail only shows up close. Both are over today's `homes` budget, so the richer house would be a
+High/Ultra version with today's as the far and Low one.
+
+Re-run: copy a variant over `src/data/props/fish-house.json`, then
+`npm run shots -- --quality ultra --at 243,-116 --chase --heading 120 --wait 9000`; model sheet:
+`node docs/reviews/saltline-lighting/src/houses/shoot-houses.mjs out.jpg`. Picks: waiting for
+Guillaume.

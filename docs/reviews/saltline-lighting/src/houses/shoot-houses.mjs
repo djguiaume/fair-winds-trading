@@ -1,0 +1,11 @@
+import { createServer } from 'vite';
+import { chromium } from 'playwright';
+const server = await createServer({ server: { port: 5199 }, logLevel: 'error' });
+await server.listen();
+const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 960 } });
+page.on('pageerror', (e) => console.log('pageerror', e.message));
+await page.goto('http://localhost:5199/docs/reviews/saltline-lighting/src/houses/houses.html');
+await page.waitForFunction(() => window.done === true, null, { timeout: 120000 });
+await page.screenshot({ path: process.argv[2], type: 'jpeg', quality: 85 });
+await browser.close(); await server.close();
