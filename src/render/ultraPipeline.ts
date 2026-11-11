@@ -25,10 +25,12 @@ export interface GraphicsEffects {
   reflection: boolean;
   /** The boats, islands and sky mirrored on the sea, on the levels with `mirror` (decision 0292). */
   mirror: boolean;
-  /** The ground's cover on grass and sand, on the levels of `terrain.json › draw.cover.on` (0295). */
+  /** The ground's cover on grass and sand, on the levels of `terrain.json › draw.cover.on` (0297). */
   groundCover: boolean;
   /** Ultra's multisampled off-screen render; on unless a `?off=msaa` device test says false. */
   msaa?: boolean;
+  /** The wind's gusts on the sea; on unless a `?off=gusts` device test says false (issue #498). */
+  gusts?: boolean;
 }
 
 /** Every effect on: the view's default before Settings are applied. */

@@ -7,6 +7,7 @@ import type { LocalWeather } from '../sim/wind';
 import type { World } from '../sim/world';
 import { waveHeight } from './oceanWaves';
 import { ShoreWash } from './shoreWash';
+import { type GustUniforms, SeaGusts } from './seaGusts';
 
 /**
  * The `?waves` test switch (decisions 0245, 0250): `v1` the classic three sines, `v2` or a review
@@ -96,6 +97,9 @@ export class SeaWaves {
   private readonly shown = {} as LocalWeather;
   /** The surf's clock at the shore (issue #397). */
   private readonly wash = new ShoreWash();
+  /** The gusts' drift over the sea (issue #498), and the wind that drives them. */
+  private readonly gusts = new SeaGusts();
+  private readonly gustWind = { from: 0, speedKn: 0 };
 
   constructor(
     private readonly world: () => World,
@@ -152,6 +156,25 @@ export class SeaWaves {
    */
   writeShoreWash(on: boolean, night: number, bake: Parameters<ShoreWash['write']>[5]) {
     this.wash.write(this.sea, this.field, this.world().time, on && this.gerstner, night, bake);
+  }
+
+  /**
+   * The wind's gusts for this frame (`seaGusts.ts`), about `centre`; a review preview blows its
+   * own steady wind. `day` is the light's share, `floor` the sea's darkest water.
+   */
+  writeGusts(
+    uniforms: GustUniforms,
+    centre: { x: number; z: number },
+    day: number,
+    floor: THREE.Color,
+    on = true,
+  ) {
+    const { wind, time } = this.world();
+    this.gustWind.from = wind.from;
+    this.gustWind.speedKn = this.preview
+      ? TUNING.waves.previews[this.preview].speedKn
+      : wind.speedKn;
+    this.gusts.write(uniforms, this.gustWind, time, centre, day, floor, on && this.gerstner);
   }
 
   /** Height of the sea at scene (`x`, `z`) now: what boats, buoys, marks and wakes float on. */

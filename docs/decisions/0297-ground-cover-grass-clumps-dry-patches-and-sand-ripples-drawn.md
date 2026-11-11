@@ -1,4 +1,4 @@
-# 0295. Ground cover: grass clumps, dry patches and sand ripples drawn by the ground shader
+# 0297. Ground cover: grass clumps, dry patches and sand ripples drawn by the ground shader
 
 **Status:** Accepted (2026-11-11).
 

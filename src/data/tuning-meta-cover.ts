@@ -1,7 +1,7 @@
 import { num, toggle, type TuningMeta } from './tuning-meta-types';
 
 /**
- * `terrain.json › draw.cover`: the small cover on grass and sand (issue #499, decision 0295).
+ * `terrain.json › draw.cover`: the small cover on grass and sand (issue #499, decision 0297).
  * The art director's limits are the ranges: tints up to 6% in all, dry patches on a fifth at most.
  */
 export const COVER_META: Readonly<Record<string, TuningMeta>> = {

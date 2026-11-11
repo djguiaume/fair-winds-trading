@@ -42,6 +42,7 @@ export interface GraphicsView {
 /** Pushes the saved graphics choices to the view: the effects, MSAA and the waves. */
 export function applyGraphics(view: GraphicsView, settings: Settings) {
   view.effects.msaa = settings.effects.msaa !== false;
+  view.effects.gusts = settings.effects.gusts !== false;
   for (const id of EFFECTS) view.effects[id] = settings.effects[id] !== false;
 }
 

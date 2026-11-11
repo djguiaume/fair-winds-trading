@@ -37,6 +37,8 @@ export interface QualityProfile {
   lowDetail: boolean;
   /** The Gerstner waves by default (decision 0250); Settings › Waves overrides it. */
   waves: boolean;
+  /** The wind's gusts on the sea (decision 0295); needs the waves on and `fancyWater`. */
+  gusts: boolean;
 }
 
 /** The levels' numbers live in `graphics.json › quality` (decision 0093). */

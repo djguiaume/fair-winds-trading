@@ -657,7 +657,7 @@ export class GameView {
     // An eruption brightens the lava past its night glow (one shared material, decision 0178).
     lava?.color.multiplyScalar(1 + (TUNING.weather.volcano.eruptions.lavaGain - 1) * erupting);
     this.boat.setNightLighting?.(day.night);
-    this.ocean.update(time, this.rig.seaCentre, this.effects.reflection, this.sea);
+    this.ocean.update(time, this.rig.seaCentre, this.effects, this.sea);
     this.currentWater?.update(time, this.ocean, this.world.currentsOn);
     this.calmWater?.update(time, this.ocean, this.world.windZones);
     this.roughWater?.update(time, this.ocean, this.world.windZones);
@@ -774,7 +774,7 @@ export class GameView {
     fog.near = 1e4;
     fog.far = 2e4;
     this.ocean.setFog(fog.near, fog.far);
-    this.ocean.update(this.world.time, aim, this.effects.reflection, this.sea);
+    this.ocean.update(this.world.time, aim, this.effects, this.sea);
     const glow = day.night;
     this.lanterns.update(glow, this.boatLantern, time);
     this.lighthouseBeams.update(time, glow);

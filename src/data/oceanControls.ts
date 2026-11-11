@@ -16,7 +16,8 @@ import {
  *   (what boats will ride from v1.3.1).
  * - `drawing`: how the ocean draws and shades that field.
  * - `comfort`: how much the sea moves the boat and the camera on screen.
- * - `level`: whether a quality level draws the waves by default (Settings › Waves overrides it).
+ * - `level`: whether a quality level draws the waves by default (Settings › Waves overrides it),
+ *   and the wind's gusts on them.
  * - `review`: the fixed sea states of `?waves=calm|wind|storm`.
  */
 export type OceanEffect = 'sailing' | 'sea' | 'drawing' | 'comfort' | 'level' | 'review';
@@ -29,10 +30,13 @@ export interface OceanControl {
   effect: OceanEffect;
 }
 
-const DRAWING = ['drawCells', 'shadeCells', 'foam', 'surf', 'wash', 'look'];
+const DRAWING = ['drawCells', 'shadeCells', 'foam', 'surf', 'wash', 'look', 'gusts'];
+/** A level's switches that belong to the ocean: the waves and the wind's gusts on them. */
+const LEVEL = ['waves', 'gusts'];
 
 function effectOf(path: readonly string[]): OceanEffect | null {
-  if (path[0] === 'graphics') return path[1] === 'quality' && path[3] === 'waves' ? 'level' : null;
+  if (path[0] === 'graphics')
+    return path[1] === 'quality' && LEVEL.includes(path[3]!) ? 'level' : null;
   if (path[0] !== 'waves') return null;
   if (path[1] === 'drag') return 'sailing';
   if (path[1] === 'motion') return 'comfort';
