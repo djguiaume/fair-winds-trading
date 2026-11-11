@@ -4,7 +4,7 @@ Guillaume, 2026-11-11: take the picks from the Saltline comparison (mockups and 
 
 **In:** bloom, sea gusts, ground detail (sand ripples, grass clumps and dry patches), richer houses. **Rejected:** cliff lines on the ground ("looks worse"), so cliffs keep today's strata. **Not in this release (no pick):** sky light probe (fights "never grim"), PCSS contact shadows (barely visible), render-pixel cap (the Xbox memory lever lives in #484).
 
-Every part: switchable in Settings or a quality level it is allowed on, data driven (tuning in data files, CLI plus editor entry per decision 0153), measured with `?bench`, a budget raise only with its reason, an ADR. Mockup code in #496 is the starting point, not game code.
+**Goal (Guillaume, 2026-11-11): reach Saltline's level of quality, richness and performance, inside our art bible.** Houses: variant A picked "for now". Every part: switchable in Settings or a quality level it is allowed on, data driven (tuning in data files, CLI plus editor entry per decision 0153), measured with `?bench`, a budget raise only with its reason, an ADR. Mockup code in #496 is the starting point, not game code.
 
 | Order | Issue | Goal | Files | Done when | Effort | Visual | Model |
 |---|---|---|---|---|---|---|---|
@@ -17,7 +17,7 @@ Every part: switchable in Settings or a quality level it is allowed on, data dri
 Guillaume, 2026-11-11: the believable-towns pass (#503) goes to v1.9, after the richer houses, so v1.8 stays at five parts.
 Order: #484 first and #501 after it (same files). #498, #499, #500 touch different files and run beside #484. One combined visual round for #498 to #501: screenshots to the art director and Guillaume together (desktop, phone for the houses), `visual` label, no `automerge` before `visual-ok`.
 
-Open for Guillaume: houses A or B (A recommended: B's extra detail only shows up close and doubles the triangles); fold #484 in; Fable or Opus (see the message).
+Open for Guillaume: the OK on this brief, and Fable or Opus (see the message). Houses: A picked.
 Roles: no storyteller (no story work). Art director asked once for the look of all four visual parts.
 
 ## Art director rules (v1.8 art director, 2026-11-11)
