@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { TUNING } from '../data/tuning';
 
 /**
@@ -43,6 +44,20 @@ export interface QualityProfile {
 
 /** The levels' numbers live in `graphics.json › quality` (decision 0093). */
 export const QUALITY: Record<QualityLevel, QualityProfile> = TUNING.graphics.quality;
+
+/** The game's renderer. Ultra draws into its own target, so its canvas has no depth (decision 0297). */
+export function gameRenderer(
+  canvas: HTMLCanvasElement,
+  profile: QualityProfile,
+): THREE.WebGLRenderer {
+  return new THREE.WebGLRenderer({
+    canvas,
+    antialias: profile.antialias,
+    depth: !profile.ultra,
+    powerPreference: 'high-performance',
+    stencil: false,
+  });
+}
 
 /** `?perf&aa=1` test aid (decision 0154): multisample on every level, to measure its cost. */
 export function forceAntialias(): void {
