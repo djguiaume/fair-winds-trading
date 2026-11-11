@@ -18,3 +18,11 @@ Order: #484 first and #501 after it (same files). #498, #499, #500 touch differe
 
 Open for Guillaume: houses A or B (A recommended: B's extra detail only shows up close and doubles the triangles); fold #484 in; Fable or Opus (see the message).
 Roles: no storyteller (no story work). Art director asked once for the look of all four visual parts.
+
+## Art director rules (v1.8 art director, 2026-11-11)
+
+- **Gusts (#498):** soft patch, at most ~8% lightness off the water ramp, never white or foam, half strength at night, floor `#1d3d7a`, off on Low and Medium.
+- **Ground (#499):** normal-only bumps, tints at most ~6% off the zone colour, dry patches warm grass `#a8b45c` on at most 15-20% of a grass zone, none on rock, slate, lava, snow or town lanes, no `fract()` lines.
+- **Bloom (#501):** Ultra only, needs a rule 1 exception line in the art bible. Strength ~0.25-0.35, small radius, high threshold by day, lower at night so only lit windows, lanterns and moon glow; sailcloth and foam never bloom. No sky probe unless night stays above `#1d3d7a`.
+- **Houses (#500):** variant A (picked by the art director; Guillaume still to confirm), "outline" means silhouette parts, not ink lines. Roofs stay in the style palette; shutters use the style's trim colour; footing a darker warm-grey band; chimney caps warm charcoal; no chimneys on tropic; only Bram's glassworks glows. Homes at most ~130 triangles, lit windows kept.
+- **One review round:** JPG up to 1280 px, same camera before and after: ring town zoom 1.4 day and night plus overview; Sunreach town day and night; Rimewick, Fogwatch, Emberhold town day; open-water chase with gusts off, default, strong, plus dusk (phone 844x390); sand and grass close-ups; bloom on/off at night and golden hour; one Low versus Ultra pair. To the art director and Guillaume together.
