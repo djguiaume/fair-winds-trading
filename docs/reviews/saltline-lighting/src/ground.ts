@@ -2,7 +2,7 @@
  * Detailed island ground mockup (thread "Compare Saltline's look with our game", 2026-11-11).
  * Not game code: patches the field ground material (fieldGroundShader.ts) in the running game.
  * Adds, inside each zone only (zone edges untouched): grass tufts and patches, sand ripples and
- * grit, rock relief, and cliff ledges, as colour variation AND bumps that catch the sun.
+ * grit and rock relief (no cliff ledges: rejected), as colour variation AND bumps that catch the sun.
  * Everything fades out where it would be smaller than two pixels.
  */
 type Any = any; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -22,9 +22,8 @@ float reliefAt(vec2 p, float height, vec4 kind, vec4 fade) {
   float ripples = sin(dot(p, vec2(1.9, 0.8)) * 1.5 + wob) * fade.y * 0.018;
   // rock (flat): ridged lumps
   float lumps = (1.0 - abs(groundNoise(p * 1.3 + 4.4))) * 0.22 * fade.y + groundNoise(p * 4.1) * 0.04 * fade.x;
-  // cliffs: ledges by height, broken along the face
-  float ledges = pow(0.5 + 0.5 * sin(6.2831853 * (height / 2.2 + groundNoise(p * 0.12) * 0.35)), 3.0) * 0.16;
-  return grass * kind.x + ripples * kind.y + lumps * kind.z + ledges * kind.w;
+  // cliffs: no relief of their own (Guillaume: lines on cliffs look worse); their strata stay
+  return grass * kind.x + ripples * kind.y + lumps * kind.z;
 }
 `;
 
@@ -46,15 +45,14 @@ const BODY = /* glsl */ `
     c = mix(c, dry, smoothstep(0.15, 0.8, dryPatch) * 0.45 * kGrass);
     c *= 1.0 + (clump * 0.10 + groundNoise(p * 1.8 + 5.5) * 0.06 * fade.y + groundNoise(p * 3.1) * 0.05 * fade.x) * kGrass;
     c *= 1.0 + (groundHash(floor(p * 9.0)) - 0.5) * 0.10 * groundResolved(9.0, unitsPerPixel) * kSand;
-    c *= 1.0 + groundNoise(p * 0.5 + 2.2) * 0.10 * (kRock + kCliff);
+    c *= 1.0 + groundNoise(p * 0.5 + 2.2) * 0.10 * kRock;
     colour = c;
     // the bump: the relief's slope by finite differences
     float e = 0.06;
     float h0 = reliefAt(p, height, kind, fade);
     float hx = reliefAt(p + vec2(e, 0.0), height, kind, fade);
     float hz = reliefAt(p + vec2(0.0, e), height, kind, fade);
-    float hy = reliefAt(p, height + e, kind, fade);
-    gBump = vec3(hx - h0, (hy - h0) * kCliff, hz - h0) / e;
+    gBump = vec3(hx - h0, 0.0, hz - h0) / e;
   }`;
 
 const NORMAL = /* glsl */ `#include <normal_fragment_maps>

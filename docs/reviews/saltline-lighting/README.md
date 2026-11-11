@@ -40,4 +40,9 @@ Sand ripples and cliff ledges show most; grass reads as soft undulation from the
 Cost: about 15 noise lookups per ground pixel; no new textures or memory.
 
 Re-run: `npm run shots -- --quality ultra --chase --script docs/reviews/saltline-lighting/src/run-ground.js`
-(Sunreach: `--at -95,-485 --heading 180`). Picks: waiting for Guillaume.
+(Sunreach: `--at -95,-485 --heading 180`).
+
+| Round | Picks | Rejections |
+|---|---|---|
+| 2a (`ground-sheet.jpg`) | sand ripples, grass clumps | cliff ledges: "looks worse with all those terrain lines on cliffs" (Guillaume) |
+| 2b (`ground-sheet-2.jpg`) | waiting for Guillaume | cliffs keep today's strata only |
