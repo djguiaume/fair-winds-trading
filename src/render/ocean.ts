@@ -10,6 +10,7 @@ import { dimShallow, greyed, liftToFloor, newRamp, seaRampAt } from './seaWater'
 import { oceanVertexShader as vertexShader, waveSag } from './oceanWaves';
 import { oceanFragmentShader as fragmentShader } from './oceanShader';
 import { type SeaWaves, gerstnerDefines, gerstnerUniforms } from './seaWaves';
+import { type GustUniforms, gustUniforms } from './seaGusts';
 import { SHORE_WASH_UNIFORMS, shoreWashOff } from './shoreWash';
 import type { TerrainLook } from './terrainLook';
 
@@ -39,13 +40,15 @@ export function oceanFor(
   terrain: TerrainLook = 'v2',
 ): Ocean {
   const gerstner = !!waves?.gerstner;
+  const gusts = gerstner && profile.fancyWater && profile.gusts;
   const material = others.find(
     ({ mesh }) =>
       'FANCY' in mesh.material.defines === profile.fancyWater &&
       'REFLECT' in mesh.material.defines === profile.waterReflection &&
       'MIRROR' in mesh.material.defines === profile.mirror &&
       'PLAIN' in mesh.material.defines === profile.plain &&
-      'GERSTNER' in mesh.material.defines === gerstner,
+      'GERSTNER' in mesh.material.defines === gerstner &&
+      'GUSTS' in mesh.material.defines === gusts,
   )?.mesh.material;
   const look = {
     fancy: profile.fancyWater,
@@ -55,11 +58,16 @@ export function oceanFor(
     ultra: profile.ultra,
     seabed: terrain === 'v2' ? seabed : undefined,
     gerstner,
+    gusts,
     coast: gerstner ? seabed : undefined,
   };
   const { oceanSegments } = profile;
   return new Ocean(land.islands, oceanSegments, look, OCEAN_SIZE, land.terrain, shore, material);
 }
+
+/** The view's switches the ocean reads each frame (`GraphicsEffects`). */
+export type OceanSwitches = { reflection?: boolean; gusts?: boolean };
+const ALL_ON: OceanSwitches = {};
 
 /** Which water shader a quality level draws. */
 export interface WaterLook {
@@ -77,6 +85,8 @@ export interface WaterLook {
   seabed?: SeabedTexture;
   /** The wind and storm driven Gerstner waves (`?waves=v2`, decision 0245). */
   gerstner?: boolean;
+  /** The wind's gusts on the water (`seaGusts.ts`, decision 0295); needs `fancy` and `gerstner`. */
+  gusts?: boolean;
   /** The bake whose depth and exposure calm the Gerstner waves near land (issue #281). */
   coast?: SeabedTexture;
 }
@@ -157,6 +167,7 @@ export class Ocean {
           ...waterDefines(look),
           ...(look.seabed ? { DEPTH: '' } : {}),
           ...(look.gerstner ? gerstnerDefines(!!look.coast) : {}),
+          ...(look.gusts ? { GUSTS: '' } : {}),
         },
         uniforms: {
           uTime: { value: 0 },
@@ -194,6 +205,7 @@ export class Ocean {
               }
             : {}),
           ...(look.gerstner ? { ...gerstnerUniforms(), ...SHORE_WASH_UNIFORMS } : {}),
+          ...(look.gusts ? gustUniforms() : {}),
         },
       });
     // The ring's colours until the first update places the camera.
@@ -301,9 +313,16 @@ export class Ocean {
 
   /**
    * Keep the grid centered on the camera target, snapped to whole cells so waves don't swim.
-   * `reflect` is the Settings switch for the sky reflection and glint (where the shader has them).
+   * `effects` are the switches for the sky reflection and glint (Settings, where the shader has
+   * them) and for the wind's gusts (a device test's); a missing one is on.
    */
-  update(time: number, center: THREE.Vector3, reflect = true, waves?: SeaWaves | null): void {
+  update(
+    time: number,
+    center: THREE.Vector3,
+    effects: OceanSwitches = ALL_ON,
+    waves?: SeaWaves | null,
+  ): void {
+    const reflect = effects.reflection !== false;
     const u = this.mesh.material.uniforms;
     u.uTime!.value = time;
     if (waves && 'GERSTNER' in this.mesh.material.defines) {
@@ -319,6 +338,14 @@ export class Ocean {
         map: u.uDepthMap as { value: THREE.Texture | null },
         bounds: u.uDepthBounds as { value: THREE.Vector4 },
       });
+      if ('GUSTS' in this.mesh.material.defines)
+        waves.writeGusts(
+          u as unknown as GustUniforms,
+          center,
+          day,
+          this.ramp.night,
+          effects.gusts !== false,
+        );
       // The fine waves and facets fade in fog distances, so they follow the camera's zoom.
       const { facets, detailFrom, detailTo, slopeGain } = TUNING.waves.look;
       const near = u.uFogNear!.value as number;

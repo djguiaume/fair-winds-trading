@@ -27,6 +27,8 @@ export interface GraphicsEffects {
   mirror: boolean;
   /** Ultra's multisampled off-screen render; on unless a `?off=msaa` device test says false. */
   msaa?: boolean;
+  /** The wind's gusts on the sea; on unless a `?off=gusts` device test says false (issue #498). */
+  gusts?: boolean;
 }
 
 /** Every effect on: the view's default before Settings are applied. */
