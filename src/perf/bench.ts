@@ -1,5 +1,6 @@
 import CONFIG from '../data/benchmark.json';
 import { bearingTo } from '../sim/math';
+import type { BoatState } from '../sim/boat';
 
 /**
  * The `?bench` device benchmark (decision 0154): the boat follows a fixed route at a fixed speed,
@@ -112,6 +113,15 @@ export class Bench {
       left: done ? 0 : this.passSec - this.time,
       done,
     };
+  }
+
+  /** Puts the boat on a step's pose, at the route's speed, drifting nowhere. */
+  place(boat: Pick<BoatState, 'x' | 'y' | 'heading' | 'speedKn' | 'drift'>, pose: BenchPose) {
+    boat.x = pose.x;
+    boat.y = pose.y;
+    boat.heading = pose.heading;
+    boat.speedKn = this.config.speedKn;
+    boat.drift = { x: 0, y: 0 };
   }
 }
 

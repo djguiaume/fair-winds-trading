@@ -75,6 +75,7 @@
     "tackGain": 5,
     "turnCost": 2,
     "fieldPad": 120,
+    "gridCellsPerStep": 200,
     "laneRoom": 12,
     "minTackSec": 12,
     "crewTurn": 1.4,

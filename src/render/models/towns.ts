@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { LandmarkKind } from '../../sim/map';
 import { homeDesign } from '../../sim/home';
 import { type Rng, createRng, range } from '../../sim/rng';
+import { type Steps, finish } from '../../sim/steps';
 import { blobShape, paint, slab } from './geometry';
 import { groundColors, styleColor } from '../../data/grounds';
 import { landmarkParts } from './landmarks';
@@ -22,7 +23,6 @@ import {
   cabin,
   crates,
   cyl,
-  derrick,
   farmhouse,
   fishHouse,
   fishingBoat,
@@ -54,7 +54,7 @@ import { riverParts } from './rivers';
 import { groundSpecks, lavaCracks } from './lavaCracks';
 import { designedGround, facetedGround, lakeRim, outlineShape } from './ground';
 import { type Stand, townProps } from './townProps';
-import { stairs, withoutUndersides } from './townPieces';
+import { type Disc, quarry, stairs, withoutUndersides } from './townPieces';
 
 /**
  * Settlement growth (decision 0060): a port island's town grows in four steps, hamlet, village,
@@ -95,13 +95,6 @@ const PROFILE: Record<Kind, Profile> = {
   yard: { tiers: 2, k: 0.75, back: 0.28, side: 0.15, step: 0.05, shelf: 0.6 },
 };
 
-interface Disc {
-  x: number;
-  z: number;
-  r: number;
-  y: number;
-}
-
 export interface TownIslandSpec {
   /** Island file id; or a producer `profile`, built from that style's shipped island file. */
   design?: string;
@@ -134,8 +127,13 @@ export interface TownIslandSpec {
  * dock, town and industry. The beach is the same as every other island's.
  */
 export function townIslandParts(spec: TownIslandSpec): Parts {
+  return finish(townIslandPartsSteps(spec));
+}
+
+/** `townIslandParts` in steps (issue #516): an island file's town a few props a step. */
+export function* townIslandPartsSteps(spec: TownIslandSpec): Steps<Parts> {
   if (spec.design ?? spec.profile)
-    return designedTownParts(
+    return yield* designedTownPartsSteps(
       questDesign(
         homeDesign(islandDesign(spec.design ?? spec.profile!), spec.homeBuilt),
         spec.questsDone ?? new Set(),
@@ -146,6 +144,11 @@ export function townIslandParts(spec: TownIslandSpec): Parts {
       spec.stand,
       spec.clearings,
     );
+  return classicTownParts(spec);
+}
+
+/** A port island without a file of its own: the classic tiers, dock, town and industry. */
+function classicTownParts(spec: TownIslandSpec): Parts {
   const { R, sx, sz, pier } = spec;
   const level = Math.min(Math.max(spec.level, 1), 4);
   const kind: Kind =
@@ -455,38 +458,6 @@ function secondPier(out: Parts, x: number, z0: number, len: number, stone: boole
 }
 
 /**
- * Quarry terraces cut into the seaward cliff, from the top tier down: each level cuts one more
- * pale step, with cut blocks and, from the second cut, a derrick crane.
- */
-function quarry(
-  out: Parts,
-  level: TownLevel,
-  tiers: Disc[],
-  a: number,
-  R: number,
-  sx: number,
-  sz: number,
-) {
-  const dx = Math.cos(a);
-  const dz = Math.sin(a);
-  const face = Math.atan2(dx, dz);
-  for (let i = 0; i < level && i < tiers.length; i++) {
-    const t = tiers[tiers.length - 1 - i]!;
-    const x = t.x + dx * t.r * 0.92 * sx;
-    const z = t.z + dz * t.r * 0.92 * sz;
-    const cutW = R * (0.22 + i * 0.05);
-    out.push(
-      paint(
-        new THREE.BoxGeometry(cutW, 1.3, R * 0.18).rotateY(face).translate(x, t.y - 0.6, z),
-        C.cut,
-      ),
-    );
-    if (i >= 1) put(out, derrick(), x - dx * 0.8, t.y - 0.05, z - dz * 0.8, face);
-    put(out, blocks(3), x + dz * 1.4, t.y - 0.05, z - dx * 1.4, face);
-  }
-}
-
-/**
  * A designed port island at its level, built from its island file (decision 0101): terrain,
  * stairs and paths, the lake, lanes near standing homes, homes, the docks, props and woods.
  */
@@ -501,12 +472,25 @@ export function designedTownParts(
   /** The new look's forest (issue #275): the ground the town keeps clear, instead of woods. */
   clearings?: ForestClearings,
 ): Parts {
+  return finish(designedTownPartsSteps(design, R, level, harbour, stand, clearings));
+}
+
+/** `designedTownParts` in steps (issue #516). */
+function* designedTownPartsSteps(
+  design: IslandDesign,
+  R: number,
+  level: TownLevel,
+  harbour = true,
+  stand?: Stand,
+  clearings?: ForestClearings,
+): Steps<Parts> {
   const layout = islandLayout(design, level);
   const stone = design.style === 'stone';
   // Grounds as data (palette.json › grounds): the style swaps the file's names for its own.
   const ground = (material: string) => groundColors(material, design.style);
   const out: Parts = (stand ? facetedGround : designedGround)(layout, design.style, R);
   const pathColor = styleColor('path', design.style) as string;
+  yield;
   for (const lane of design.lanes) {
     if (lane.kind === 'stairs') stairs(out, lane, R);
     else if (lane.kind === 'path') {
@@ -566,7 +550,19 @@ export function designedTownParts(
 
   // The same blue-and-white harbour flag identifies the player berth at every port.
   const flag = (into: Parts) => harbourParts(into, design, R, level, stone);
-  townProps(out, design, layout, R, level, harbour, harbour ? flag : () => {}, stand, clearings);
+  yield;
+  yield* townProps(
+    out,
+    design,
+    layout,
+    R,
+    level,
+    harbour,
+    harbour ? flag : () => {},
+    stand,
+    clearings,
+  );
+  yield;
   return out.map(withoutUndersides);
 }
 

@@ -8,7 +8,8 @@ import { blobShape, paint, slab, windowPanes } from './geometry';
 import { landmarkParts } from './landmarks';
 import { type Parts, put } from './props';
 import { B2 } from './highlandPalette';
-import { type TownLevel, townIslandParts } from './towns';
+import { type TownLevel, townIslandPartsSteps } from './towns';
+import { type Steps, finish } from '../../sim/steps';
 import type { Stand } from './townProps';
 import type { ForestClearings } from '../../sim/forest';
 
@@ -81,6 +82,23 @@ export function islandParts(
   /** The new look's forest (issue #275): filled with the ground the town keeps clear, no woods. */
   clearings?: ForestClearings,
 ): Parts {
+  return finish(
+    islandPartsSteps(island, map, seed, onHarbour, level, homeBuilt, questsDone, stand, clearings),
+  );
+}
+
+/** `islandParts` in steps (issue #516): its town a few props a step. */
+export function* islandPartsSteps(
+  island: IslandDef,
+  map: MapDef,
+  seed: number,
+  onHarbour?: (point: { x: number; y: number }) => void,
+  level?: TownLevel,
+  homeBuilt?: Record<string, string>,
+  questsDone?: ReadonlySet<string>,
+  stand?: Stand,
+  clearings?: ForestClearings,
+): Steps<Parts> {
   const rng = createRng(seed);
   const look = island.look ?? {};
   const kind = look.kind ?? map.ports.find((p) => p.islandId === island.id)?.produces[0];
@@ -94,7 +112,7 @@ export function islandParts(
 
   if (town) {
     out.push(
-      ...townIslandParts({
+      ...(yield* townIslandPartsSteps({
         seed,
         level: shownLevel(island, level),
         design: look.design,
@@ -111,7 +129,7 @@ export function islandParts(
         questsDone,
         stand,
         clearings,
-      }),
+      })),
     );
   } else {
     // Beach: from under the waves to just above them; its waterline sits on the collision radius.

@@ -2,11 +2,9 @@ import * as THREE from 'three';
 import { TUNING } from '../../data/tuning';
 import type { IslandDef, MapDef } from '../../sim/map';
 import { terrainSeed } from '../../sim/landmarks';
-import { atLevel, designOf, designQuestIds } from '../../data/islands';
-import { PROP_RECIPES } from '../../data/props';
-import { islandLayout, islandPoint } from '../../sim/islandLayout';
-import { ISLAND_SCALE } from '../../sim/islandUnits';
-import { type Heightfield, islandHeightfield, terrainHeightfield } from '../../sim/heightfield';
+import { designOf, designQuestIds } from '../../data/islands';
+import { type Heightfield, islandHeightfieldSteps } from '../../sim/heightfield';
+import { terrainHeightfield } from '../../sim/terrainField';
 import { QUALITY, type QualityLevel } from '../quality';
 import { setGroundCover } from './fieldGroundCover';
 import { houseLod, setRichHouses } from './houseDetail';
@@ -15,25 +13,29 @@ import { isGlowing, isMolten, mergeAll, vertexColorMaterial } from './geometry';
 import type { Crater, IslandModel, IslandsBuilder } from './types';
 import { featureGround, iceField } from './ground';
 import {
-  type FieldPalette,
+  type FieldGroundTextures,
   designPalette,
   featurePalette,
   fieldGround,
   fieldGroundTextures,
+  fieldGroundTexturesSteps,
 } from './fieldGround';
 import {
   disposeFieldGround,
   fieldGroundMaterial,
   setFieldGroundQuality,
 } from './fieldGroundShader';
-import { islandParts, shownLevel } from './islandParts';
+import { islandPartsSteps, shownLevel } from './islandParts';
 import { terrainProps } from './terrainProps';
-import { type Stand, fieldStand, standHeight } from './townProps';
+import { fieldStand } from './townProps';
 import { plantForest } from '../../sim/forest';
 import { forestMeshes, setForestQuality } from './forest';
 import { emptyClearings } from './forestPlan';
 import type { TownLevel } from './towns';
 import type { Parts } from './props';
+import { islandVents, partCraters } from './islandCraters';
+import { type Steps, finish } from '../../sim/steps';
+import { FrameJobs } from '../frameJobs';
 
 /** Separate land batches keep camera and shadow culling local to each island. */
 export class HighlandIslands extends THREE.Group implements IslandModel {
@@ -57,6 +59,10 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   >();
   private groundStep: number;
   private quality: QualityLevel;
+  /** Islands rebuilt a few steps a frame (issue #516); `update` runs them. */
+  private readonly jobs = new FrameJobs();
+  /** Called when a rebuild run by `update` has put its island in the scene. */
+  onRebuilt?: () => void;
 
   constructor(
     private readonly map: MapDef,
@@ -92,7 +98,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
           : [...(field ? [] : featureGround(feature)), ...terrainProps(feature, seed)];
       const group = this.batch(parts);
       group.name = `terrain:${feature.id}`;
-      if (field) this.addGround(group, field, featurePalette(feature));
+      if (field) this.addGround(group, field, fieldGroundTextures(field, featurePalette(feature)));
       this.add(group);
     }
   }
@@ -140,14 +146,21 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   }
 
   private buildIsland(island: IslandDef, index: number) {
+    return finish(this.buildIslandSteps(island, index));
+  }
+
+  /** One island's batch, in steps; it joins the model's ground and craters at its last step. */
+  private *buildIslandSteps(island: IslandDef, index: number): Steps<THREE.Group> {
     const port = this.map.ports.find((p) => p.islandId === island.id);
     const level = port ? this.levels[port.id] : undefined;
     const design = designOf(island);
+    const shown = shownLevel(island, level);
     const field =
-      this.look === 'v2' && design ? islandHeightfield(island, shownLevel(island, level)) : null;
+      this.look === 'v2' && design ? yield* islandHeightfieldSteps(island, shown) : null;
+    yield;
     const stand = field ? fieldStand(island, field) : undefined;
     const clearings = field ? emptyClearings(island, design!, !!island.look?.dock) : undefined;
-    const parts = islandParts(
+    const parts = yield* islandPartsSteps(
       island,
       this.map,
       this.map.seed * 1000 + index,
@@ -164,23 +177,36 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       stand,
       clearings,
     );
-    this.findCraters(island.id, parts);
-    this.findVents(island, port ? (level ?? 1) : 4, stand);
+    yield;
+    // The colours live in a texture at the field's own grid: built once, whatever the quality.
+    const textures = field
+      ? yield* fieldGroundTexturesSteps(field, designPalette(design!.style))
+      : null;
+    yield;
+    const trees =
+      field && clearings
+        ? plantForest({ island, design: design!, field, level: shown, clearings })
+        : [];
+    yield;
     const group = this.batch(parts);
     group.name = `island:${island.id}`;
-    if (field) this.addGround(group, field, designPalette(design!.style));
-    if (field && clearings) {
-      const shown = shownLevel(island, level);
-      const trees = plantForest({ island, design: design!, field, level: shown, clearings });
-      if (trees.length) group.add(forestMeshes(trees, design!.style, this.land, this.quality));
-    }
+    yield;
+    if (trees.length) group.add(forestMeshes(trees, design!.style, this.land, this.quality));
+    yield;
+    // The last step joins the model: its craters, and its ground for the quality changes.
+    const others = this.craters.filter((c) => c.island !== island.id);
+    const own = [
+      ...partCraters(island.id, parts),
+      ...islandVents(island, port ? (level ?? 1) : 4, stand),
+    ];
+    this.craters.splice(0, this.craters.length, ...others, ...own);
+    if (field && textures) this.addGround(group, field, textures);
     return group;
   }
 
   /** The new look's ground of a batch, drawn from its height field at the quality's detail. */
-  private addGround(group: THREE.Group, field: Heightfield, palette: FieldPalette) {
-    // The colours live in a texture at the field's own grid: built once, whatever the quality.
-    const material = fieldGroundMaterial(fieldGroundTextures(field, palette), this.quality);
+  private addGround(group: THREE.Group, field: Heightfield, textures: FieldGroundTextures) {
+    const material = fieldGroundMaterial(textures, this.quality);
     this.fields.set(group, { field, material });
     this.addGroundMesh(group, field, material);
   }
@@ -195,119 +221,87 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     group.add(mesh);
   }
 
-  /** Redraw the new look's ground at a quality level's detail; the field itself never changes. */
-  setQuality(level: QualityLevel) {
+  /** An island's rich houses and woods at the current quality level. */
+  private showQuality(group: THREE.Group) {
+    const houses = group.getObjectByName('houses');
+    if (houses) setRichHouses(houses as THREE.LOD, QUALITY[this.quality].richHouses);
+    const forest = group.getObjectByName('forest');
+    if (forest) setForestQuality(forest, this.quality);
+  }
+
+  /** The ground at a level's detail (its field never changes); `spread`: a batch a step (#516). */
+  setQuality(level: QualityLevel, spread = false) {
     this.quality = level;
     setGroundCover({ quality: level });
-    for (const group of this.batches.values()) {
-      const houses = group.getObjectByName('houses');
-      if (houses) setRichHouses(houses as THREE.LOD, QUALITY[level].richHouses);
-      const forest = group.getObjectByName('forest');
-      if (forest) setForestQuality(forest, level);
-    }
+    for (const group of this.batches.values()) this.showQuality(group);
     for (const { material } of this.fields.values()) setFieldGroundQuality(material, level);
     const step = TUNING.terrain.groundStep[level];
     if (step === this.groundStep) return;
     this.groundStep = step;
-    for (const [group, { field, material }] of this.fields) {
+    if (spread) this.jobs.add('ground', this.redrawGround());
+    else {
+      this.jobs.cancel('ground');
+      finish(this.redrawGround());
+    }
+  }
+
+  /** Every batch's ground mesh at the current detail, a batch a step. */
+  private *redrawGround(): Steps<void> {
+    for (const [group, { field, material }] of [...this.fields]) {
+      // Rebuilt or gone since: its ground is already drawn at this detail, or needs none.
+      if (!this.fields.has(group)) continue;
       const old = group.getObjectByName('ground') as THREE.Mesh;
       old.geometry.dispose();
       group.remove(old);
       this.addGroundMesh(group, field, material);
+      yield;
     }
   }
 
-  /** Where each crater's pool sits in the scene, for the volcano smoke (decision 0178). */
-  private findCraters(islandId: string, parts: Parts) {
-    const craters = this.craters.filter((c) => c.island !== islandId);
-    const box = new THREE.Box3();
-    for (const g of parts) {
-      if (!g.userData.crater) continue;
-      g.computeBoundingBox();
-      box.copy(g.boundingBox!);
-      craters.push({
-        island: islandId,
-        x: (box.min.x + box.max.x) / 2,
-        y: box.max.y,
-        z: (box.min.z + box.max.z) / 2,
-        r: Math.max(box.max.x - box.min.x, box.max.z - box.min.z) / 2,
-        slope: (g.userData.crater as { slope: number }).slope,
-      });
-    }
-    this.craters.splice(0, this.craters.length, ...craters);
-  }
-
-  /** The steam vent props of an island's file at its town level (decision 0181): small plumes. */
-  private findVents(island: IslandDef, level: TownLevel, stand?: Stand) {
-    const design = designOf(island);
-    const R = island.radius / ISLAND_SCALE;
-    const vents: Crater[] = [];
-    for (const prop of design?.props ?? []) {
-      const vent = PROP_RECIPES[prop.type]?.vent;
-      if (!vent || !atLevel(prop, level)) continue;
-      const p = islandPoint(island, prop.x, prop.z);
-      const ground =
-        prop.y !== undefined
-          ? prop.y * R
-          : (stand?.(prop.x, prop.z) ??
-            standHeight(islandLayout(design!, level), prop.x, prop.z, R));
-      const size = prop.size ?? 1;
-      vents.push({
-        island: island.id,
-        x: p.x,
-        y: (ground + vent.y * size) * ISLAND_SCALE,
-        z: -p.y,
-        r: 0.4 * size,
-        slope: 0,
-        vent: true,
-      });
-    }
-    const others = this.craters.filter((c) => !(c.vent && c.island === island.id));
-    this.craters.splice(0, this.craters.length, ...others, ...vents);
-  }
-
-  setSettlementLevels(levels: Record<string, TownLevel>) {
+  /**
+   * Redraw the towns whose level changed. With `spread` (a town growing in play) each island is
+   * rebuilt a few steps a frame by `update` and swapped in when done; else at once.
+   */
+  setSettlementLevels(levels: Record<string, TownLevel>, spread = false) {
     const previous = this.levels;
     this.levels = { ...levels };
-    for (const [index, island] of this.map.islands.entries()) {
+    this.redraw(spread, (island) => {
       const port = this.map.ports.find((p) => p.islandId === island.id);
-      if (!port || previous[port.id] === levels[port.id]) continue;
-      const old = this.batches.get(island.id)!;
-      const next = this.buildIsland(island, index);
-      const oldTerrain = old.getObjectByName('terrain') as THREE.Mesh | undefined;
-      const newTerrain = next.getObjectByName('terrain') as THREE.Mesh | undefined;
-      // Most designed terrain is permanent; level-dependent authored quarry benches are not.
-      if (oldTerrain && newTerrain && sameGeometry(oldTerrain.geometry, newTerrain.geometry)) {
-        newTerrain.geometry.dispose();
-        next.remove(newTerrain);
-        old.remove(oldTerrain);
-        next.add(oldTerrain);
-      }
-      this.replace(island, old, next);
-    }
+      return !!port && previous[port.id] !== levels[port.id];
+    });
+  }
+
+  /** Runs the waiting rebuilds for up to `budgetMs` (issue #516). */
+  update(budgetMs: number) {
+    this.jobs.run(budgetMs);
+  }
+
+  /** Finishes every waiting rebuild now. */
+  finishBuilds() {
+    this.jobs.finishAll();
+  }
+
+  get building(): boolean {
+    return this.jobs.busy;
   }
 
   /** Redraw the islands whose buildings changed (decisions 0126, 0128). */
-  setHomeBuildings(byIsland: Record<string, Record<string, string>>) {
+  setHomeBuildings(byIsland: Record<string, Record<string, string>>, spread = false) {
     const previous = this.homeBuilt;
     this.homeBuilt = structuredClone(byIsland);
-    for (const [index, island] of this.map.islands.entries()) {
-      const was = JSON.stringify(previous[island.id] ?? {});
-      if (was === JSON.stringify(byIsland[island.id] ?? {})) continue;
-      this.rebuild(island, index);
-    }
+    const looks = (built: Record<string, Record<string, string>>, id: string) =>
+      JSON.stringify(built[id] ?? {});
+    this.redraw(spread, ({ id }) => looks(previous, id) !== looks(byIsland, id));
   }
 
   /** Redraw the islands whose props depend on a quest that has just been done or undone (0130). */
-  setQuestsDone(done: ReadonlySet<string>) {
+  setQuestsDone(done: ReadonlySet<string>, spread = false) {
     const previous = this.questsDone;
     this.questsDone = new Set(done);
-    for (const [index, island] of this.map.islands.entries()) {
+    this.redraw(spread, (island) => {
       const design = designOf(island);
-      const quests = new Set(design ? designQuestIds(design) : []);
-      if (![...quests].some((q) => previous.has(q) !== done.has(q))) continue;
-      this.rebuild(island, index);
-    }
+      return (design ? designQuestIds(design) : []).some((q) => previous.has(q) !== done.has(q));
+    });
   }
 
   setLandOut(out: ReadonlySet<string>) {
@@ -317,8 +311,35 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     }
   }
 
-  private rebuild(island: IslandDef, index: number) {
-    this.replace(island, this.batches.get(island.id)!, this.buildIsland(island, index));
+  /** Rebuilds the islands `changed` picks: a few steps a frame with `spread`, else at once. */
+  private redraw(spread: boolean, changed: (island: IslandDef) => boolean) {
+    for (const [index, island] of this.map.islands.entries()) {
+      if (!changed(island)) continue;
+      if (spread) this.jobs.add(island.id, this.rebuildSteps(island, index, true));
+      else {
+        this.jobs.cancel(island.id);
+        finish(this.rebuildSteps(island, index, false));
+      }
+    }
+  }
+
+  /** Builds the island again and swaps it in, keeping its terrain mesh when that is unchanged. */
+  private *rebuildSteps(island: IslandDef, index: number, spread: boolean): Steps<void> {
+    const next = yield* this.buildIslandSteps(island, index);
+    const old = this.batches.get(island.id)!;
+    const oldTerrain = old.getObjectByName('terrain') as THREE.Mesh | undefined;
+    const newTerrain = next.getObjectByName('terrain') as THREE.Mesh | undefined;
+    // Most designed terrain is permanent; level-dependent authored quarry benches are not.
+    if (oldTerrain && newTerrain && sameGeometry(oldTerrain.geometry, newTerrain.geometry)) {
+      newTerrain.geometry.dispose();
+      next.remove(newTerrain);
+      old.remove(oldTerrain);
+      next.add(oldTerrain);
+    }
+    // A quality change while it was building: its houses and woods follow the level now.
+    this.showQuality(next);
+    this.replace(island, old, next);
+    if (spread) this.onRebuilt?.();
   }
 
   private replace(island: IslandDef, old: THREE.Group, next: THREE.Group) {

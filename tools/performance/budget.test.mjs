@@ -21,12 +21,14 @@ test('a scenario missing from the report is a problem', () => {
 const budgets = {
   scenarios: { a: 1 },
   newLook: { scenarios: { a: 2 } },
+  frameWork: { limitsMs: { sailing: 100 } },
   gpuMemory: { limitsMB: { ultra: 470 } },
 };
 const reportAt = (url, quality) => ({ url, config: { settings: { quality } } });
 test('the new look has its own budget', () => {
   assert.deepEqual(budgetFor(reportAt('http://x/?debug=', 'high'), budgets), {
     scenarios: budgets.newLook.scenarios,
+    frameWorkMs: budgets.frameWork.limitsMs,
     gpuMemoryMB: undefined,
   });
   assert.equal(
@@ -36,7 +38,13 @@ test('the new look has its own budget', () => {
 });
 test('Ultra is held to its graphics memory, not to the counts set at High', () => {
   const ultra = budgetFor(reportAt('http://x/?debug=', 'ultra'), budgets);
-  assert.deepEqual(ultra, { scenarios: {}, gpuMemoryMB: 470 });
+  assert.deepEqual(ultra, { scenarios: {}, frameWorkMs: {}, gpuMemoryMB: 470 });
   assert.deepEqual(overBudget({ runs: [runOf(90, 400000, 430)] }, ultra), []);
   assert.equal(overBudget({ runs: [runOf(90, 400000, 711)] }, ultra).length, 1);
+});
+test('a frame of work past the hitch budget is a problem (issue #516)', () => {
+  const held = { scenarios: {}, frameWorkMs: { sailing: 100 } };
+  const run = (worstWorkMs) => ({ ...runOf(30, 60000), worstWorkMs });
+  assert.deepEqual(overBudget({ runs: [run(40)] }, held), []);
+  assert.equal(overBudget({ runs: [run(40), run(140)] }, held).length, 1);
 });

@@ -99,6 +99,18 @@ describe('a section joined to the round sea', () => {
     expect(sharpestTurn(sea, spacing).deg).toBeLessThanOrEqual(maxTurnDeg);
   });
 
+  it('is kept per map until an outline point moves in place (the editor)', () => {
+    const map = withSection();
+    map.edges = [{ id: 'east-reach', outline: EAST.map(([x, y]): [number, number] => [x, y]) }];
+    const kept = seaShape(map);
+    expect(seaShape(map)).toBe(kept);
+    map.edges[0]!.outline[1]![0] = 1300;
+    const moved = seaShape(map);
+    expect(moved).not.toBe(kept);
+    expect(seaReach(moved)).toBeGreaterThan(seaReach(kept));
+    expect(seaShape(map)).toBe(moved);
+  });
+
   it('is checked: joined, ids, enough points', () => {
     expect(edgeProblems({ ...withSection() } as MapDef)).toEqual([]);
     const far = {

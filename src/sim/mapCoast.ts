@@ -2,13 +2,8 @@ import { TUNING } from '../data/tuning';
 import { type CoastAgreement, coastAgreement } from './coastAgreement';
 import { piersOf } from './collision';
 import { contourLines } from './fieldContour';
-import {
-  fieldLod,
-  heightAt,
-  islandHeightfield,
-  terrainHeightfield,
-  type Heightfield,
-} from './heightfield';
+import { fieldLod, heightAt, islandHeightfield, type Heightfield } from './heightfield';
+import { terrainHeightfield } from './terrainField';
 import { islandCoasts, islandLake } from './islandLayout';
 import { terrainSeed } from './landmarks';
 import { clearAt, type MapCheck, questTagsCheck, quickChecks } from './mapChecks';

@@ -342,19 +342,36 @@ export function islandOutline(island: IslandDef, outline: Outline): Outline {
     return [p.x, p.y];
   });
 }
-const coastCache = new WeakMap<
-  IslandDef,
-  { key: string; design: IslandDesign; coasts: Outline[] }
->();
+/** Where an island's coasts were laid out: compared field by field, no key string per ask. */
+interface CoastPlace {
+  x: number;
+  y: number;
+  radius: number;
+  bearing: number;
+  design: IslandDesign;
+  coasts: Outline[];
+}
+const coastCache = new WeakMap<IslandDef, CoastPlace>();
+
+/** The island's coasts on the map; asked by every hull every step, so kept until it moves. */
 export function islandCoasts(island: IslandDef): Outline[] | null {
   const design = designOf(island);
   if (!design) return null;
-  const key = `${island.x}/${island.y}/${island.radius}/${design.id}/${islandBearing(island)}`;
+  const bearing = islandBearing(island);
   const cached = coastCache.get(island);
   // The island builder replaces a design with an edited copy: the cache follows it.
-  if (cached?.key === key && cached.design === design) return cached.coasts;
+  if (
+    cached &&
+    cached.design === design &&
+    cached.x === island.x &&
+    cached.y === island.y &&
+    cached.radius === island.radius &&
+    cached.bearing === bearing
+  )
+    return cached.coasts;
   const coasts = design.coasts.map((c) => islandOutline(island, c));
-  coastCache.set(island, { key, design, coasts });
+  const { x, y, radius } = island;
+  coastCache.set(island, { x, y, radius, bearing, design, coasts });
   return coasts;
 }
 

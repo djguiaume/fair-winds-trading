@@ -59,7 +59,7 @@ export function raceEvents(host: RaceHost): (e: QuestEvent) => void {
         host.refreshPause();
       }
     } else if (e.type === 'finished') {
-      view.setQuestsDone(questsDone(world.trade));
+      view.setQuestsDone(questsDone(world.trade), true);
       view.setPennant(flownPennant(quests));
       // The Cup on her pier once it is won (decision 0217).
       host.showHome();

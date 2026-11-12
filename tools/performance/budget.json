@@ -11,6 +11,10 @@
     "sailing": { "calls": 38, "triangles": 76500 },
     "docking": { "calls": 40, "triangles": 54500 }
   },
+  "frameWork": {
+    "note": "Hitch budget (issue #516): the worst main-thread work in one frame (ms), every animation-frame callback timed from the scenario's action on (simulation, HUD, builds spread over frames, shader waits, the render call), at quality high on both looks. Unlike the frame interval it barely depends on the software renderer, so it carries over to a device: a hitch is a frame of 100 ms or more, and a town growing in play keeps every frame under twice the 60 fps frame (33.3 ms). Headless measurement 2026-11-12: sailing and docking about 30 ms, town growth about 23 ms. A raise needs its reason in the PR.",
+    "limitsMs": { "sailing": 100, "docking": 100, "townGrowth": 33.3 }
+  },
   "gpuMemory": {
     "note": "Graphics memory (MB) a report may hold at a level (decision 0246), measured by CI at 1920x1080 scale 2, as on a 4K TV (PERF_SCREEN=1920x1080@2). Ultra went past the Xbox Edge's share at 711 MB and crashed its graphics; after the cut it held 428 MB, 349 MB after the lean shadow map (decision 0289), 321 MB once Ultra drew straight to a canvas without depth (decision 0297), and 330 MB with the bloom (decision 0299). Set about 10% above; a raise needs its reason in the PR and an Xbox re-test.",
     "limitsMB": { "ultra": 355 }
