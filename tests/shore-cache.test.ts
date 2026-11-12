@@ -8,6 +8,7 @@ import { SeabedTextureCache } from '../src/render/seabedTexture';
 import { QUALITY } from '../src/render/quality';
 import { CameraOrbit } from '../src/render/cameraOrbit';
 import { GameView } from '../src/render/view';
+import { QualityEffectsCache } from '../src/render/qualityEffects';
 import * as THREE from 'three';
 
 const island = (): IslandDef => ({
@@ -148,7 +149,9 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
     look: 'v2',
     levels: {},
     seabeds: new SeabedTextureCache(),
-    qualityEffects: new Map(),
+    qualityEffects: new QualityEffectsCache(),
+    // Shader warm-up (issue #516) needs a WebGL context.
+    shaders: { warm: vi.fn() },
     // The land standing (decision 0166) is the map's, so an edit to it reaches the shores.
     world: { map, land: map },
     wake: { setQuality: vi.fn() },
@@ -174,12 +177,14 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
   const low = water();
   const effects = (
     view as unknown as {
-      qualityEffects: Map<
-        string,
-        { ocean: Ocean; streaks: { dispose(): void }; rain: { dispose(): void } }
-      >;
+      qualityEffects: {
+        byKey: Map<
+          string,
+          { ocean: Ocean; streaks: { dispose(): void }; rain: { dispose(): void } }
+        >;
+      };
     }
-  ).qualityEffects;
+  ).qualityEffects.byKey;
   const first = water().mesh.material.uniforms.uShoreMap!.value;
   const dispose = vi.spyOn(first, 'dispose');
   const firstSeabed = water().mesh.material.uniforms.uDepthMap!.value;

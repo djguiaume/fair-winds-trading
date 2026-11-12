@@ -25,6 +25,11 @@ const RECIPES: Partial<Record<TrafficKind, string>> = {
   coaster: 'traffic-coaster',
 };
 
+/** A batch's attributes (position, normal, colour), for the shader warm-up's empty batches. */
+const PROBE_SHAPE = new THREE.BoxGeometry(0, 0, 0)
+  .deleteAttribute('uv')
+  .setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(24 * 3), 3));
+
 /** One visitor's model: at most one is drawn, the nearest (decision 0215). */
 interface Visitor {
   model: RefinedBoat;
@@ -96,6 +101,15 @@ export class TrafficView {
     this.lights.frustumCulled = false;
     this.lights.renderOrder = 4;
     this.root.add(this.lights, this.wakes.mesh);
+    // No boat in them (no draw): the warm-up compiles the boats' shaders, their shadows' too,
+    // before the first wakes (issue #516).
+    for (const material of [this.materials.hull, this.materials.sail]) {
+      const probe = new THREE.InstancedMesh(PROBE_SHAPE, material, 1);
+      probe.count = 0;
+      probe.frustumCulled = false;
+      probe.castShadow = material === this.materials.hull;
+      this.root.add(probe);
+    }
   }
 
   /** The batch a boat is drawn in: her kind, in her home's style and her band colour. */

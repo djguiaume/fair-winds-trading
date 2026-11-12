@@ -582,7 +582,7 @@ function checkFounded() {
   if (now.join() === founded) return;
   const was = founded.split(',');
   founded = now.join();
-  view.setSettlementLevels(townLevels(world.map, world.trade));
+  view.setSettlementLevels(townLevels(world.map, world.trade), true);
   hud.portLabels.rebuild();
   for (const id of now.filter((p) => !was.includes(p)))
     hud.showToast(t('toast.founded', { name: trade.findPort(world.map, id)?.name ?? id }), 5);
@@ -647,7 +647,7 @@ quests.onEvent = (e) => {
   // While a lesson runs, its bubble speaks for Rook's thanks (decision 0127).
   if (e.type === 'finished' && !quests.lesson) questThanks.add(e.quest);
   if (e.type === 'finished') {
-    view.setQuestsDone(questsDone(world.trade));
+    view.setQuestsDone(questsDone(world.trade), true);
     view.setPennant(flownPennant(quests));
     // A plot given is staked on her island at once (decision 0210).
     showHome();
@@ -1240,6 +1240,7 @@ function startQuestTest(test: NonNullable<typeof questTest>) {
   refreshPiers(world);
   showHome();
   view.setQuestsDone(questsDone(world.trade));
+  view.finishBuilds();
   view.setPennant(flownPennant(quests));
   // Land that stands after the quests before this step rises (or sinks) before she is placed.
   syncWorldLand(world, true);
@@ -1620,7 +1621,7 @@ function handleEvents(events: WorldEvent[]) {
             : t('toast.levelUp', { name: portName, level: townLevelName(e.level) }),
         5,
       );
-      view.setSettlementLevels(townLevels(world.map, world.trade));
+      view.setSettlementLevels(townLevels(world.map, world.trade), true);
       hud.portLabels.rebuild();
       if (tradePanel.isOpen) tradePanel.render();
       autosave();
@@ -1784,6 +1785,7 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 frame = requestAnimationFrame(tick);
+export const warmed = view.warmUp();
 
 // The tuning panel loads only in tune mode, as its own chunk: players never download it.
 if (tuneMode) {
@@ -1833,11 +1835,7 @@ function driveBench(sec: number) {
   perf?.setBenchLine(
     `Benchmark ${step.pass + 1}/${passes} · ${pass.label} · ${Math.ceil(step.left)} s left`,
   );
-  world.boat.x = step.pose.x;
-  world.boat.y = step.pose.y;
-  world.boat.heading = step.pose.heading;
-  world.boat.speedKn = bench.config.speedKn;
-  world.boat.drift = { x: 0, y: 0 };
+  bench.place(world.boat, step.pose);
   world.destination = null;
   sailStep = SAIL_STEPS.length - 1;
 }
@@ -1951,6 +1949,7 @@ if (new URLSearchParams(location.search).has('debug')) {
     // Land that stands after these quests rises now, while the boat is still at her start: moored
     // there next, the land would wait for her to sail out of sight (0166, Phase 4 review).
     syncWorldLand(world, true);
+    view.finishBuilds();
     return started;
   };
   /** Put the boat at sea at a point, heading in degrees, sails at a step (0 furled … 2 full). */
@@ -1974,6 +1973,7 @@ if (new URLSearchParams(location.search).has('debug')) {
     refreshPiers(world);
     checkFounded();
     view.setSettlementLevels(townLevels(world.map, world.trade));
+    view.finishBuilds();
     return true;
   };
   /**

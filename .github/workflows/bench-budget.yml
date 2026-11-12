@@ -3,7 +3,8 @@ name: Render budget
 # A headless run of the sailing and docking scenarios on rendering PRs: fails when draw calls or
 # triangles pass tools/performance/budget.json. Counts carry over to old tablets; frame times do
 # not, so those stay with ?bench on a real device (decision 0006, ADR 0154). Ultra's graphics
-# memory is held to its own limit too (decision 0246).
+# memory is held to its own limit too (decision 0246). The game's own work per frame is held to
+# the hitch budget, a town growing included (issue #516).
 on:
   pull_request:
     paths:
@@ -41,7 +42,7 @@ jobs:
           npx vite preview --host 127.0.0.1 --port 5180 --strictPort > preview.log 2>&1 &
           curl --retry 15 --retry-connrefused --retry-delay 2 -sf http://127.0.0.1:5180/ >/dev/null \
             || { cat preview.log; exit 1; }
-          npm run perf -- http://127.0.0.1:5180/ output/performance/ci.json
+          PERF_SCENARIOS=sailing,docking,townGrowth PERF_TIMEOUT_MS=120000 npm run perf -- http://127.0.0.1:5180/ output/performance/ci.json
           npm run perf -- 'http://127.0.0.1:5180/?look=v1' output/performance/ci-v1.json
           # Ultra's graphics memory on a 4K TV screen (decision 0246: the Xbox crashed past its share);
           # its frames take seconds in the software renderer, more with the waves (0250).

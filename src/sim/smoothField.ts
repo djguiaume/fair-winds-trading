@@ -4,6 +4,7 @@ import type { Heightfield } from './heightfield';
 import { fbm } from './noise';
 import { coastDistance } from './coast';
 import type { Outline } from './islandLayout';
+import { ROWS_PER_STEP, type Steps, finish } from './steps';
 
 const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
@@ -62,13 +63,13 @@ function pass(
  * Blurs `values` in place, each sample counting by its `weight`: a normalised convolution, so a
  * weight-0 sample neither moves nor pulls on its neighbours.
  */
-function weightedBlur(
+function* weightedBlur(
   values: Float32Array,
   weight: Float32Array,
   w: number,
   h: number,
   sigma: number,
-) {
+): Steps<void> {
   if (sigma <= 0) return;
   const taps = kernel(sigma);
   const n = values.length;
@@ -77,15 +78,24 @@ function weightedBlur(
     tmp = new Float32Array(n);
   for (let k = 0; k < n; k++) num[k] = values[k]! * weight[k]!;
   pass(num, tmp, taps, w, h, true);
+  yield;
   pass(tmp, num, taps, w, h, false);
+  yield;
   pass(weight, tmp, taps, w, h, true);
+  yield;
   pass(tmp, den, taps, w, h, false);
+  yield;
   for (let k = 0; k < n; k++) if (weight[k]! > 0 && den[k]! > 1e-6) values[k] = num[k]! / den[k]!;
 }
 
 /** A plain Gaussian blur of a grid of values in place (sigma in cells): colour blends. */
 export function blurGrid(values: Float32Array, w: number, h: number, sigma: number) {
-  weightedBlur(values, new Float32Array(values.length).fill(1), w, h, sigma);
+  finish(blurGridSteps(values, w, h, sigma));
+}
+
+/** `blurGrid` in steps, a pass a step. */
+export function blurGridSteps(values: Float32Array, w: number, h: number, sigma: number) {
+  return weightedBlur(values, new Float32Array(values.length).fill(1), w, h, sigma);
 }
 
 /** 1 on samples inside any keep area. */
@@ -134,6 +144,15 @@ export function smoothField(
   keep: readonly KeepArea[] = [],
   coasts: readonly Outline[] = [],
 ): Heightfield {
+  return finish(smoothFieldSteps(field, keep, coasts));
+}
+
+/** `smoothField` in steps (issue #516). */
+export function* smoothFieldSteps(
+  field: Heightfield,
+  keep: readonly KeepArea[] = [],
+  coasts: readonly Outline[] = [],
+): Steps<Heightfield> {
   const t = TUNING.terrain.smooth;
   if (t.amount <= 0) return field;
   const { w, h, cell, ground, seabed } = field;
@@ -147,7 +166,7 @@ export function smoothField(
     // The sea at the beach's height below the water: the blur's midpoint stays on the coast.
     work[k] = land ? raw[k]! : t.shoreSea;
   }
-  weightedBlur(work, weight, w, h, t.blur / cell);
+  yield* weightedBlur(work, weight, w, h, t.blur / cell);
   const { scale, height, fadeIn, octaves } = t.relief;
   for (let k = 0; k < n; k++) {
     if (!ground[k] || !weight[k]) continue;
@@ -158,14 +177,17 @@ export function smoothField(
     const fade = Math.min(1, Math.max(0, work[k]! / fadeIn));
     work[k] = work[k]! + fbm(x * scale, y * scale, field.seed, octaves) * height * fade;
   }
+  yield;
   const kept = keepMask(field, keep, t.town.radius);
   for (let k = 0; k < n; k++)
     if (kept[k] && ground[k]) work[k] = work[k]! + (raw[k]! - work[k]!) * t.town.keep;
-  weightedBlur(work, weight, w, h, t.seamBlur / cell);
+  yield* weightedBlur(work, weight, w, h, t.seamBlur / cell);
   const deepen = seabed / t.shoreSea;
   const { band, slope, seaSlope } = t.shore;
   const near = coasts.length ? nearShore(field, band) : null;
+  yield;
   for (let k = 0; k < n; k++) {
+    if (k && k % (w * ROWS_PER_STEP) === 0) yield;
     const land = ground[k] !== 0,
       s = weight[k]!;
     let height = land ? raw[k]! + (work[k]! - raw[k]!) * s : work[k]!;

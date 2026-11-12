@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { summarize } from './stats.mjs';
 import { countGpuMemory, readGpuMemory } from './gpuMemory.mjs';
+import { timeFrameWork } from './frameWork.mjs';
 
 const config = JSON.parse(await readFile(new URL('./scenarios.json', import.meta.url), 'utf8'));
 // CI runs a short list once (decision 0153: the workflow only calls the tools).
@@ -62,6 +63,7 @@ try {
         config.settings,
       );
       await page.addInitScript(countGpuMemory);
+      await page.addInitScript(timeFrameWork);
       page.setDefaultTimeout(config.timeoutMs);
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
@@ -101,6 +103,7 @@ try {
           const boat = world.boat;
           const frame = () => new Promise((r) => requestAnimationFrame(r));
           const start = performance.now();
+          window.perfActionAt = start;
           let selectedPort = null;
           const changes = [];
           if (scenario === 'qualityChange') {
@@ -179,12 +182,16 @@ try {
               Object.entries(world.trade.settlements.byPort).map(([id, town]) => [id, town.level]),
             );
             const before = performance.now();
-            window.fwt.view.setSettlementLevels(levels);
+            // As a level-up in play: the island rebuilt a few steps a frame (issue #516).
+            window.fwt.view.setSettlementLevels(levels, true);
             changes.push({
               portId: selectedPort,
               level: entry[1].level,
               cpuMs: performance.now() - before,
             });
+            const until = performance.now() + config.timeoutMs;
+            while (window.fwt.view.building && performance.now() < until) await frame();
+            changes.at(-1).builtMs = performance.now() - before;
           }
           await frame();
           await frame();
@@ -209,6 +216,7 @@ try {
         const ext = gl.getExtension('WEBGL_debug_renderer_info');
         return {
           samples: window.perfSamples,
+          work: window.perfWork.filter(([at]) => at >= window.perfActionAt).map(([, ms]) => ms),
           environment: {
             userAgent: navigator.userAgent,
             gpu: ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
@@ -230,8 +238,14 @@ try {
       const eventFrameMs = summarize(
         raw.samples.slice(0, action.setupFrames + 1).map((s) => s.frameMs),
       );
+      // The game's own work in each frame from the action on (issue #516): what a stall costs on
+      // any device, unlike the frame interval, which here is mostly the software renderer.
+      const workMs = summarize(raw.work);
+      const worstWorkMs = Math.max(workMs.max ?? 0, ...action.changes.map((c) => c.cpuMs));
       const run = {
         scenario,
+        workMs,
+        worstWorkMs,
         repeat,
         startupMs,
         action,
@@ -243,7 +257,7 @@ try {
       };
       report.runs.push(run);
       console.log(
-        `${scenario} ${repeat + 1}: frame p95 ${metrics.frameMs.p95?.toFixed(2)}ms, max ${metrics.frameMs.max?.toFixed(2)}ms; calls ${metrics.calls.median}; triangles ${metrics.triangles.median}; graphics memory ${gpuMemory.totalMB} MB`,
+        `${scenario} ${repeat + 1}: frame p95 ${metrics.frameMs.p95?.toFixed(2)}ms, max ${metrics.frameMs.max?.toFixed(2)}ms; worst frame work ${worstWorkMs.toFixed(1)}ms; calls ${metrics.calls.median}; triangles ${metrics.triangles.median}; graphics memory ${gpuMemory.totalMB} MB`,
       );
       await context.close();
     }
