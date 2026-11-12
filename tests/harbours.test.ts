@@ -79,6 +79,8 @@ describe('visible harbour approaches', () => {
         expect(document.querySelector('#tp-tab-market')).not.toBeNull();
         expect(document.querySelector('#trade')!.textContent).toContain(port.name);
         expect(world.trade.dockedAt).toBe(port.id);
+        // Closing stops the panel's picture timer, which would fire after the page is gone.
+        panel.close();
       });
     }
   }
