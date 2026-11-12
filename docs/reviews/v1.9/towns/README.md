@@ -60,3 +60,7 @@ One plan per town: ground shaded by slope (green flat, tan past the warn, brown 
 | [Westholm](westholm-before.jpg) | [Snowberry Isle](snowberry-isle-before.jpg) |
 | | [Sunreach](sunreach-before.jpg) |
 | | [Sunreach South Arm](sunreach-south-before.jpg) |
+
+## After
+
+- Far seas (#515): [far-seas.md](far-seas.md), all nine towns clean.
