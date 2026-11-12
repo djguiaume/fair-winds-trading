@@ -123,12 +123,13 @@ export class SkyDome {
     const u = this.mesh.material.uniforms;
     (u.uSunDir!.value as THREE.Vector3).copy(sky.disc);
     (u.uSunColor!.value as THREE.Color).copy(sky.discColor);
-    const size = sun.sizeDeg + (sun.moonSizeDeg - sun.sizeDeg) * sky.night;
+    const toMoon = (day: number, night: number) => day + (night - day) * sky.night;
+    const size = toMoon(sun.sizeDeg, sun.moonSizeDeg);
     // A storm hides the sun; its glow goes a little slower.
     (u.uSun!.value as THREE.Vector4).set(
       size * DEG,
-      sun.glow * (1 - 0.8 * sky.gloom),
-      sun.glowDeg * DEG,
+      toMoon(sun.glow, sun.moonGlow) * (1 - 0.8 * sky.gloom),
+      toMoon(sun.glowDeg, sun.moonGlowDeg) * DEG,
       1 - sky.gloom,
     );
   }

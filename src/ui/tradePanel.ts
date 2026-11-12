@@ -59,6 +59,7 @@ export class TradePanel {
   private returnFocus: HTMLElement | null = null;
   private lot: Lot = 1;
   private pictureTries = 0;
+  private pictureTimer: ReturnType<typeof setTimeout> | undefined;
   /** What each pane shows on its right: a good, an order (by port), a person, a ship. */
   private picked: { good?: GoodId; order?: string; person?: string; ship?: string } = {};
   private readonly keeper: KeeperLines;
@@ -130,6 +131,7 @@ export class TradePanel {
   }
 
   close() {
+    clearTimeout(this.pictureTimer);
     this.container.hidden = true;
     delete document.documentElement.dataset.screen;
     this.onClose();
@@ -190,7 +192,7 @@ export class TradePanel {
 
   /** How to find the focused control again after the redraw: its id, else its data attributes. */
   private focusKey(): string {
-    const at = document.activeElement as HTMLElement | null;
+    const at = this.container.ownerDocument.activeElement as HTMLElement | null;
     if (!at || !this.container.contains(at) || at === this.container) return '';
     if (at.id) return `#${at.id}`;
     return [...at.attributes]
@@ -207,7 +209,10 @@ export class TradePanel {
     const picture = this.harbourPicture(portId);
     if (picture) banner.style.backgroundImage = `url('${picture}')`;
     // On a fresh page the port may not be built yet: its picture comes a moment later (#464).
-    else if (this.pictureTries++ < 40) setTimeout(() => this.render(), 300);
+    else if (this.pictureTries++ < 40) {
+      clearTimeout(this.pictureTimer);
+      this.pictureTimer = setTimeout(() => this.render(), 300);
+    }
     const head = harbourHeader({
       title: name,
       line: portLine({

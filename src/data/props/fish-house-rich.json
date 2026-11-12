@@ -36,7 +36,7 @@
     {
       "box": [0.23, 0.05, 0.23],
       "at": [0.25, "h + rh * 0.55 + 0.2 + 0.32", -0.15],
-      "color": "chimneyCap"
+      "color": { "capOn": "roofs[variant * 3]" }
     },
     {
       "box": [0.3, 0.45, 0.05],
@@ -59,7 +59,7 @@
         {
           "box": [0.62, 0.04, 0.42],
           "at": [0, "h * 0.55 + 0.06", -0.64],
-          "color": "roofs[variant * 3 + 1]",
+          "color": { "leanTo": "roofs[variant * 3]" },
           "ops": [["turnX", -0.45]]
         }
       ]
