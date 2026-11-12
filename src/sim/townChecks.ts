@@ -55,7 +55,9 @@ function houseGround(plan: TownPlan, h: House) {
   // The ring inside the footprint's corners: the ground the walls stand on, not the bank past them.
   const { deg } = slopeAt(plan, h.at[0], h.at[1], h.fit * FOOTING);
   const core =
-    harbour && Math.hypot(h.at[0] - harbour[0], h.at[1] - harbour[1]) <= rules.harbour.core * W;
+    harbour &&
+    plan.houses.length >= rules.harbour.mainPort &&
+    Math.hypot(h.at[0] - harbour[0], h.at[1] - harbour[1]) <= rules.harbour.core * W;
   const warn = core ? Math.min(style.slope[0], rules.harbour.coreSlope) : style.slope[0];
   const grade = deg > style.slope[1] ? 'fail' : deg > warn ? 'warn' : null;
   if (grade)
@@ -144,9 +146,10 @@ function houseSpacing(plan: TownPlan) {
       const o = houses[j]!;
       const gap = hullGap(h.hull, o.hull);
       closest = Math.min(closest, gap);
-      // Side by side: the line between them runs across their fronts, not along them.
+      // Side by side: the line between them runs across both fronts, not along either (where
+      // two rows meet at a corner, one house stands before the other, and they are no row).
       const between: Point = [o.at[0] - h.at[0], o.at[1] - h.at[1]];
-      const across = Math.abs(90 - angleBetween(h.front, between)) < 45;
+      const across = [h, o].every((a) => Math.abs(90 - angleBetween(a.front, between)) < 45);
       if (j < i && gap <= style.spacing[1] * W && across)
         rowOff = Math.max(rowOff, lineAngle(h.front, o.front));
     }

@@ -62,6 +62,7 @@
   "harbour": {
     "core": 8,
     "coreSlope": 8,
+    "mainPort": 12,
     "centre": 6,
     "share": 0.6,
     "shareReach": 8,

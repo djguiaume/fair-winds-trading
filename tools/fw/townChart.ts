@@ -111,8 +111,12 @@ function townSvg(plan: TownPlan, issues: IslandIssue[], title: string): string {
 <p>${head}</p>`;
 }
 
-/** Writes `<id>-before.jpg` per town island into `dir`; the files written. */
-export async function writeTownCharts(dir: string, only?: string): Promise<string[]> {
+/** Writes `<id>-<as>.jpg` (before, after…) per town island into `dir`; the files written. */
+export async function writeTownCharts(
+  dir: string,
+  only?: string,
+  as = 'before',
+): Promise<string[]> {
   const places = islandPlacements(defaultSeas());
   mkdirSync(dir, { recursive: true });
   const { chromium } = await import('playwright');
@@ -131,7 +135,7 @@ export async function writeTownCharts(dir: string, only?: string): Promise<strin
       await page.setContent(
         `<style>body{margin:0;background:#0d2a3a;color:#fff;font:14px sans-serif}svg{display:block}p{margin:6px 10px}</style>${townSvg(plan, checkTown(design, kit), design.name)}`,
       );
-      const out = join(dir, `${design.id}-before.jpg`);
+      const out = join(dir, `${design.id}-${as}.jpg`);
       await page.screenshot({ path: out, type: 'jpeg', quality: 80, fullPage: true });
       files.push(out);
     }

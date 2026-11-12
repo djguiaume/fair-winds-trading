@@ -96,6 +96,54 @@ describe('npm run island: island files from steps (decision 0153)', () => {
     });
   });
 
+  it('moves and turns what is there, in place (issue #514)', () => {
+    const design = islandFromOutline('move-key');
+    applySteps(design, [
+      { do: 'prop', type: 'palm', at: [0, 0] },
+      { do: 'prop', type: 'palm', at: [0.2, 0] },
+      {
+        do: 'lane',
+        points: [
+          [0, 0.1],
+          [0.2, 0.1],
+        ],
+      },
+      { do: 'pier', at: [0, 0.9] },
+    ]);
+    const step = stepFromArgs('move', parseArgs(['--at', '0.1,0.3', '--turn', '90']), [
+      'prop',
+      '0',
+    ]);
+    expect(step).toEqual({ do: 'move', what: 'prop', index: 0, at: [0.1, 0.3], turn: 90 });
+    expect(
+      applySteps(design, [
+        step,
+        {
+          do: 'move',
+          what: 'lane',
+          index: 0,
+          points: [
+            [0, 0.2],
+            [0.3, 0.2],
+          ],
+        },
+        { do: 'move', what: 'pier', index: 0, at: [0.1, 0.9], length: 0.3 },
+      ]),
+    ).toEqual(['moved prop 0', 'moved lane 0', 'moved pier 0']);
+    expect(design.props.map((p) => [p.x, p.z, p.turn])).toEqual([
+      [0.1, 0.3, 90],
+      [0.2, 0, undefined],
+    ]);
+    expect(design.lanes[0]!.points).toEqual([
+      [0, 0.2],
+      [0.3, 0.2],
+    ]);
+    expect(design.piers[0]).toMatchObject({ x: 0.1, z: 0.9, length: 0.3 });
+    expect(() => applySteps(design, [{ do: 'move', what: 'prop', index: 9 }])).toThrow(
+      'step 1 (move): no prop 9',
+    );
+  });
+
   it('writes every shipped island file back with the same data', () => {
     for (const design of Object.values(ISLAND_DESIGNS)) {
       const text = formatIslandJson(tidyDesign(structuredClone(design)));

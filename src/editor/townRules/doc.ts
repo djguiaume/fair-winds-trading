@@ -51,7 +51,7 @@ export const TOWN_RULES_DOC: FieldsDoc<TownRulesDoc> = {
     houses:
       'Every house: a church on a rise (degrees), a quay house’s setback, how far a door looks for a lane or quay before the water, the facing error "warn, fail" and a row’s turn (degrees).',
     harbour:
-      'The harbour is the centre: the core’s radius and its slope warning, the houses’ centre, the share within shareReach, the nearest church or market (W).',
+      'The harbour is the centre: the core’s radius and its slope warning (a main port only: a town of mainPort houses or more), the houses’ centre, the share within shareReach, the nearest church or market (W).',
     lanes:
       'Lanes follow the shore or the contour within turn (ground under flat has none), warn past offShare; the waterfront lane "near, far" from the water; steepest climb (degrees); an end within endReach of something.',
     piers: 'Piers start within shore (W) of it and run out within square (degrees) of square.',
