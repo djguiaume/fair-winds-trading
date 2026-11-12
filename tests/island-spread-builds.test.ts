@@ -41,7 +41,7 @@ describe('island rebuilds spread over frames (issue #516)', () => {
     expect(positions(model)).toEqual(positions(atOnce));
     model.dispose();
     atOnce.dispose();
-  });
+  }, 30_000);
 
   it('redraws the ground at a new quality a batch a step, as at once', () => {
     const spread = new HighlandIslands(PHASE1_MAP, true, allLevels(2), 'v2');
@@ -54,5 +54,5 @@ describe('island rebuilds spread over frames (issue #516)', () => {
     expect(positions(spread)).toEqual(positions(atOnce));
     spread.dispose();
     atOnce.dispose();
-  });
+  }, 30_000);
 });

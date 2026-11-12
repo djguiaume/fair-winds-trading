@@ -9,7 +9,7 @@ Made with `npm run island -- audit --md` (the table) and `npm run island -- audi
 ## How to read it
 
 - **W** is the town's house width (the median house's footprint across its front), here in world units; every distance rule counts in W.
-- **✗** fails (past the rule's fail number), **!** warns. Both are warnings in the game's checks until towns 2 and 3 are done; then `town-rules.json › grading.fails` becomes `"error"`.
+- **✗** fails (past the rule's fail number), **!** warns. Both were warnings in the game's checks until towns 2 and 3 were done; `town-rules.json › grading.fails` is `"error"` since.
 - **Rules:** slope (house on a slope; 8° in a main port's core), ground (on lava or ash), shore (setback from the waterline), facing (front or back to the nearest lane or quay within 3W, else the water; our houses have no door yet, so either side counts), row (side-by-side houses turned alike), spacing (merged houses, a house alone), lanes (every house within reach of a lane; lanes along the shore or contour, not too steep, ending at something; a waterfront lane by the harbour), piers (start at the shore, square to it), harbour (the houses gather round the harbour; church or market by it), fields, woods, hazard (fire islands: lava, ash, the cone).
 
 ## Audit (2026-11-12): 16 towns, 57 fails, 231 warnings
@@ -62,3 +62,7 @@ One plan per town: ground shaded by slope (green flat, tan past the warn, brown 
 | [Westholm](westholm-before.jpg) | [Snowberry Isle](snowberry-isle-before.jpg) |
 | | [Sunreach](sunreach-before.jpg) |
 | | [Sunreach South Arm](sunreach-south-before.jpg) |
+
+## After
+
+- Far seas (#515): [far-seas.md](far-seas.md), all nine towns clean.

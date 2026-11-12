@@ -21,7 +21,7 @@
     ]
   ],
   "ground": [
-    { "coast": 0, "height": 0.06, "material": "lavafield" },
+    { "coast": 0, "height": 0.06, "material": "blacksand" },
     {
       "outline": [
         [0.27, -0.35],
@@ -40,22 +40,50 @@
       "shape": "peak",
       "base": 0.06,
       "crater": 0.3
+    },
+    {
+      "outline": [
+        [0.82, -0.02],
+        [0.77, -0.4],
+        [0.51, -0.72],
+        [0.12, -0.9],
+        [-0.32, -0.79],
+        [-0.79, -0.7],
+        [-0.88, -0.24],
+        [-0.92, -0.02],
+        [-0.5, 0],
+        [0, -0.03],
+        [0.45, 0]
+      ],
+      "height": 0.075,
+      "material": "lavafield",
+      "smooth": 0
     }
   ],
-  "lanes": [],
+  "lanes": [
+    {
+      "points": [
+        [-0.52, 0.57],
+        [-0.25, 0.61],
+        [0.05, 0.6],
+        [0.3, 0.6],
+        [0.5, 0.54]
+      ]
+    }
+  ],
   "piers": [],
   "props": [
     { "type": "steam-vent", "x": 0.45, "z": -0.3, "size": 1.1, "from": 1 },
-    { "type": "steam-vent", "x": -0.55, "z": 0.15, "size": 1.1, "from": 1 },
-    { "type": "steam-vent", "x": 0.2, "z": 0.05, "size": 1.1, "from": 1 },
-    { "type": "flagpole", "x": 0.32, "z": 0.42, "size": 0.9, "from": 1 },
+    { "type": "steam-vent", "x": -0.62, "z": -0.14, "size": 1.1, "from": 1 },
+    { "type": "steam-vent", "x": 0.3, "z": -0.1, "size": 1.1, "from": 1 },
+    { "type": "flagpole", "x": 0.22, "z": 0.68, "size": 0.9, "from": 1 },
     { "type": "name-board", "x": -0.12, "z": 0.55, "size": 0.9, "from": 1 },
-    { "type": "turf-cottage", "x": 0.45, "z": 0.2, "variant": 0, "from": 1 },
-    { "type": "crates", "x": -0.25, "z": 0.42, "from": 1 },
-    { "type": "turf-cottage", "x": -0.5, "z": 0.3, "variant": 1, "from": 2 },
-    { "type": "greenhouse", "x": 0.55, "z": -0.05, "from": 2 },
-    { "type": "iron-house", "x": -0.35, "z": 0.12, "variant": 2, "from": 3 },
-    { "type": "warehouse", "x": 0.1, "z": 0.3, "size": 1.1, "from": 3 }
+    { "type": "turf-cottage", "x": 0.36, "z": 0.46, "turn": 0, "variant": 0, "from": 1 },
+    { "type": "crates", "x": -0.05, "z": 0.68, "from": 1 },
+    { "type": "turf-cottage", "x": -0.38, "z": 0.46, "turn": 0, "variant": 1, "from": 2 },
+    { "type": "greenhouse", "x": 0.6, "z": 0.22, "from": 2 },
+    { "type": "iron-house", "x": -0.14, "z": 0.47, "turn": 0, "variant": 2, "from": 3 },
+    { "type": "warehouse", "x": 0.12, "z": 0.42, "size": 1.1, "from": 3 }
   ],
   "woods": {
     "tree": "woodland-pine",

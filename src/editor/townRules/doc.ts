@@ -61,7 +61,7 @@ export const TOWN_RULES_DOC: FieldsDoc<TownRulesDoc> = {
     types:
       'Prop types the rules name: civic (the harbour’s church or market), churches, outliers (farms may stand apart), fields, quays a door faces, laneEnds.',
     grading:
-      'fails: what a failed rule counts as, "warning" until towns 2 and 3 fix the islands, then "error".',
+      'fails: what a failed rule counts as, "error" since every town passes (it was "warning" while towns 2 and 3 fixed the islands).',
   },
   names: 'Grounds are palette.json ground ids; types are prop ids (src/data/props/).',
 };
