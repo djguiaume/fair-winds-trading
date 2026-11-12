@@ -11,10 +11,15 @@ import { cosmeticsProblems, shippedCosmeticsDoc } from '../../src/editor/cosmeti
 import { freeProblems, shippedFreeDoc } from '../../src/editor/freeSailing/doc';
 import { LIFE_FILE, lifeProblems, shippedLifeDoc } from '../../src/editor/seaLife/doc';
 import { FOLK_FILE, folkProblems, shippedFolkDoc } from '../../src/editor/townFolk/doc';
+import {
+  TOWN_RULES_FILE,
+  shippedTownRulesDoc,
+  townRulesDocProblems,
+} from '../../src/editor/townRules/doc';
 import { THEME_FILE, shippedTheme, themeProblems } from '../../src/editor/theme/doc';
 import { questProblems } from '../../src/editor/quest/doc';
 import { ISLAND_SCALE } from '../../src/sim/islandUnits';
-import { islandCheckKit } from '../../src/render/models/towns';
+import { islandCheckKit } from '../../src/render/models/islandCheckKit';
 import { checkIsland } from '../../src/sim/islandChecks';
 import type { MapDef } from '../../src/sim/map';
 import { coastMapChecks } from '../../src/sim/mapCoast';
@@ -42,6 +47,7 @@ export interface Problem {
     | 'free'
     | 'life'
     | 'folk'
+    | 'towns'
     | 'theme';
   where: string;
   severity: 'error' | 'warning';
@@ -242,6 +248,12 @@ export function checkAll(opts: CheckOptions = {}) {
     counted.folk = FOLK_FILE;
   }
 
+  if (want('towns')) {
+    for (const message of townRulesDocProblems(shippedTownRulesDoc()))
+      problems.push({ area: 'towns', where: 'town-rules.json', severity: 'error', message });
+    counted.towns = TOWN_RULES_FILE;
+  }
+
   if (want('theme')) {
     for (const message of themeProblems(shippedTheme()))
       problems.push({ area: 'theme', where: 'theme.json', severity: 'error', message });
@@ -255,7 +267,7 @@ const list = (v: unknown) => (typeof v === 'string' ? v.split(',').filter(Boolea
 export function run(args: Args): number {
   if (args.help) {
     console.log(`npm run check [-- options]
-  --only seas,islands,quests,perks,controls,ships,audio,regatta,cosmetics,free,life,folk,theme  check only these areas
+  --only seas,islands,quests,perks,controls,ships,audio,regatta,cosmetics,free,life,folk,towns,theme  check only these areas
   --island id[,id]                   only these island files
   --map file.json[,file.json]        check these map files (editor exports) instead of the ring and stress seas
   --controls file.json               check this controls file (a controls page export)

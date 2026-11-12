@@ -32,6 +32,10 @@ const TOOLS = {
     about: 'birds and sea life (sea-life.json): list, check, set, add and remove bird kinds',
     module: '/tools/fw/life.ts',
   },
+  towns: {
+    about: 'town layout rules (town-rules.json): list, check, set; island -- audit runs them',
+    module: '/tools/fw/towns.ts',
+  },
   folk: {
     about: 'people of the towns (town-folk.json): list, check, set, add and remove kinds',
     module: '/tools/fw/folk.ts',

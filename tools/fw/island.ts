@@ -21,12 +21,14 @@ import {
   isSculptCommand,
   sculptFrame,
 } from '../../src/sim/sculptScript';
-import { type TownLevel, islandCheckKit } from '../../src/render/models/towns';
+import { type TownLevel } from '../../src/render/models/towns';
+import { islandCheckKit } from '../../src/render/models/islandCheckKit';
 import { designForest } from '../../src/render/models/forestPlan';
 import { FORESTS } from '../../src/data/forests';
 import { isResidence } from '../../src/render/models/townProps';
 import { type Args, num, pair, pointList } from './islandArgs';
 import { BAKE_HELP, bakeFile } from './islandBake';
+import { runAudit } from './islandAudit';
 import { SCULPT_HELP, exportJson, listEdits, sculptCall } from './islandSculpt';
 import { type IslandPlace, defaultSeas, islandPlacements, islandProblems } from './check';
 
@@ -35,6 +37,7 @@ const ROOT = process.cwd();
 
 const HELP = `npm run island -- <id|file.json> [step] [options]   change an island file, check it, one line
 npm run island -- new <id> [options]                  a new island file (src/data/islands/<id>.json)
+npm run island -- audit [id] [--md|--json|--warnings|--chart dir]  the town rules on every town
 
 new:   --outline "x,z x,z …" or --blob r=1,points=14,rough=0.22,stretch=1,turn=0 (default)
        --name "Palm Key" --style <a palette.json style: timber, fish, ice…> --seed 7103 --low 0.06 --force
@@ -294,12 +297,13 @@ function forestLine(design: IslandDesign, place: { R: number; harbour: boolean }
   return `forest at level ${level}: ${trees.length} trees${mix ? ` (${mix})` : ''}; ${drawn}`;
 }
 
-export function run(args: Args): number {
+export function run(args: Args): number | Promise<number> {
   const [target, kind, ...rest] = args._;
   if (args.help || !target) {
     console.log(HELP);
     return target || args.help ? 0 : 1;
   }
+  if (target === 'audit') return runAudit(args, kind);
   let design: IslandDesign;
   let file: string;
   const steps: IslandStep[] = [];

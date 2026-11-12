@@ -23,7 +23,7 @@ import { madeGoods, portNow, producesAt } from '../src/sim/settlement';
 import { SLOOP, SHIP_CLASSES } from '../src/sim/ship';
 import { checkIsland } from '../src/sim/islandChecks';
 import { createWorld } from '../src/sim/world';
-import { islandCheckKit } from '../src/render/models/towns';
+import { islandCheckKit } from '../src/render/models/islandCheckKit';
 import { stepMarkers } from '../src/ui/questView';
 import { stressMap } from '../src/data/stressMap';
 import pier from './fixtures/quests/test-pier.json';

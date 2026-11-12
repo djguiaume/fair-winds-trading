@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { GAME_MAP } from '../src/data/maps';
 import { TUNING } from '../src/data/tuning';
 import { ISLAND_DESIGNS, type IslandDesign, type SculptEdit } from '../src/data/islands';
-import { islandCheckKit } from '../src/render/models/towns';
+import { islandCheckKit } from '../src/render/models/islandCheckKit';
 import { checkCoast } from '../src/sim/coastChecks';
 import { checkIsland } from '../src/sim/islandChecks';
 import { ISLAND_SCALE } from '../src/sim/islandUnits';

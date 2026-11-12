@@ -1,7 +1,7 @@
 import type { GroundDef, IslandDesign, IslandStyle, Point, PropDef } from '../../data/islands';
 import { ISLAND_SCALE } from '../../sim/islandUnits';
 import { PROP_TYPES } from '../../render/models/props';
-import { islandCheckKit } from '../../render/models/towns';
+import { islandCheckKit } from '../../render/models/islandCheckKit';
 import { coastDistance, insetOutline } from '../../sim/coast';
 import { cliffDistance, islandLayout, layoutGround } from '../../sim/islandLayout';
 import type { IslandDef, MapDef, TerrainDef } from '../../sim/map';
