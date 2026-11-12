@@ -227,7 +227,9 @@
       "sizeDeg": 2.4,
       "moonSizeDeg": 1.8,
       "glow": 0.35,
-      "glowDeg": 22
+      "glowDeg": 22,
+      "moonGlow": 0.3,
+      "moonGlowDeg": 2.9
     },
     "stars": {
       "density": 0.1,

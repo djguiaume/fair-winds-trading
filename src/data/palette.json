@@ -15,6 +15,8 @@
     "stoneDark": "#b49e7c",
     "chimney": "#8a8174",
     "chimneyCap": "#4d4640",
+    "chimneyCapStone": "#8a8174",
+    "chimneyCapMid": "#6a625a",
     "trunk": "#5a3d24",
     "pine": ["#2f7a45", "#3a8a4c", "#2a6e3e"],
     "leaves": ["#4aa04f", "#5cae4a", "#3f8f45"],
@@ -81,6 +83,11 @@
     "whaleBelly": "#c9d1d4",
     "spout": "#e9f1f4",
     "shoal": "#2a5a70"
+  },
+  "roofTones": {
+    "leanToShift": 0.09,
+    "leanToDarkUnder": 0.3,
+    "capContrast": 0.12
   },
   "water": {
     "ring": {

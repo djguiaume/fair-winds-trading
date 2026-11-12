@@ -8,6 +8,7 @@ import {
   type RecipePart,
 } from '../../data/props';
 import { CODE_PARTS, boatHull } from './propCodeParts';
+import { chimneyCapTone, leanToTone } from './roofTones';
 import { glowing, paint, paintFaces, triangleCount, windowPanes } from './geometry';
 
 /**
@@ -205,8 +206,11 @@ function colorOf(
   s: Scope,
 ): string {
   if (color === undefined) throw new Error('A part has no color');
-  if (typeof color === 'object')
+  if (typeof color === 'object') {
+    if ('leanTo' in color) return leanToTone(colorOf(color.leanTo, style, s));
+    if ('capOn' in color) return chimneyCapTone(colorOf(color.capOn, style, s));
     return colorOf(color.of[Math.round(num(color.pick, s)) % color.of.length], style, s);
+  }
   if (color.startsWith('#')) return color;
   const m = /^(\w+)(?:\[(.+)\])?$/.exec(color);
   if (!m) throw new Error(`Cannot read the colour "${color}"`);
@@ -227,7 +231,9 @@ function colorsOf(
   s: Scope,
 ): string[] {
   if (typeof color === 'object')
-    return colorsOf(color.of[Math.round(num(color.pick, s)) % color.of.length], style, s);
+    return 'pick' in color
+      ? colorsOf(color.of[Math.round(num(color.pick, s)) % color.of.length], style, s)
+      : [colorOf(color, style, s)];
   const st = style as
     (Record<string, string[]> & { colors?: Record<string, string | string[]> }) | undefined;
   const list =
