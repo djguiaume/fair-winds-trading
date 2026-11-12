@@ -1,5 +1,7 @@
 # v1.9 towns: the believable-town audit (before)
 
+**After:** the ring's seven towns pass with no finding since #514: [ring.md](ring.md).
+
 Issue #513, decision [0301](../../../decisions/0301-town-layout-rules-and-the-believable-town-check.md). The art director's town rules (art bible §12, numbers in `src/data/town-rules.json`) run over every shipped island with houses, before towns 2 (#514, the ring) and 3 (#515, the far seas) fix them. No island file changed in this part.
 
 Made with `npm run island -- audit --md` (the table) and `npm run island -- audit --chart docs/reviews/v1.9/towns` (the plans). `npm run island -- audit <id>` lists one island's findings with their places; the island builder shows the same list in its Checks tab.
