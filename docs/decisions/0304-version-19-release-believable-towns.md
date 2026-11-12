@@ -1,6 +1,6 @@
 # 0304. Version 1.9 release, Believable towns
 
-**Status:** Proposed (2026-11-12). Accepted when Guillaume validates the combined sheets.
+**Status:** Accepted (2026-11-12). Guillaume validated the combined sheets ("Just finish the release").
 
 ## Context
 
@@ -10,7 +10,7 @@ Every part of the [v1.9 brief](../v1.9/brief.md) is merged on `main`: the town r
 
 - **This is an update.** `package.json` goes to `1.9.0` and the menu label to "1.9" ([0042](0042-light-versioning.md), [0219](0219-version-1-0-release.md)).
 - **The tag** is the version the menu shows for this PR's merge (v1.9.411 if nothing merges first), published with the release workflow and the notes in `docs/releases/` ([0062](0062-github-releases-per-phase.md)).
-- **Open, not blocking:** a phone `?bench` for smooth frames (#377); dark-window houses at Calda, Sunreach and Fogwatch (#525); the moon disc missing on Ultra, already in v1.8 (#526).
+- **Open, not blocking:** a phone `?bench` for smooth frames (#377); dark-window houses at Calda, Sunreach and Fogwatch (#525); the moon disc missing on Ultra, already in v1.8 (#526). Guillaume finds the new towns too much like grids: every town is to be redone as an organic old-European village next release (#528).
 
 ## Consequences
 
