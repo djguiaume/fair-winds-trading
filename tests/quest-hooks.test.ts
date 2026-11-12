@@ -74,17 +74,17 @@ describe('after:/before: tags', () => {
     // A building and its replacement on one spot: the island checks know they never stand together.
     const R = 26 / 2.2;
     const shed = design.props.findIndex((p) => p.type === 'cutting-shed');
-    const overlaps = (d: IslandDesign) =>
+    const together = (d: IslandDesign) =>
       checkIsland(d, { ...islandCheckKit(d, R), triangles: undefined }).filter(
-        (i) => i.check === 'overlap',
+        (i) => i.check === 'overlap' && /cutting-shed and lumber-store/.test(i.message),
       ).length;
-    const clean = overlaps(design);
+    expect(together(design)).toBe(0);
     const twin = structuredClone(design);
     twin.props.push({ ...twin.props[shed]!, type: 'lumber-store' });
-    expect(overlaps(twin)).toBeGreaterThan(clean);
+    expect(together(twin)).toBeGreaterThan(0);
     twin.props[shed]!.tags = ['before:q'];
     twin.props.at(-1)!.tags = ['after:q'];
-    expect(overlaps(twin)).toBe(clean);
+    expect(together(twin)).toBe(0);
   });
 
   it('only name quests there are, and a moored boat cannot wait on one', () => {

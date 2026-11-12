@@ -23,8 +23,10 @@ export interface LanePiece {
 
 /** How far from a standing home a lane piece shows, radius units. */
 const NEAR_HOME = 0.3;
-/** Pieces per lane: a smooth street sampled finely enough to bend. */
-const PIECES = 110;
+/** A lane piece's length, radius units: a smooth street sampled finely enough to bend. */
+const PIECE = 0.025;
+/** Pieces per lane at most, and at least: a short lane costs its length, not a long street's (#514). */
+const PIECES = [8, 110] as const;
 
 /** A lane's smooth centre line (radius units, y 0), sampled evenly. */
 export function laneSamples(lane: LaneDef): THREE.Vector3[] {
@@ -33,7 +35,8 @@ export function laneSamples(lane: LaneDef): THREE.Vector3[] {
     false,
     'centripetal',
   );
-  return street.getSpacedPoints(PIECES);
+  const pieces = Math.round(street.getLength() / PIECE);
+  return street.getSpacedPoints(Math.min(PIECES[1], Math.max(PIECES[0], pieces)));
 }
 
 /**

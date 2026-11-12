@@ -1,5 +1,6 @@
 // `npm run island -- audit` (issue #513): the town rules over every shipped island with houses,
-// one line per island (or a Markdown table with --md, JSON with --json, plans with --chart dir),
+// one line per island (or a Markdown table with --md, JSON with --json, plans with --chart dir,
+// named <id>-before.jpg or --as after),
 // from the same town checks the island builder shows.
 import { ISLAND_DESIGNS } from '../../src/data/islands';
 import { islandCheckKit } from '../../src/render/models/islandCheckKit';
@@ -93,7 +94,8 @@ export function auditTable(audit: TownAudit[]): string {
 
 export async function runAudit(args: Args, only?: string): Promise<number> {
   if (typeof args.chart === 'string') {
-    for (const file of await writeTownCharts(args.chart, only)) console.log(`→ ${file}`);
+    const as = typeof args.as === 'string' ? args.as : undefined;
+    for (const file of await writeTownCharts(args.chart, only, as)) console.log(`→ ${file}`);
     return 0;
   }
   const audit = townAudit(only);

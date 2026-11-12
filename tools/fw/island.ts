@@ -38,7 +38,7 @@ const ROOT = process.cwd();
 
 const HELP = `npm run island -- <id|file.json> [step] [options]   change an island file, check it, one line
 npm run island -- new <id> [options]                  a new island file (src/data/islands/<id>.json)
-npm run island -- audit [id] [--md|--json|--warnings|--chart dir]  the town rules on every town
+npm run island -- audit [id] [--md|--json|--warnings|--chart dir [--as after]]  the town rules on every town
 
 new:   --outline "x,z x,z …" or --blob r=1,points=14,rough=0.22,stretch=1,turn=0 (default)
        --name "Palm Key" --style <a palette.json style: timber, fish, ice…> --seed 7103 --low 0.06 --force

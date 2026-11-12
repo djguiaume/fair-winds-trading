@@ -206,7 +206,7 @@ describe('island builder ground, lanes and woods (0106)', () => {
     while (d.lake!.length > 3) deletePoint(d, lake, 0);
     expect(deletePoint(d, lake, 0)).toBe(false);
     const lane = { kind: 'lane', index: 2 } as const;
-    expect(deletePoint(d, lane, 0)).toBe(true);
+    while (d.lanes[2]!.points.length > 2) expect(deletePoint(d, lane, 0)).toBe(true);
     expect(deletePoint(d, lane, 0)).toBe(false);
   });
 
