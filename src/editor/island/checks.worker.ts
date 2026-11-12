@@ -1,6 +1,6 @@
 import { SETTLEMENT_LEVELS } from '../../sim/settlement';
 import type { IslandDesign } from '../../data/islands';
-import { islandCheckKit } from '../../render/models/towns';
+import { islandCheckKit } from '../../render/models/islandCheckKit';
 import { type IslandIssue, checkIsland } from '../../sim/islandChecks';
 
 // Island checks off the page thread (decision 0105): building every level to count its

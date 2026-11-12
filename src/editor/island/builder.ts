@@ -11,7 +11,8 @@ import { t } from '../../i18n';
 import { ISLAND_SCALE } from '../../sim/islandUnits';
 import { isGlowing } from '../../render/models/geometry';
 import { PROP_TYPES, type PropGroup } from '../../render/models/props';
-import { designedTownParts, islandCheckKit, type TownLevel } from '../../render/models/towns';
+import { designedTownParts, type TownLevel } from '../../render/models/towns';
+import { islandCheckKit } from '../../render/models/islandCheckKit';
 import { propParts, standHeight } from '../../render/models/townProps';
 import { builderLook, newLookGround, previewIsland } from './newLook';
 import type { IslandIssue } from '../../sim/islandChecks';
@@ -37,7 +38,7 @@ import {
   turnProp,
 } from './doc';
 import { renderChecks } from './checksView';
-import { fits, groundOf, propHull } from './propPlace';
+import { fits, groundOf, hullOf, propHull } from './propPlace';
 import { drawOverlay } from './overlay';
 import { TOOLS, TOOL_HINTS, type ShapeTool } from './toolTable';
 import { renderIslandPanel } from './panel';
@@ -955,20 +956,7 @@ function placeMoving(p: { turn?: number; y?: number; type: string }, x: number, 
 
 function setDrop(type: string, x: number, z: number) {
   const p = newProp(design, type, x, z, placeLevel());
-  const hullAt = (() => {
-    try {
-      return islandCheckKit(design, R, harbour).footprint!({ ...p, x: 0, z: 0 }).map(
-        ([hx, hz]): [number, number] => [hx + x, hz + z],
-      );
-    } catch {
-      return [
-        [x - 0.03, z - 0.03],
-        [x + 0.03, z - 0.03],
-        [x + 0.03, z + 0.03],
-        [x - 0.03, z + 0.03],
-      ] as [number, number][];
-    }
-  })();
+  const hullAt = hullOf(design, R, harbour, p);
   const ok = fits(design, R, harbour, level, placeLevel(), type, x, z);
   drop = {
     hull: hullAt,
