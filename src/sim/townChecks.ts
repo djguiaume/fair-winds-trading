@@ -22,7 +22,7 @@ import { TOWN_RULES, type TownRules } from './townRules';
  * The believable-town checks (issue #513): the art director's town layout rules (art bible ›
  * Towns, numbers in `src/data/town-rules.json`) on a designed island's houses. Shared by the
  * island builder, `npm run island` and the audit (`npm run island -- audit`). Each finding is
- * graded warn or fail; a fail counts as `grading.fails` says (warnings while towns 2 and 3 fix the islands).
+ * graded warn or fail; a fail counts as `grading.fails` says (an error since every town passes).
  */
 export function checkTown(
   design: IslandDesign,

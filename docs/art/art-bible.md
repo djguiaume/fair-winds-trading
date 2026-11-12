@@ -173,4 +173,4 @@ The art director's rules for a believable town (v1.9, issue #513), in the art di
 - **Woods.** Slope over 12° or the island's back or far edge, at least 2W from houses, never on the town's water side, never hiding the town from the sailing camera [`woods.slope`, `woods.houseGap`; the camera by eye].
 - **Exceptions by style** [`styles.<style>`]: **tropic** stilts may stand 0 to 2W out over the shallows, slope limit 8°. **Ice**: sheltered side, spacing 0.3W to 1.2W, no fields, snow-pine woods. **Fog**: slope limit 15°, lone crofts up to 6W from a lane, fells on the north side. **Fire** (Emberhold, Cinder Isle): never on lava or ash, at least 3W from lava cracks and the cone's slope, no fields, slope limit 10°.
 
-A failed rule is a warning until towns 2 and 3 (#514, #515) fix the islands; then `grading.fails` becomes `"error"` and `npm run check` holds the line.
+A failed rule is an error (`grading.fails` is `"error"` since towns 2 and 3, #514 and #515, fixed every island), so `npm run check` holds the line.

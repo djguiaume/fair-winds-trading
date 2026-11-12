@@ -23,5 +23,5 @@ The town rules of decision [0301](0301-town-layout-rules-and-the-believable-town
 - The ring draws about 300 more triangles at the phones' levels (lanes for the two hamlets that had none, trees that grow back round tighter towns): the ring mesh test's limit goes from 21,000 to 21,500. Per island all stay inside 8,500.
 - Lanes show on every town in the new look, the far seas too. The golden island hashes changed for every island with a lane.
 - Tests that leaned on Calda's or Stonehaven's old faults now make their own (a turned cabin, a cabin in the sea).
-- `grading.fails` stays `"warning"` until the far-sea towns (#515) pass too.
+- `grading.fails` stayed `"warning"` until the far-sea towns (#515) passed too; it is `"error"` since.
 - Before and after plans and shots: `docs/reviews/v1.9/towns/`.

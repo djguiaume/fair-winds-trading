@@ -1,6 +1,6 @@
 {
   "grading": {
-    "fails": "warning"
+    "fails": "error"
   },
   "styles": {
     "default": {

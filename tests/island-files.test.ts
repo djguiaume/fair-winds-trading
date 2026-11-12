@@ -41,9 +41,8 @@ describe('island files (decision 0101)', () => {
       expect(errors(issues), design.id).toEqual([]);
       // Known warnings: lane pieces the old lanes never drew, Calda above 5,000 triangles, and
       // the hidden yards' houses touching as the old shipyard town placed them (0107).
-      // The town rules (issue #513) warn until towns 2 and 3 fix the islands.
-      for (const w of issues.filter((i) => !i.check.startsWith('town-')))
-        expect(['lanes', 'budget', 'overlap'], w.message).toContain(w.check);
+      // The town rules (issue #513): every town is clean, and a fail is an error since #515.
+      for (const w of issues) expect(['lanes', 'budget', 'overlap'], w.message).toContain(w.check);
     }
     // Every file builds its ground at each settlement level for the coast and footing checks.
   }, 30000);
@@ -141,32 +140,32 @@ const GOLDEN: Record<string, string[]> = {
   'greyback-ridge': ['121:d8b1afe4', '121:d8b1afe4', '121:d8b1afe4', '121:d8b1afe4'],
   'gull-hook': ['130:ca8ed3fd', '130:ca8ed3fd', '130:ca8ed3fd', '130:ca8ed3fd'],
   'teeth-rock': ['25:d7a4208f', '25:d7a4208f', '25:d7a4208f', '25:d7a4208f'],
-  sunreach: ['632:ab6692a8', '761:3922c137', '863:f5d01d9f', '898:75b7187c'],
-  'sunreach-south': ['465:d9e49149', '490:ecb661b2', '499:3d6b3b64', '499:3d6b3b64'],
-  'palm-key': ['296:5af31071', '270:7e77b63a', '266:18f30d17', '266:18f30d17'],
+  sunreach: ['618:8e4c1dfa', '710:d4433804', '815:6e8e6e6b', '857:5e20acde'],
+  'sunreach-south': ['497:82e36a08', '510:378e2bac', '519:e3195d81', '519:e3195d81'],
+  'palm-key': ['326:25ceb327', '315:b7a387fa', '344:9e24d36b', '344:9e24d36b'],
   'lone-palm': ['19:56b2c2', '19:56b2c2', '19:56b2c2', '19:56b2c2'],
   'two-palms': ['23:a6ed5ed', '23:a6ed5ed', '23:a6ed5ed', '23:a6ed5ed'],
-  emberhold: ['434:dc718a1d', '525:c653ed2d', '605:252f95a8', '638:760552e7'],
+  emberhold: ['451:d56df2c3', '548:b9875d01', '625:11100059', '658:81a5b163'],
   'the-smoulder': ['161:afbe8b23', '161:afbe8b23', '161:afbe8b23', '161:afbe8b23'],
   'organ-pipes': ['89:ef4e83bf', '89:ef4e83bf', '89:ef4e83bf', '89:ef4e83bf'],
-  'cinder-isle': ['101:d61cc732', '120:264040fd', '136:af5a5fb4', '136:af5a5fb4'],
+  'cinder-isle': ['119:b7e2f5a3', '154:1fdb6902', '179:7fa21dde', '179:7fa21dde'],
   'steam-holm': ['35:f930960c', '35:f930960c', '35:f930960c', '35:f930960c'],
   'spark-rock': ['18:b3591ec5', '18:b3591ec5', '18:b3591ec5', '18:b3591ec5'],
   'the-chimneys': ['13:6d3cc715', '13:6d3cc715', '13:6d3cc715', '13:6d3cc715'],
   'the-chimneys-2': ['7:b1a0088d', '7:b1a0088d', '7:b1a0088d', '7:b1a0088d'],
   'the-tongs': ['7:78575b7d', '7:78575b7d', '7:78575b7d', '7:78575b7d'],
   'the-tongs-2': ['7:cbe478f3', '7:cbe478f3', '7:cbe478f3', '7:cbe478f3'],
-  fogwatch: ['441:c43152a5', '526:8da376d2', '615:f93a8901', '664:d560eecc'],
+  fogwatch: ['482:f266bf98', '567:e6b7770f', '654:635d5e34', '701:5288adae'],
   'the-giant': ['6:c84f56e6', '6:c84f56e6', '6:c84f56e6', '6:c84f56e6'],
   'his-wife': ['6:676eecc4', '6:676eecc4', '6:676eecc4', '6:676eecc4'],
-  'amber-strand': ['211:3559ea33', '253:1bfc9672', '292:3fe3ced5', '292:3fe3ced5'],
+  'amber-strand': ['303:6e6f72c9', '363:9d2a5829', '417:bbba493a', '417:bbba493a'],
   'puffin-holm': ['8:3ff49b4c', '8:3ff49b4c', '8:3ff49b4c', '8:3ff49b4c'],
   'lamb-holm': ['17:85293a40', '17:85293a40', '17:85293a40', '17:85293a40'],
   'broch-isle': ['16:4157b50d', '16:4157b50d', '16:4157b50d', '16:4157b50d'],
   'the-kittiwakes': ['56:f643c38e', '56:f643c38e', '56:f643c38e', '56:f643c38e'],
   'sandwick-holm': ['27:bf85bc6f', '27:bf85bc6f', '27:bf85bc6f', '27:bf85bc6f'],
-  rimewick: ['476:e67b20c8', '591:9764c497', '639:2d04f6b2', '647:dfacff2b'],
-  'snowberry-isle': ['244:66927c47', '338:69420eae', '420:d864781e', '420:d864781e'],
+  rimewick: ['471:803be4bb', '586:252d7557', '634:ad9ad77e', '642:2dfd5def'],
+  'snowberry-isle': ['255:50731560', '353:8c29d553', '448:51b6b890', '448:51b6b890'],
   whitefell: ['17:90d719e7', '17:90d719e7', '17:90d719e7', '17:90d719e7'],
   'lead-rock': ['22:566ea91e', '22:566ea91e', '22:566ea91e', '22:566ea91e'],
   'cairn-holm': ['9:86e5a65a', '9:86e5a65a', '9:86e5a65a', '9:86e5a65a'],

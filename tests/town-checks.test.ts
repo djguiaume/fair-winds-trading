@@ -78,13 +78,13 @@ describe('town geometry', () => {
 });
 
 describe('town checks (issue #513)', () => {
-  it('only warns with the shipped rules, each finding graded', () => {
+  it('grades each finding: a fail is an error with the shipped rules, a warn a warning', () => {
     expect(cabin).toBeGreaterThanOrEqual(0);
     // The ring's towns pass since #514: an untidy Calda, a cabin turned across its lane.
     const untidy = town((d) => (d.props[cabin]!.turn = (d.props[cabin]!.turn ?? 0) + 60));
     expect(untidy.length).toBeGreaterThan(0);
     for (const i of untidy) {
-      expect(i.severity).toBe('warning');
+      expect(i.severity).toBe(i.grade === 'fail' ? 'error' : 'warning');
       expect(i.check).toMatch(/^town-/);
       expect(['warn', 'fail']).toContain(i.grade);
     }

@@ -316,7 +316,7 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
 
   // The drawn ground against the sailed coast and the buildings' footing (decision 0237).
   if (!issues.some((i) => i.severity === 'error')) issues.push(...checkCoast(design, kit));
-  // The believable-town rules (issue #513): warnings until towns 2 and 3 fix the islands.
+  // The believable-town rules (issue #513): a fail counts as `grading.fails` says.
   issues.push(...checkTown(design, kit));
   return issues;
 }
