@@ -1,59 +1,47 @@
-# Storyteller handover to v1.6 (2026-11-02, after v1.5)
+# Storyteller handover to v1.10 (2026-11-12, after v1.9)
 
-From "Storyteller (v1.4)" to the next storyteller thread. Format: [roles.md](../roles.md). The voice, cast and every ruling live in the [storyteller brief](storyteller-brief.md); this file only says what is open.
+From "Storyteller (v1.9)" to the next storyteller thread. Format: [roles.md](../roles.md). Voice, cast and rulings live in the [storyteller brief](storyteller-brief.md); this file says what is open.
 
 ## Open decisions
 
-Nothing waits on Guillaume. v1.4 "Visible upgrades" shipped (release PR #428). v1.5 "A real game" (UI rebuild) shipped as v1.5.372. Next: v1.6, the story release.
+Nothing waits on Guillaume. v1.9 "Believable towns" (v1.9.411) was a look release and ruled no new words. v1.10 redoes every town as an organic old-European village (issue #528). No new person, name or line is needed for that unless a build thread asks.
 
-## What v1.5 "A real game" ruled (words in `src/i18n`)
+## Places quests and dialogue rely on (keep in #528)
 
-- Title tagline: "Read the wind, carry the cargo, find a home." / « Lisez le vent, portez la cargaison, trouvez un port d'attache. » (`menu.tagline`). No pirates, guns or deadlines in taglines.
-- Compass words: "hatched zone" / « zone hachurée » for the no-go wedge; "no-go zone" / « zone de vent debout » stays the HUD name. Never name a colour for the compass (no "red zone", no "green band"). Quest and wreck marks are the "pale diamond" / « losange pâle ». Amber and red belong to the sails control only.
-- Loading: "Hoisting sail" / « On hisse la voile ». Plain "Loading" only for error or retry states.
-- Portrait landing: "Turn your phone sideways to set sail." / « Tournez votre téléphone sur le côté pour appareiller. »
-- Arrival taglines (`port.tagline.*`, 2 to 4 words, no punctuation): each says what the place is known for, never a promise. Port names stay untranslated in FR.
-- Race finish board lines: First "First home. Well sailed.", Second "Second, close behind.", Third "Third, and home safe.", Retired "Left the race. The marks will wait." Places only, no blame or loss word, no weather. Wren's `regatta.result.*` lines stay the speech.
+Rules: never move or rename an island. Quest landing spots, gates and reach points are coordinates in `src/data/quests/*.json`: keep them reachable from open water, move a marker with its shore, then run `npm run quest -- check`. Keep each signature and its `before:`/`after:` tag. Wrecks and hulls are old and empty. Do not change town levels (main ports are Towns, outposts hamlets).
 
-## Open for v1.6
+**Ring**
+- Saltmere: smokehouse row, net green, Rook's harbour office on the quay (the text only says "call in at the harbour office"; no line gives a position). Before `saltmere-shoals`: boats pulled up, empty racks, cold chimneys. After: smoke, full racks, boats out, buoys on the East Reef gap.
+- Port Calda: slipway with a hull on it (after `calda-slipway`), pilot cutter at the pier. Greyback Ridge keeps its pines in sight (the mast is loaded on its shore).
+- Westholm: the mill on the hill, bare frames before `westholm-mill`, sails after, never turning.
+- Stonehaven: mason's crane, stacked blocks, idle quarry before `stonehaven-light`. Teeth Rock gets the lighthouse after; the old empty hull on the Teeth is gone after.
+- Watchman Key (lens pickup, Old Ness) and Abbey Head: no before/after.
+- Skerry: the pier (the "dock at Skerry" goal), numbered plot stakes (`buildings.json` `plotCamera`/`homeLooks` follow a plot), the signpost on the pier after `four-winds`.
+- Reef names stay: East Reef, the Teeth, The Combs, Mackerel Ledge, The Friars, Bell Rock.
 
-The story release: [plan](../v1.6/plan.md), tracker #358. The storyteller leads it and rules prices and progression before Guillaume.
+**Far seas**
+- Sunreach: tea house; Palm Key outpost.
+- Emberhold: Bram's glassworks and chimney on the quay (cold, then glowing after `emberhold-glass`); Black Strand; Cinder Isle outpost.
+- Rimewick: jam house with steam, red/ochre/slate timber houses, racks, snowmen; the Lead Rock beacon cairn (tumbled, then lit after `rimewick-jam`); Snowberry Isle weather station, glasshouse footing, moor by the warm spring; Cairn Holm, Seal Rocks.
+- Fogwatch: Elias's workshop (shutters, then a lamp after `fogwatch-amber`), the foghorn tower light, Fogwatch Voe; Amber Strand hut, racks and the reach point off its beach; Puffin Holm beacon, Lamb Holm sheep, Gannet Sound north-skerry light.
 
-## What v1.4 ruled
-
-- Cosmetics are free or earned, never priced, never power. Full rules, the word rules and the paid-item voice are in [customisation.md](customisation.md). The 12 logos, 8 figureheads and names are in `src/data/cosmetics/` and `src/i18n`; the first draft is also in project files `story/v1.4-customisation.md`.
-- The Tern stays a single gift. The pick-one ship reward (#315) is kept for choices of equal power; a v1.5 use is possible.
-
-## Open for v1.4.1
-
-- More cosmetics (a 13th logo for Skerry, themed sets such as East Wind and Ember Isles): ask the storyteller for names in EN and FR. Port Calda and Abbey Head have no logo on purpose.
-- Any paid item (not built, decision 0204 parked) follows the voice rules in customisation.md and needs Guillaume's call on prices.
-
-Carried over from v1.1: the empty Quay tab reads "Nobody waiting on the quay just now." (no promise of a return), status lines use digits and no "captain", no race text may depend on a storm. New races need Wren's offer, starter and result lines; rewards stay pride, not power.
-
-## Earlier rules (v1.3.1, still valid)
-
-- v1.3.1 "Boats that ride them": waves slow the boat in head seas (#284, PR #408). Ruled: first-upgrade price kept, balance target moved to 5.25 min. Texts: Settings "Waves slow the boat" / "Les vagues freinent le bateau" (note "Off: she sails as fast in any sea as in flat water"); HUD "Waves −3%" / "Vagues −3 %" (true minus, NBSP before % in FR). It is a hazard-style switch in Settings. No race or quest text may mention the slowdown.
-- v1.4 boat names, figurehead names and cosmetic text: ask the storyteller for the line, not Guillaume. Names are plain and sea-worn like the existing fleet, no leading word already taken (see "Rules that stay"), "Swift" is never a name, no "Skerry". Figureheads are carved things, not characters: no speech, no lore claims, nothing that implies pirates or guns. Cosmetics are pride, never power (same as regatta rewards). Every new text needs EN and FR, NBSP before : ! ? ; and %, FR map names untranslated.
-- The story release ([plan](../v1.6/plan.md), renumbered v1.6 on 2026-11-01; v1.5 is the UI rebuild) is the next story release; the storyteller leads it and rules prices and progression before Guillaume.
-
-## Pointers
-
-- **Brief:** [storyteller-brief.md](storyteller-brief.md). Rule 12 (voiced Skerry choice, [0210](../decisions/0210-skerrys-build-choice-staked-plots-and-the-island-tab.md)) and the ring's names and before/after rules ([0216](../decisions/0216-windward-ring-catch-up-pass.md)) are in it. Its "Status" line at the end is stale; bring it up to date in the same PR as your first ruling.
-- **Phase 5 story rulings:** [docs/phase-5/story.md](../phase-5/story.md): the regatta, standing orders, keepers on the harbour screen, boat names, the Skerry choice.
-- **Regatta:** [0217](../decisions/0217-the-saltmere-regatta.md). Wren Tally (look and voice in `characters.json` and `audio.json`), her cutter *Kestrel* (K 7), eight races as quests (`src/data/quests/race-*.json`), words under `regatta.*` and `quest.race-*` in `src/i18n`. The start is a horn, never a gun. Series: ring (3), seas (4), Four Winds Cup (1). Series won needs silver or better in each race. Pennants: Saltmere, Far Seas, Four Winds.
-- **Standing orders:** [0214](../decisions/0214-standing-orders-people-ask-again.md). One `standing-<person>` quest per person whose arc is done, 3 or 4 asks each; the full pools in EN and FR are in project files `plan/story/standing-orders.md` and `.json`. Settlers ask at their own outpost (timber). Rook and Kit take turns at Saltmere.
-- **Deck cargo** (quest cargo on deck, not in the hold), quest news lines at each stop ([0213](../decisions/0213-quest-news-at-each-stop.md)) and the harbour screen's keeper lines are all in `src/i18n`. The keepers: Saltmere is Rook, the outposts the settler, none at Abbey Head and Skerry.
-- **Project files (not in git):** `plan/story/phase5-words.md` and `plan/story/regatta-words.md` hold the original EN and FR drafts. The built text in `src/i18n` is the truth.
+A new named place (street, chapel, mill) needs the storyteller's ruling in one message. Unnamed houses, fields and trees do not.
 
 ## Rules that stay (do not reopen)
 
-- Pirates are out of the base game. If they return, only as a later extension in their own new sea, with the "rovers" shape: no guns, you outsail them, nobody is hurt, a crew is brought home. Idea on file in [the review](../reviews/whole-game/README.md).
-- The seas open early (0194). Rook's thanks on the quay stays as Guillaume approved it. The credit load (0200) has no person card, interest or deadline.
-- "Swift" is a ship line id, so it is never a name. Never use "Skerry" in a new name, or a leading word already taken (Cinder, Teeth, Gull, Lantern, Palm, Gannet, Strand).
+- Pirates are out of the base game; if they return, only as a later extension in their own new sea, the "rovers" shape (no guns, you outsail them, nobody is hurt).
+- Cosmetics are free or earned, never priced, never power ([customisation.md](customisation.md)). Race text never depends on a storm or mentions the wave slowdown. Races reward pride, not power.
+- "Swift" is a ship line id, never a name. Never use "Skerry" in a new name, or a leading word already taken (Cinder, Teeth, Gull, Lantern, Palm, Gannet, Strand).
+- Words: warm, plain, "captain" / vous. Every text has EN and FR, NBSP before : ! ? ; and %, FR map names untranslated, no pirates, guns or deadlines in taglines.
+- The seas open early (0194). Rook's thanks on the quay stays as approved. The credit load (0200) has no person card, interest or deadline. The big-event panel (0174) stays unbuilt until Guillaume asks.
+
+## Pointers
+
+- Brief: [storyteller-brief.md](storyteller-brief.md); its "Status (2026-10-28)" line is stale, bring it up to date with your first ruling.
+- Phase 5 rulings (regatta, standing orders, keepers, Skerry choice): [docs/phase-5/story.md](../phase-5/story.md), decisions 0210, 0213, 0214, 0216, 0217. Built text in `src/i18n` is the truth.
+- Town levels and outposts: brief "Town levels in the new seas".
 
 ## Follow-ups
 
-- Add a short Wren, regatta and standing-orders section to the brief itself (today the rulings sit in `docs/phase-5/story.md` and the decisions). Not yet an issue; do it with the first v1.1 story ruling.
+- Add a short Wren, regatta and standing-orders section to the brief (today in `docs/phase-5/story.md`). No issue yet.
 - Check Bram's voice by ear against Rook's (pitch 0.74, vowels "aeo" against "oau").
-- The big-event panel (0174) stays unbuilt until Guillaume asks.
