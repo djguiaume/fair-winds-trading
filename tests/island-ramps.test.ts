@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ISLAND_DESIGNS, type IslandDesign } from '../src/data/islands';
-import { designedTownParts, islandCheckKit } from '../src/render/models/towns';
+import { designedTownParts } from '../src/render/models/towns';
+import { islandCheckKit } from '../src/render/models/islandCheckKit';
 import { coastDistance } from '../src/sim/coast';
 import { checkIsland } from '../src/sim/islandChecks';
 import { cliffDistance } from '../src/sim/islandCliffs';

@@ -1,0 +1,98 @@
+{
+  "grading": { "fails": "warning" },
+  "styles": {
+    "default": {
+      "slope": [12, 18],
+      "setback": 0.8,
+      "spacing": [0.3, 1.5],
+      "lonely": 3,
+      "laneReach": 2,
+      "fields": "yes",
+      "avoid": ["lavafield"],
+      "hazardGap": 0
+    },
+    "tropic": {
+      "slope": [8, 12],
+      "setback": -2,
+      "spacing": [0.3, 1.5],
+      "lonely": 3,
+      "laneReach": 2,
+      "fields": "yes",
+      "avoid": ["lavafield"],
+      "hazardGap": 0
+    },
+    "ice": {
+      "slope": [12, 18],
+      "setback": 0.8,
+      "spacing": [0.2, 1.2],
+      "lonely": 3,
+      "laneReach": 2,
+      "fields": "no",
+      "avoid": ["lavafield"],
+      "hazardGap": 0
+    },
+    "fog": {
+      "slope": [15, 20],
+      "setback": 0.8,
+      "spacing": [0.3, 1.5],
+      "lonely": 6,
+      "laneReach": 6,
+      "fields": "yes",
+      "avoid": ["lavafield"],
+      "hazardGap": 0
+    },
+    "volcano": {
+      "slope": [10, 15],
+      "setback": 0.8,
+      "spacing": [0.3, 1.5],
+      "lonely": 3,
+      "laneReach": 2,
+      "fields": "no",
+      "avoid": ["lavafield", "ashrock"],
+      "hazardGap": 3
+    }
+  },
+  "houses": {
+    "civicSlope": 18,
+    "quaySetback": 0.3,
+    "facingReach": 3,
+    "facing": [25, 45],
+    "rowTurn": 15
+  },
+  "harbour": {
+    "core": 8,
+    "coreSlope": 8,
+    "centre": 6,
+    "share": 0.6,
+    "shareReach": 8,
+    "civic": 5
+  },
+  "lanes": {
+    "turn": 30,
+    "flat": 4,
+    "offShare": 0.3,
+    "shore": [1, 3],
+    "slope": 15,
+    "endReach": 1
+  },
+  "piers": {
+    "square": 30,
+    "shore": 1
+  },
+  "fields": {
+    "slope": 8,
+    "near": [2, 8]
+  },
+  "woods": {
+    "slope": 12,
+    "houseGap": 2
+  },
+  "types": {
+    "civic": ["spire-church", "nordic-church", "market-hall", "harbour-office", "tea-house"],
+    "churches": ["spire-church", "nordic-church"],
+    "outliers": ["farmhouse"],
+    "fields": ["field", "tea-garden"],
+    "quays": ["paving"],
+    "laneEnds": ["signpost", "flagpole", "name-board", "hot-spring", "warm-spring", "market-hall"]
+  }
+}

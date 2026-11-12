@@ -2,7 +2,7 @@
 // The bake itself is src/sim/coastBake.ts; this only runs it and the map checks it can break.
 import { GAME_MAP } from '../../src/data/maps';
 import type { IslandDesign } from '../../src/data/islands';
-import { islandCheckKit } from '../../src/render/models/towns';
+import { islandCheckKit } from '../../src/render/models/islandCheckKit';
 import { bakeSummary } from '../../src/sim/coastBake';
 import { bakeIsland } from '../../src/sim/coastBakeMap';
 

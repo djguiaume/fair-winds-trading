@@ -1,6 +1,6 @@
 import type { IslandDesign } from '../../data/islands';
 import { PROP_TYPES } from '../../render/models/props';
-import { islandCheckKit } from '../../render/models/towns';
+import { islandCheckKit } from '../../render/models/islandCheckKit';
 import { coastDistance } from '../../sim/coast';
 import { islandLayout, layoutGround } from '../../sim/islandLayout';
 import { type Level, newProp } from './doc';

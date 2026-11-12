@@ -53,6 +53,7 @@ describe('command-line tools for agents (decision 0153)', () => {
       'free',
       'life',
       'folk',
+      'towns',
       'theme',
     ]);
   }, 60000);

@@ -62,6 +62,7 @@ Full options: [docs/tools/README.md](docs/tools/README.md), or `--help`. `npm ru
 - `free`: Free Sailing presets (list, add, set, check); `walk` proves a session never touches the voyage save.
 - `life`: birds and sea life (`sea-life.json`): list, set, check, add and remove bird kinds.
 - `folk`: the people of the towns (`town-folk.json`): list, set, check, add and remove kinds.
+- `towns`: the town layout rules (`town-rules.json`): list, set, check; `island -- audit` runs them on every town.
 - `tune`: tuning numbers (`list hud`, `set hud.idleFadeSec 8`), checked against the `?tune` ranges.
 - `sound`: render the game's sounds to MP3.
 - `theme`: the UI theme's tokens (list, set, check, export, import); the editors' Theme page.

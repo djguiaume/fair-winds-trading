@@ -13,6 +13,7 @@ import { atLevel, type IslandDesign, type PropDef, questApart } from '../data/is
 import { GROUNDS, STYLES, groundId } from '../data/grounds';
 import { checkCoast } from './coastChecks';
 import { checkSculpt } from './sculptChecks';
+import { checkTown } from './townChecks';
 
 /**
  * Island file checks (decision 0096 §2, built in 0101), shared by the island builder and
@@ -28,6 +29,8 @@ export interface IslandIssue {
   /** Index in `design.props`, when it is about a prop. */
   prop?: number;
   level?: number;
+  /** The town checks' grade (issue #513): a rule's warn or fail threshold. */
+  grade?: 'warn' | 'fail';
 }
 
 /** What the checks need to know about prop types and models, which live in the renderer. */
@@ -44,6 +47,8 @@ export interface IslandCheckKit {
   triangles?: (level: number) => number;
   /** False for an island with no harbour (decision 0110): no approach to keep clear. */
   harbour?: boolean;
+  /** The new look's trees at the top level (radius units), for the town checks' woods rule. */
+  trees?: () => [number, number][];
 }
 
 /** Raised from 6000 / 5000 for the rich homes (issue #500): about 80 more triangles each near. */
@@ -311,6 +316,8 @@ export function checkIsland(design: IslandDesign, kit: IslandCheckKit): IslandIs
 
   // The drawn ground against the sailed coast and the buildings' footing (decision 0237).
   if (!issues.some((i) => i.severity === 'error')) issues.push(...checkCoast(design, kit));
+  // The believable-town rules (issue #513): warnings until towns 2 and 3 fix the islands.
+  issues.push(...checkTown(design, kit));
   return issues;
 }
 
