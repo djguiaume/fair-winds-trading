@@ -64,7 +64,10 @@ export function townAudit(only?: string): TownAudit[] {
       warn: issues.filter((i) => i.grade !== 'fail').length,
       fail: issues.filter((i) => i.grade === 'fail').length,
       rules,
-      messages: issues.map((i) => `${i.grade === 'fail' ? '✗' : '!'} ${i.check}: ${i.message}`),
+      messages: issues.map(
+        (i) =>
+          `${i.grade === 'fail' ? '✗' : '!'} ${i.check}: ${i.message}${i.prop === undefined ? '' : ` [prop ${i.prop}]`}`,
+      ),
     });
   }
   return out;
