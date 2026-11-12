@@ -256,6 +256,18 @@ in the code):
 Present and good, so not missing: pause, controller support with three button styles, two
 languages, save transfer by code and QR, hazard and motion switches, fullscreen, Free Sailing.
 
+**Racing together** (Guillaume, 2026-11-12, after the review: "multiplayer coop or regatta?").
+The roadmap had multiplayer and any server out of scope. Racing is where playing together fits
+this game and can be built in steps; a co-op voyage means keeping the whole world in step
+(markets, towns, quests, weather) and is not proposed before the Steam demo.
+
+| Step | What | Server | Issue |
+|---|---|---|---|
+| 1 | Regatta menu: pick a race, top results, events with a set boat | no | #580 |
+| 2 | Race a friend's ghost from a link or QR | no | #579 |
+| 3 | Regatta service: world top results, shared ghosts, meeting for live races | yes, small; cost needs Guillaume's OK | #581 |
+| 4 | Live regatta, 2 to 4 boats | uses step 3 | #582 |
+
 Before any of them reaches a store: the stranger playtest (#364) and a licence (#566).
 
 ## 9. Proposed order (#568, for Guillaume to accept or change)
@@ -267,6 +279,7 @@ Before any of them reaches a store: the stranger playtest (#364) and a licence (
 | v1.12 | Light and water | #557, #558, #573 first; then #550, #551, #552, #547, #546, #548, #549 |
 | v1.13 | Soft and rich | #572 (sheet first), #553, #554, #555 |
 | then | Stranger playtest | #364, after #556, #566, and the store basics #574, #576, #577 |
+| later | Racing together | #580, #579, then #581, #582 |
 | later | Log and feats; Market; Photo mode; Passages; Calendar | #575; #559; #565; #578; #567 |
 
 Code health beside them, one at a time: #561, #562, #564, #563, #569, #570.
@@ -322,6 +335,10 @@ Code health beside them, one at a time: #561, #562, #564, #563, #569, #570.
 | #576 | Missing: text size, colour-blind check, access settings | idea | medium | yes |
 | #577 | Missing: change the keys and controller buttons | idea | medium | small |
 | #578 | Missing: a pace for long passages | idea | medium | small |
+| #579 | Race a friend's ghost: share a regatta run as a code | idea | medium | small |
+| #580 | Regatta menu: pick a race, top results, events with a set boat | idea | high | yes |
+| #581 | Regatta service: a small server for results, ghosts and meeting | idea | high | no |
+| #582 | Live regatta: 2 to 4 boats racing together online | idea | high | yes |
 
 Filed before and linked, not repeated: #528 organic towns, #526 moon on Ultra, #525 dark windows,
 #377 and #291 device rounds, #364 stranger playtest. Closed as done during the review: #513, #516,
