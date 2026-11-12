@@ -268,5 +268,8 @@
   "houses": {
     "richWithin": 140,
     "hysteresis": 0.1
+  },
+  "builds": {
+    "msPerFrame": 3
   }
 }

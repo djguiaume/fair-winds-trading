@@ -45,26 +45,31 @@ export interface SeabedTexture {
 export class SeabedTextureCache {
   private fields: readonly Heightfield[] = [];
   private terrain: readonly TerrainDef['outline'][] = [];
-  private tuning = '';
+  private depth = '';
+  /** The exposure's numbers and piers, null for a bake without it. */
+  private coast: string | null = null;
   private seabed?: SeabedTexture;
 
-  /** With `piers`, the exposure too, for the Gerstner waves' calm (Settings › Waves on). */
+  /**
+   * With `piers`, the exposure too, for the Gerstner waves' calm (Settings › Waves on). A bake
+   * with the exposure serves a level without it, as its depth is the same: a level change down
+   * from the waves bakes nothing (issue #516).
+   */
   get({ fields, terrain = [], piers = null }: DrawnLand): SeabedTexture {
     const outlines = terrain.map((t) => t.outline);
-    const tuning = JSON.stringify([TUNING.graphics.water.depth, piers && [bakedCoast(), piers]]);
-    if (
-      !this.seabed ||
-      this.tuning !== tuning ||
-      !sameItems(this.fields, fields) ||
-      !sameItems(this.terrain, outlines)
-    ) {
-      const next = seabedTexture({ fields, terrain, piers });
-      this.seabed?.texture.dispose();
-      this.seabed = next;
-      this.fields = [...fields];
-      this.terrain = outlines;
-      this.tuning = tuning;
-    }
+    const depth = JSON.stringify(TUNING.graphics.water.depth);
+    const coast = piers && JSON.stringify([bakedCoast(), piers]);
+    const sameLand =
+      this.depth === depth && sameItems(this.fields, fields) && sameItems(this.terrain, outlines);
+    if (this.seabed && sameLand && (coast === this.coast || (!coast && this.coast)))
+      return this.seabed;
+    const next = seabedTexture({ fields, terrain, piers });
+    this.seabed?.texture.dispose();
+    this.seabed = next;
+    this.fields = [...fields];
+    this.terrain = outlines;
+    this.depth = depth;
+    this.coast = coast;
     return this.seabed;
   }
 

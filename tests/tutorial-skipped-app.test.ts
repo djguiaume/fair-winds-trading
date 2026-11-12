@@ -19,6 +19,7 @@ vi.mock('../src/render/view', () => ({
     resize() {}
     render() {}
     setQuality() {}
+    async warmUp() {}
     setWaves() {}
     motion = { gentle: false, cameraBob: false };
     seaLife = { on: true, birdDistance: () => 0 };

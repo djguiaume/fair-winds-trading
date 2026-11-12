@@ -1,7 +1,6 @@
 import { TUNING } from '../data/tuning';
 import { designOf, type IslandDesign } from '../data/islands';
 import type { IslandDef, TerrainDef } from './map';
-import { insetOutline } from './coast';
 import { insideOutline } from './flowShapes';
 import {
   edgeDistance,
@@ -17,8 +16,10 @@ import {
   type IslandLayout,
 } from './islandLayout';
 import { BEACH_TOP, ISLAND_SCALE } from './islandUnits';
-import { smoothField, townKeepAreas } from './smoothField';
+import { smoothField, smoothFieldSteps, townKeepAreas } from './smoothField';
+import { ROWS_PER_STEP, type Steps, finish } from './steps';
 import { sculptField } from './sculpt';
+import { boundsOf } from './outlineBounds';
 
 /**
  * The islands' ground as one grid of heights (decision 0222, issue #268): built from the island
@@ -127,11 +128,11 @@ export function fieldLod(field: Heightfield, step: number): Heightfield {
 }
 
 /** A grid over a box (map units), snapped to the world grid, filled by a sampler. */
-function rasterise(
+export function* rasterise(
   [minX, minY, maxX, maxY]: readonly [number, number, number, number],
   seed: number,
   sample: Sampler,
-): Heightfield {
+): Steps<Heightfield> {
   const { cell, margin, seabed } = TUNING.terrain;
   const x0 = Math.floor((minX - margin) / cell) * cell,
     y0 = Math.floor((minY - margin) / cell) * cell;
@@ -152,7 +153,8 @@ function rasterise(
     seed,
   };
   const out: Sample = { height: 0, ground: WATER, terrace: false, smooth: 1 };
-  for (let j = 0; j < h; j++)
+  for (let j = 0; j < h; j++) {
+    if (j && j % ROWS_PER_STEP === 0) yield;
     for (let i = 0; i < w; i++) {
       const k = j * w + i;
       if (!sample(x0 + i * cell, y0 + j * cell, out)) {
@@ -167,12 +169,13 @@ function rasterise(
       if (g < 0) g = field.grounds.push(out.ground) - 1;
       field.ground[k] = g;
     }
+  }
   return field;
 }
 
 type Box = [number, number, number, number];
 
-function boxOf(outlines: readonly TerrainDef['outline'][], pad = 0) {
+export function boxOf(outlines: readonly TerrainDef['outline'][], pad = 0) {
   const box: Box = [Infinity, Infinity, -Infinity, -Infinity];
   for (const outline of outlines)
     for (const [x, y] of outline) {
@@ -186,15 +189,14 @@ function boxOf(outlines: readonly TerrainDef['outline'][], pad = 0) {
 
 const inBox = (b: Box, x: number, y: number) => x >= b[0] && y >= b[1] && x <= b[2] && y <= b[3];
 
-const outlineBoxes = new WeakMap<TerrainDef['outline'], Box>();
-function outlineBox(outline: TerrainDef['outline']) {
-  let box = outlineBoxes.get(outline);
-  if (!box) outlineBoxes.set(outline, (box = boxOf([outline])));
-  return box;
+function inOutlineBox(outline: TerrainDef['outline'], x: number, y: number) {
+  const b = boundsOf(outline);
+  return x >= b.minX && y >= b.minY && x <= b.maxX && y <= b.maxY;
 }
+
 /** Inside an outline, its box tested first: most samples are far from most outlines. */
-const inside = (outline: TerrainDef['outline'], x: number, y: number) =>
-  inBox(outlineBox(outline), x, y) && insideOutline(x, y, outline);
+export const inside = (outline: TerrainDef['outline'], x: number, y: number) =>
+  inOutlineBox(outline, x, y) && insideOutline(x, y, outline);
 
 const raisedBoxes = new WeakMap<IslandLayout, Box[]>();
 /** Where ramps and sloped edges may lift the ground above the flat surfaces. */
@@ -261,7 +263,7 @@ function designedSample(layout: IslandLayout, x: number, z: number, out: Sample)
   }
   for (const s of layout.surfaces) {
     // A mountain's cone stands on the box round its outline (peakBox).
-    if (s.shape !== 'peak' || !inBox(outlineBox(s.outline), x, z)) continue;
+    if (s.shape !== 'peak' || !inOutlineBox(s.outline, x, z)) continue;
     const peak = peakHeight(s, x, z);
     if (peak === null || peak <= height) continue;
     height = peak;
@@ -304,6 +306,11 @@ const fieldCache = new WeakMap<
  * island without a file is its collision circle at beach height. Cached; never change the result.
  */
 export function islandHeightfield(island: IslandDef, level = 4): Heightfield {
+  return finish(islandHeightfieldSteps(island, level));
+}
+
+/** `islandHeightfield` in steps (issue #516): at once when it is cached. */
+export function* islandHeightfieldSteps(island: IslandDef, level = 4): Steps<Heightfield> {
   const design = designOf(island);
   const { cell, margin, seabed, lakeBed } = TUNING.terrain;
   const key = [
@@ -323,7 +330,9 @@ export function islandHeightfield(island: IslandDef, level = 4): Heightfield {
   if (cached?.design !== design) fieldCache.set(island, (cached = { design, fields: new Map() }));
   let field = cached.fields.get(key);
   if (!field) {
-    field = design ? designHeightfield(island, design, level) : smoothField(legacyField(island));
+    field = design
+      ? yield* designHeightfieldSteps(island, design, level)
+      : smoothField(legacyField(island));
     cached.fields.set(key, field);
   }
   return field;
@@ -335,66 +344,35 @@ export function islandHeightfield(island: IslandDef, level = 4): Heightfield {
  * is not the map's own, as the island builder, the island checks and the sculpting session use.
  */
 export function designHeightfield(island: IslandDef, design: IslandDesign, level = 4): Heightfield {
+  return finish(designHeightfieldSteps(island, design, level));
+}
+
+function* designHeightfieldSteps(
+  island: IslandDef,
+  design: IslandDesign,
+  level: number,
+): Steps<Heightfield> {
   const coasts = design.coasts.map((c) => islandOutline(island, c));
-  const field = smoothField(
-    rasterise(boxOf(coasts), design.seed, designSampler(island, design, level)),
+  const raw = yield* rasterise(boxOf(coasts), design.seed, designSampler(island, design, level));
+  yield;
+  const field = yield* smoothFieldSteps(
+    raw,
     townKeepAreas(design, level, island.radius, (x, z) => islandPoint(island, x, z)),
     coasts,
   );
+  yield;
   return sculptField(field, island, design);
 }
 
 function legacyField(island: IslandDef): Heightfield {
   const r = island.radius;
-  return rasterise([island.x - r, island.y - r, island.x + r, island.y + r], 0, (x, y, out) => {
-    if (Math.hypot(x - island.x, y - island.y) > r) return false;
-    out.height = BEACH_HEIGHT;
-    out.ground = 'sand';
-    out.terrace = true;
-    return true;
-  });
-}
-
-/** Grounds of a barrier island's tiers, beach first (`terrain.json › ridge`). */
-const RIDGE_GROUNDS = ['sand', 'rock', 'rock', 'grass'];
-
-/**
- * The height field of a terrain shape that stands above the sea: a barrier island's tiers
- * (decision 0031) or a sandbank. Reefs, ice, shallows and bergs have no ground here: null.
- */
-export function terrainHeightfield(feature: TerrainDef, seed: number): Heightfield | null {
-  const box = boxOf([feature.outline]);
-  if (feature.kind === 'sandbank') {
-    const top = TUNING.terrain.sandbankTop;
-    return smoothField(
-      rasterise(box, seed, (x, y, out) => {
-        if (!inside(feature.outline, x, y)) return false;
-        out.height = top;
-        out.ground = 'sand';
-        out.terrace = true;
-        return true;
-      }),
-      [],
-      [feature.outline],
-    );
-  }
-  if (feature.kind !== 'island') return null;
-  const { insets, tops } = TUNING.terrain.ridge;
-  const tiers = insets.map((inset) =>
-    inset ? insetOutline(feature.outline, inset) : feature.outline,
-  );
-  const last = tiers.length - 1;
-  return smoothField(
-    rasterise(box, seed, (x, y, out) => {
-      let tier = -1;
-      for (let k = last; k >= 0 && tier < 0; k--) if (inside(tiers[k]!, x, y)) tier = k;
-      if (tier < 0) return false;
-      out.height = tops[tier]!;
-      out.ground = RIDGE_GROUNDS[tier] ?? 'grass';
-      out.terrace = tier === last;
+  return finish(
+    rasterise([island.x - r, island.y - r, island.x + r, island.y + r], 0, (x, y, out) => {
+      if (Math.hypot(x - island.x, y - island.y) > r) return false;
+      out.height = BEACH_HEIGHT;
+      out.ground = 'sand';
+      out.terrace = true;
       return true;
     }),
-    [],
-    [feature.outline],
   );
 }

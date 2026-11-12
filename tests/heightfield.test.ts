@@ -9,8 +9,8 @@ import {
   heightAt,
   islandHeightfield,
   sampleIndex,
-  terrainHeightfield,
 } from '../src/sim/heightfield';
+import { terrainHeightfield } from '../src/sim/terrainField';
 import { islandCoasts, islandLayout, islandPoint } from '../src/sim/islandLayout';
 import { BEACH_TOP, ISLAND_SCALE } from '../src/sim/islandUnits';
 import { coastDistance } from '../src/sim/coast';

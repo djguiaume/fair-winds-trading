@@ -13,6 +13,7 @@ import {
 } from './islandLayout';
 import { designOf } from '../data/islands';
 import { DEFAULT_START_LEVEL } from './settlement';
+import { boundsOf } from './outlineBounds';
 
 /**
  * What the boat ran into; hulls fare worst on reefs, then piers, moored boats and rocky shores
@@ -35,6 +36,11 @@ export function shallowsRefuse(feature: TerrainDef, draft: number): boolean {
   return feature.kind === 'shallows' && draft > (feature.maxDraft ?? 0);
 }
 
+/** The harder of what was hit so far and what is hit now. */
+function harder(hit: Surface | null, surface: Surface): Surface {
+  return hit === null || HARDNESS[surface] > HARDNESS[hit] ? surface : hit;
+}
+
 /** Is this shape solid to a ship of this draft? Shallows are solid only to deeper ships. */
 export function solidTo(feature: TerrainDef, draft: number): boolean {
   // A berg field is open water; its bergs are solid on their own (decision 0170).
@@ -42,24 +48,8 @@ export function solidTo(feature: TerrainDef, draft: number): boolean {
   return feature.kind !== 'shallows' || shallowsRefuse(feature, draft);
 }
 
-const coastBounds = new WeakMap<
-  TerrainDef['outline'],
-  { minX: number; minY: number; maxX: number; maxY: number }
->();
-
-/** Generated island outlines retain their identity until the island's geometry changes. */
 function outsideCoast(boat: BoatState, radius: number, outline: TerrainDef['outline']): boolean {
-  let bounds = coastBounds.get(outline);
-  if (!bounds) {
-    bounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
-    for (const [x, y] of outline) {
-      bounds.minX = Math.min(bounds.minX, x);
-      bounds.minY = Math.min(bounds.minY, y);
-      bounds.maxX = Math.max(bounds.maxX, x);
-      bounds.maxY = Math.max(bounds.maxY, y);
-    }
-    coastBounds.set(outline, bounds);
-  }
+  const bounds = boundsOf(outline);
   return (
     boat.x < bounds.minX - radius ||
     boat.x > bounds.maxX + radius ||
@@ -229,9 +219,6 @@ export function resolveCollisions(
   bergs: readonly { x: number; y: number; r: number }[] = [],
 ): Surface | null {
   let hit: Surface | null = null;
-  const touch = (surface: Surface) => {
-    if (hit === null || HARDNESS[surface] > HARDNESS[hit]) hit = surface;
-  };
   for (const island of islands) {
     const coasts = islandCoasts(island);
     if (coasts) {
@@ -250,7 +237,7 @@ export function resolveCollisions(
           boat.x += coast.nx * (radius - coast.distance + 1e-6);
           boat.y += coast.ny * (radius - coast.distance + 1e-6);
           bump(boat, coast.nx, coast.ny);
-          touch('shore');
+          hit = harder(hit, 'shore');
         }
       }
       continue;
@@ -265,7 +252,7 @@ export function resolveCollisions(
       boat.x += nx * overlap;
       boat.y += ny * overlap;
       bump(boat, nx, ny);
-      touch('shore');
+      hit = harder(hit, 'shore');
     }
   }
   for (const feature of terrain) {
@@ -279,9 +266,10 @@ export function resolveCollisions(
       boat.x += coast.nx * (radius - coast.distance + 1e-6);
       boat.y += coast.ny * (radius - coast.distance + 1e-6);
       bump(boat, coast.nx, coast.ny);
-      touch(feature.kind === 'island' ? 'shore' : (feature.kind as Surface));
+      hit = harder(hit, feature.kind === 'island' ? 'shore' : (feature.kind as Surface));
     }
   }
+  const longest = radius * Math.max(1, TUNING.seamanship.traffic.abeam);
   for (const pier of piers) {
     const sx = pier.x1 - pier.x0;
     const sy = pier.y1 - pier.y0;
@@ -292,16 +280,19 @@ export function resolveCollisions(
     const dx = boat.x - (pier.x0 + sx * t);
     const dy = boat.y - (pier.y0 + sy * t);
     const dist = Math.hypot(dx, dy) || 1e-6;
+    const halfWidth = pier.halfWidth ?? PIER_HALF_WIDTH;
+    // Out of the longest reach of the hull: no need to work out the oval's.
+    if (dist >= halfWidth + longest) continue;
     // A hull reaches out as an oval, long along her keel and narrow abeam: she can lie alongside.
     const reach = hullReach(radius, boat.heading, Math.atan2(-dx, -dy));
-    const overlap = (pier.halfWidth ?? PIER_HALF_WIDTH) + reach - dist;
+    const overlap = halfWidth + reach - dist;
     if (overlap > 0) {
       const nx = dx / dist;
       const ny = dy / dist;
       boat.x += nx * overlap;
       boat.y += ny * overlap;
       bump(boat, nx, ny);
-      touch(pier.boat ? 'boat' : 'pier');
+      hit = harder(hit, pier.boat ? 'boat' : 'pier');
     }
   }
   for (const berg of bergs) {
@@ -315,13 +306,13 @@ export function resolveCollisions(
       boat.x += nx * overlap;
       boat.y += ny * overlap;
       bump(boat, nx, ny);
-      touch('ice');
+      hit = harder(hit, 'ice');
     }
   }
   const pushed = keepAtSea(asSeaShape(sea), boat);
   if (pushed) {
     bump(boat, pushed.nx, pushed.ny);
-    touch('edge');
+    hit = harder(hit, 'edge');
   }
   return hit;
 }
