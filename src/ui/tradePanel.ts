@@ -29,6 +29,7 @@ import { firstOrder, orderDetail, ordersLedger } from './harbour/orders';
 import { esc } from './harbour/parts';
 import { quayPane } from './harbour/quay';
 import { shipyardPane } from './harbour/shipyard';
+import { focusKey } from './harbour/focusKey';
 
 export type TradePanelTab = 'market' | 'orders' | 'quay' | 'shipyard';
 
@@ -150,7 +151,7 @@ export class TradePanel {
 
   render() {
     if (this.container.hidden) return;
-    const focusKey = this.focusKey();
+    const focusAt = focusKey(this.container);
     const scroll = [...this.container.querySelectorAll('.hb-scroll')].map((s) => s.scrollTop);
     const { trade, map } = this.world;
     const port = trade.dockedAt ? findPort(map, trade.dockedAt) : null;
@@ -181,24 +182,13 @@ export class TradePanel {
     this.onRender();
     if (this.tab === 'quay' && fresh.length) this.quay?.seen(fresh);
     this.container.querySelectorAll('.hb-scroll').forEach((s, i) => (s.scrollTop = scroll[i] ?? 0));
-    if (focusKey) {
+    if (focusAt) {
       // A greyed button keeps the focus (decision 0192): the next A must not land on Close.
-      const next = this.container.querySelector<HTMLElement>(focusKey);
+      const next = this.container.querySelector<HTMLElement>(focusAt);
       (next ?? this.container.querySelector<HTMLElement>('#tp-close'))?.focus({
         preventScroll: true,
       });
     }
-  }
-
-  /** How to find the focused control again after the redraw: its id, else its data attributes. */
-  private focusKey(): string {
-    const at = this.container.ownerDocument.activeElement as HTMLElement | null;
-    if (!at || !this.container.contains(at) || at === this.container) return '';
-    if (at.id) return `#${at.id}`;
-    return [...at.attributes]
-      .filter((a) => a.name.startsWith('data-') && !['data-qty', 'data-pad-focus'].includes(a.name))
-      .map((a) => `[${a.name}="${a.value}"]`)
-      .join('');
   }
 
   /** The port's picture (decision 0211, or its own art) with its name, line, gold and close. */
