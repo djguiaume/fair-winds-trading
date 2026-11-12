@@ -51,8 +51,12 @@ export interface RecipePart {
   ops?: [string, ...Num[]][];
   /** A final move. */
   at?: [Num, Num, Num];
-  /** A palette name, a style list with an index (`walls[variant]`), or `#rrggbb`. */
-  color?: string | { pick: Num; of: string[] };
+  /**
+   * A palette name, a style list with an index (`walls[variant]`), or `#rrggbb`. `leanTo` and
+   * `capOn` name the main roof's colour: the lean-to takes a near tone of it, the chimney cap
+   * the first cap tone that stands out from it (`palette.json › roofTones`).
+   */
+  color?: string | { pick: Num; of: string[] } | { leanTo: string } | { capOn: string };
   /** Lit glass: drawn by the window mesh that lights up at night. */
   glow?: boolean;
   /**
@@ -126,6 +130,8 @@ export interface Palette {
   colors: Record<string, string | string[]>;
   /** Walls and roofs per island style. */
   styles: Record<string, { walls: string[]; roofs: string[] }>;
+  /** The lean-to roof shift and the chimney cap contrast, in lightness (0 to 1). */
+  roofTones: { leanToShift: number; leanToDarkUnder: number; capContrast: number };
 }
 
 export const PALETTE: Palette = paletteFile;

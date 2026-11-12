@@ -92,6 +92,22 @@ export const SKY_META: Readonly<Record<string, TuningMeta>> = {
     '°',
     'How far round the sun the glow spreads.',
   ),
+  'graphics.sky.sun.moonGlow': num(
+    'Moon glow',
+    0,
+    1.5,
+    0.05,
+    undefined,
+    'How much the sky brightens round the moon; keep it well under the lit windows (decision 0299).',
+  ),
+  'graphics.sky.sun.moonGlowDeg': num(
+    'Moon glow width',
+    1,
+    30,
+    0.1,
+    '°',
+    'How far round the moon the halo spreads: about 1.6 times its radius.',
+  ),
   'graphics.sky.stars.density': num(
     'Star density',
     0,
