@@ -1,5 +1,7 @@
 {
-  "grading": { "fails": "warning" },
+  "grading": {
+    "fails": "warning"
+  },
   "styles": {
     "default": {
       "slope": [12, 18],
@@ -91,7 +93,7 @@
     "civic": ["spire-church", "nordic-church", "market-hall", "harbour-office", "tea-house"],
     "churches": ["spire-church", "nordic-church"],
     "outliers": ["farmhouse"],
-    "fields": ["field", "tea-garden"],
+    "fields": ["field"],
     "quays": ["paving"],
     "laneEnds": ["signpost", "flagpole", "name-board", "hot-spring", "warm-spring", "market-hall"]
   }
