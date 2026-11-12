@@ -31,3 +31,4 @@ Signature places kept: Saltmere's smokehouse row, net green and East Reef buoys;
 - [Abbey Head](shots/abbey-head.jpg), [Port Calda](shots/calda.jpg), [Saltmere](shots/saltmere.jpg), [Skerry](shots/skerry.jpg), [Stonehaven](shots/south-cay.jpg), [Watchman Key](shots/watchman-key.jpg), [Westholm](shots/westholm.jpg)
 - [The ring from farther off](shots/ring-sheet.jpg) (zoom 1.4, after)
 - [The four main ports by night](shots/ring-night.jpg), and [Calda by night on a phone](shots/calda-night-phone.jpg)
+- [Westholm, Calda and Saltmere after the art director's review](shots/loosened-sheet.jpg) (zoom 1.4, day and night): streets bent a little and no two parallel, each house offset, turned up to 6° and sized within 10%
