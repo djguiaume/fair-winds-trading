@@ -50,6 +50,9 @@ export function propStand(
   return (x, z) => standHeight(layout, x, z, island.radius / ISLAND_SCALE);
 }
 
+/** How far a lane lies over the new look's ground: clear of its small bumps across the lane. */
+const LANE_LIFT = 0.05;
+
 /** The half-diagonal of a model's plan, the footprint the old town code checked with. */
 export function extent(parts: Parts) {
   const bounds = new THREE.Box3();
@@ -196,12 +199,17 @@ export function townProps(
     clearedLanes.push({ x, z });
     clearings?.lanes.push([ax, az, bx, bz, width / 2]);
     const len = Math.hypot(bx - ax, bz - az) * R;
+    // On the new look's ground a lane follows its rises and dips, or they would bury it (#514).
+    const ya = stand ? stand(ax, az) : ha * R,
+      yb = stand ? stand(bx, bz) : hb * R;
     const g = paint(
-      new THREE.PlaneGeometry(len + 0.01, R * width).rotateX(-Math.PI / 2).translate(0, 0.012, 0),
+      new THREE.PlaneGeometry(len + 0.01, R * width)
+        .rotateX(-Math.PI / 2)
+        .translate(0, stand ? LANE_LIFT : 0.012, 0),
       pathColor,
     );
-    if (!flat) g.rotateZ(Math.atan2((hb - ha) * R, len));
-    put(out, [g], x * R, h * R, z * R, -Math.atan2(bz - az, bx - ax));
+    if (stand || !flat) g.rotateZ(Math.atan2(yb - ya, len));
+    put(out, [g], x * R, stand ? (ya + yb) / 2 : h * R, z * R, -Math.atan2(bz - az, bx - ax));
   }
   for (const parts of [...homes, ...richHomes]) out.push(...parts);
 
