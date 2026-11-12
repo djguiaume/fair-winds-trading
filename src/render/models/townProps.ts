@@ -13,6 +13,7 @@ import { isGlowing, paint } from './geometry';
 import { PROP_TYPES, WOODLAND_TREES, put, type Parts } from './props';
 import { lanePieces } from './townLanes';
 import type { TerrainLook } from '../terrainLook';
+import type { Steps } from '../../sim/steps';
 
 /** The height a prop stands at over a point of its island (reference units, harbour toward +Z). */
 export type Stand = (x: number, z: number) => number;
@@ -49,6 +50,9 @@ export function propStand(
   const layout = islandLayout(design, level);
   return (x, z) => standHeight(layout, x, z, island.radius / ISLAND_SCALE);
 }
+
+/** How far a lane lies over the new look's ground: clear of its small bumps across the lane. */
+const LANE_LIFT = 0.05;
 
 /** The half-diagonal of a model's plan, the footprint the old town code checked with. */
 export function extent(parts: Parts) {
@@ -113,14 +117,17 @@ export const isResidence = (prop: PropDef) =>
 /** The classic woods' clear strip up the arrival pier, in file units. */
 const HARBOUR_LANE = { x: 0.08, half: 0.14, from: 0.45 };
 
+/** Props built between two pauses of a town's rebuild (issue #516). */
+const PROPS_PER_STEP = 8;
+
 /**
  * A designed island's town at its level (decision 0101): lanes near standing homes, the homes,
  * the harbour (`harbour` adds it in its turn), every other prop and the woods. Props stand on
  * `stand`, the new look's ground (decision 0222); left out, on the classic tiers of the layout.
  * With `clearings`, the new look's forest grows the trees (issue #275): this notes the ground the
- * town keeps clear there instead of scattering the classic woods.
+ * town keeps clear there instead of scattering the classic woods. In steps (issue #516).
  */
-export function townProps(
+export function* townProps(
   out: Parts,
   design: IslandDesign,
   layout: IslandLayout,
@@ -130,7 +137,7 @@ export function townProps(
   harbour: (out: Parts) => void,
   stand?: Stand,
   clearings?: ForestClearings,
-) {
+): Steps<void> {
   const ground = (material: string) => groundColors(material, design.style);
   const pathColor = styleColor('path', design.style) as string;
   const standAt = stand ?? ((x: number, z: number) => standHeight(layout, x, z, R));
@@ -157,8 +164,9 @@ export function townProps(
   const homes: Parts[] = [];
   const richHomes: Parts[] = [];
   const active: { x: number; z: number }[] = [];
-  design.props.filter(isResidence).forEach((prop, i) => {
-    if (!atLevel(prop, level)) return;
+  for (const [i, prop] of design.props.filter(isResidence).entries()) {
+    if (!atLevel(prop, level)) continue;
+    if (i && i % PROPS_PER_STEP === 0) yield;
     const parts = propParts(prop, design, R);
     const half = (extent(parts) * (prop.size ?? 1)) / R;
     const clear = place(prop, parts, []);
@@ -188,7 +196,8 @@ export function townProps(
     };
     homes.push(parts);
     active.push({ x: prop.x, z: prop.z });
-  });
+  }
+  yield;
   // Lane pieces near standing homes, with no roads across water or cliffs.
   const clearedLanes: { x: number; z: number }[] = [];
   for (const piece of lanePieces(design, layout, active)) {
@@ -196,22 +205,29 @@ export function townProps(
     clearedLanes.push({ x, z });
     clearings?.lanes.push([ax, az, bx, bz, width / 2]);
     const len = Math.hypot(bx - ax, bz - az) * R;
+    // On the new look's ground a lane follows its rises and dips, or they would bury it (#514).
+    const ya = stand ? stand(ax, az) : ha * R,
+      yb = stand ? stand(bx, bz) : hb * R;
     const g = paint(
-      new THREE.PlaneGeometry(len + 0.01, R * width).rotateX(-Math.PI / 2).translate(0, 0.012, 0),
+      new THREE.PlaneGeometry(len + 0.01, R * width)
+        .rotateX(-Math.PI / 2)
+        .translate(0, stand ? LANE_LIFT : 0.012, 0),
       pathColor,
     );
-    if (!flat) g.rotateZ(Math.atan2((hb - ha) * R, len));
-    put(out, [g], x * R, h * R, z * R, -Math.atan2(bz - az, bx - ax));
+    if (stand || !flat) g.rotateZ(Math.atan2(yb - ya, len));
+    put(out, [g], x * R, stand ? (ya + yb) / 2 : h * R, z * R, -Math.atan2(bz - az, bx - ax));
   }
   for (const parts of [...homes, ...richHomes]) out.push(...parts);
 
   harbour(out);
+  yield;
 
   // Every other prop, in file order; fields claim woodland as the settlement grows.
   const occupied: { x: number; z: number; clear: number }[] = [];
   const fields: { x: number; z: number }[] = [];
-  for (const prop of standing) {
+  for (const [i, prop] of standing.entries()) {
     if (isResidence(prop)) continue;
+    if (i && i % PROPS_PER_STEP === 0) yield;
     const clear = place(prop, propParts(prop, design, R));
     if (prop.type === 'field') fields.push(prop);
     else occupied.push({ x: prop.x, z: prop.z, clear });
@@ -233,7 +249,9 @@ export function townProps(
   const treesRng = createRng(design.seed + 789);
   const forest: { x: number; z: number }[] = [];
   const [x0, z0, x1, z1] = woods.area;
+  yield;
   for (let i = 0; i < woods.tries; i++) {
+    if (i && i % (PROPS_PER_STEP * 8) === 0) yield;
     const x = range(treesRng, x0, x1),
       z = range(treesRng, z0, z1);
     const buildTree = make(treesRng);

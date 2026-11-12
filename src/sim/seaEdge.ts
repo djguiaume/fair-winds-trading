@@ -34,24 +34,43 @@ const RIM_STEP = 4;
 const outlinesOf = (map: Pick<MapDef, 'edges'>) =>
   (map.edges ?? []).map((e) => e.outline).filter((o) => o.length >= 3);
 
-const shapes = new WeakMap<object, { key: string; shape: SeaShape }>();
+/** A map's shape and what it was made from: its outlines flat, each one's length first. */
+interface Kept {
+  radius: number;
+  round: number;
+  points: number[];
+  shape: SeaShape;
+}
+const shapes = new WeakMap<object, Kept>();
+
+/** The map's outlines are still the kept ones, checked without allocating (asked every step). */
+function sameOutlines(map: Pick<MapDef, 'edges'>, points: readonly number[]): boolean {
+  let i = 0;
+  for (const { outline } of map.edges ?? []) {
+    if (outline.length < 3) continue;
+    if (points[i++] !== outline.length) return false;
+    for (let k = 0; k < outline.length; k++)
+      if (points[i++] !== outline[k]![0] || points[i++] !== outline[k]![1]) return false;
+  }
+  return i === points.length;
+}
 
 /**
  * The playable water of a map. Kept per map while its radius, outlines and rounding stay the same
  * (the game asks every frame, the map checks at every grid point; the editor moves points in place).
  */
 export function seaShape(map: Pick<MapDef, 'boundsRadius' | 'edges'>): SeaShape {
-  const outlines = outlinesOf(map);
-  if (!outlines.length) return { radius: map.boundsRadius };
+  const radius = map.boundsRadius;
   const round = TUNING.seamanship.boundaryBuoys.round;
-  const key = `${map.boundsRadius}|${round}|${outlines.map((o) => o.join(' ')).join('|')}`;
   const kept = shapes.get(map);
-  if (kept?.key === key) return kept.shape;
-  const shape: SeaShape = {
-    radius: map.boundsRadius,
-    rim: traceRim(map.boundsRadius, outlines, round),
-  };
-  shapes.set(map, { key, shape });
+  if (kept && kept.radius === radius && kept.round === round && sameOutlines(map, kept.points))
+    return kept.shape;
+  const outlines = outlinesOf(map);
+  const shape: SeaShape = outlines.length
+    ? { radius, rim: traceRim(radius, outlines, round) }
+    : { radius };
+  const points = outlines.flatMap((o) => [o.length, ...o.flat()]);
+  shapes.set(map, { radius, round, points, shape });
   return shape;
 }
 

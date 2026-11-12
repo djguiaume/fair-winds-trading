@@ -132,6 +132,16 @@ describe('seabed bake cache', () => {
     }
     cache.dispose();
   });
+
+  it('serves a level without the exposure from the bake with it (issue #516)', () => {
+    const cache = new SeabedTextureCache();
+    const fields = [square(10, 2)];
+    const piers = [{ x0: 10, y0: 0, x1: 14, y1: 0 }];
+    const withCoast = cache.get({ fields, piers });
+    expect(cache.get({ fields })).toBe(withCoast);
+    expect(cache.get({ fields, piers })).toBe(withCoast);
+    cache.dispose();
+  });
 });
 
 describe('sea colours by place', () => {

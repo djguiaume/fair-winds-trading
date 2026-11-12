@@ -162,7 +162,7 @@ The UI is one identity ([decision 0268](../decisions/0268-a-real-game-rebuild-th
 
 The art director's rules for a believable town (v1.9, issue #513), in the art director's words. W is the town's house width (the median house's footprint across its front). Every number lives in `src/data/town-rules.json` (key in brackets), edited on the editors' Town rules page or with `npm run towns`; the island builder's Checks tab and `npm run island -- audit` report where a town breaks them.
 
-- **Flat ground.** Slope under a house footprint at most 12° (8° in a main port's core). Warn 12, fail 18 [`styles.*.slope`, `harbour.coreSlope`, core radius `harbour.core` 8W]. A church may stand on a rise up to 18° [`houses.civicSlope`].
+- **Flat ground.** Slope under a house footprint at most 12° (8° in a main port's core). Warn 12, fail 18 [`styles.*.slope`, `harbour.coreSlope`, core radius `harbour.core` 8W; a main port is a town of `harbour.mainPort` houses or more, so a hamlet keeps 12°]. A church may stand on a rise up to 18° [`houses.civicSlope`].
 - **Facing.** Door side to the nearest lane or quay within 3W, else to the nearest water. Error ±25° warn, ±45° fail [`houses.facingReach`, `houses.facing`]. Same-row houses within ±15° of each other [`houses.rowTurn`]. Quay houses face the quay. Our houses have no door yet, so front and back count alike.
 - **Spacing.** Gap 0.4W to 1.5W between neighbours; under 0.3W warns (the two merge) [`styles.*.spacing`: merge under, row within]. Town core: no house more than 3W from a house or lane [`styles.*.lonely`]. No overlapping footprints (the overlap check).
 - **Shore setback.** Nearest corner at least 0.8W from the waterline; quay houses at least 0.3W [`styles.*.setback`, `houses.quaySetback`].

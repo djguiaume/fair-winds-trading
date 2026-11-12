@@ -18,6 +18,7 @@ vi.mock('three', async (importOriginal) => {
       getContextAttributes() {
         return { depth: true };
       }
+      async compileAsync() {}
       dispose() {}
     },
   };

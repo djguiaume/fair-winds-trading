@@ -80,8 +80,10 @@ describe('town geometry', () => {
 describe('town checks (issue #513)', () => {
   it('only warns with the shipped rules, each finding graded', () => {
     expect(cabin).toBeGreaterThanOrEqual(0);
-    expect(shipped.length).toBeGreaterThan(0);
-    for (const i of shipped) {
+    // The ring's towns pass since #514: an untidy Calda, a cabin turned across its lane.
+    const untidy = town((d) => (d.props[cabin]!.turn = (d.props[cabin]!.turn ?? 0) + 60));
+    expect(untidy.length).toBeGreaterThan(0);
+    for (const i of untidy) {
       expect(i.severity).toBe('warning');
       expect(i.check).toMatch(/^town-/);
       expect(['warn', 'fail']).toContain(i.grade);
@@ -107,8 +109,12 @@ describe('town checks (issue #513)', () => {
   it('counts a fail as an error once the rules say so', () => {
     const strict = structuredClone(TOWN_RULES);
     strict.grading.fails = 'error';
-    // Stonehaven's quarry town has houses on its tier edges.
-    const issues = town(undefined, strict, ISLAND_DESIGNS['south-cay']!);
+    // A cabin with half its footprint in the sea, as in the waterline test.
+    const p = calda.props[cabin]!;
+    const [x, z] = calda.coasts[0]!.reduce((a, b) =>
+      Math.hypot(a[0]! - p.x, a[1]! - p.z) <= Math.hypot(b[0]! - p.x, b[1]! - p.z) ? a : b,
+    );
+    const issues = town((d) => Object.assign(d.props[cabin]!, { x, z }), strict);
     const fails = issues.filter((i) => i.grade === 'fail');
     expect(fails.length).toBeGreaterThan(0);
     for (const i of fails) expect(i.severity).toBe('error');

@@ -101,15 +101,27 @@ export interface Crater {
 export interface IslandModel extends THREE.Object3D {
   /** Every crater of the islands' files, where the smoke rises (decision 0178). */
   readonly craters: readonly Crater[];
-  setSettlementLevels(levels: Record<string, TownLevel>): void;
+  /**
+   * Redraw the towns whose level changed. `spread` (in play): rebuilt a few steps a frame by
+   * `update` and swapped in when done (issue #516), then `onRebuilt`; else at once. The same
+   * goes for the two below.
+   */
+  setSettlementLevels(levels: Record<string, TownLevel>, spread?: boolean): void;
   /** Redraw the captain's islands' buildings, island id → spot → building (0126, 0128). */
-  setHomeBuildings(byIsland: Record<string, Record<string, string>>): void;
+  setHomeBuildings(byIsland: Record<string, Record<string, string>>, spread?: boolean): void;
   /** Redraw the islands with props shown only before or after a quest (decision 0130). */
-  setQuestsDone(done: ReadonlySet<string>): void;
+  setQuestsDone(done: ReadonlySet<string>, spread?: boolean): void;
+  /** Runs the waiting rebuilds for up to `budgetMs`. */
+  update(budgetMs: number): void;
+  /** Finishes every waiting rebuild now. */
+  finishBuilds(): void;
+  /** Rebuilds still waiting. */
+  readonly building: boolean;
+  onRebuilt?: () => void;
   /** Hide the islands and shapes out of the sea for now, show the others (decision 0166). */
   setLandOut(out: ReadonlySet<string>): void;
-  /** Draw the new look's ground at this quality level's detail (decision 0222). */
-  setQuality(level: QualityLevel): void;
+  /** Draw the new look's ground at this quality level's detail (decision 0222); `spread` as above. */
+  setQuality(level: QualityLevel, spread?: boolean): void;
   dispose(): void;
 }
 

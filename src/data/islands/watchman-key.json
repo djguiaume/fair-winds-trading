@@ -161,7 +161,18 @@
       "material": "grass"
     }
   ],
-  "lanes": [],
+  "lanes": [
+    {
+      "points": [
+        [-0.72, -0.3],
+        [-0.73, 0.1],
+        [-0.68, 0.3],
+        [-0.5, 0.5],
+        [-0.38, 0.57],
+        [0.12, 0.6]
+      ]
+    }
+  ],
   "piers": [{ "x": -0.34, "z": 0.8241, "length": 0.3494, "from": 4 }],
   "props": [
     { "type": "warehouse", "x": 0.32, "z": 0.52, "turn": 6, "size": 1.25, "from": 2 },
@@ -169,45 +180,45 @@
     { "type": "slipway-hull", "x": 0.53, "z": 0.74, "turn": 32, "y": 0.0582, "from": 4 },
     {
       "type": "yard-house",
-      "x": 0.0514,
-      "z": 0.445,
-      "turn": -7,
+      "x": -0.047,
+      "z": 0.447,
+      "turn": -1,
       "size": 1.25,
       "variant": 0,
       "from": 1
     },
     {
       "type": "yard-house",
-      "x": -0.3037,
-      "z": 0.4318,
-      "turn": 28,
+      "x": -0.317,
+      "z": 0.441,
+      "turn": -1,
       "size": 1.25,
       "variant": 1,
       "from": 1
     },
     {
       "type": "yard-house",
-      "x": 0.6042,
-      "z": 0.333,
-      "turn": -39,
-      "size": 1.25,
+      "x": 0.58,
+      "z": 0.365,
+      "turn": -63,
+      "size": 1.1,
       "variant": 2,
       "from": 2
     },
     {
       "type": "yard-house",
-      "x": -0.5167,
-      "z": 0.3135,
-      "turn": 28,
+      "x": -0.575,
+      "z": 0.17,
+      "turn": -90,
       "size": 1.25,
       "variant": 3,
       "from": 3
     },
     {
       "type": "yard-house",
-      "x": -0.564,
-      "z": 0.0937,
-      "turn": 39,
+      "x": -0.63,
+      "z": -0.12,
+      "turn": -91,
       "size": 1.25,
       "variant": 4,
       "from": 3

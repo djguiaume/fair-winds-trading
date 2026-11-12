@@ -15,6 +15,7 @@ import { questsDone, questsRunning } from './settlement';
 import { knobs } from './difficulty';
 import { REGATTA, crossesGate } from './regatta';
 import { raceStormWind } from './raceStorms';
+import { fieldAt, markField } from './trafficField';
 
 /*
  * Other boats on the sea (decision 0215, Phase 5 part 4): fishing boats near their port, coasters
@@ -123,6 +124,8 @@ export interface TrafficState {
   nextPick: number;
   /** Where the player was on the last step, to notice a jump. */
   last: Point | null;
+  /** Grid cells the helms may still fill this step (`gridCellsPerStep`, issue #516). */
+  gridCells: number;
 }
 
 /** The harbour mark of a port: its course buoy (the island's name), else off its coast. */
@@ -324,7 +327,15 @@ export function createTraffic(map: MapDef, land: World['land']): TrafficState {
       boats.push(b);
     });
   });
-  return { boats, cap: tuning().atOnce.medium, on: true, fresh: true, nextPick: 0, last: null };
+  return {
+    boats,
+    cap: tuning().atOnce.medium,
+    on: true,
+    fresh: true,
+    nextPick: 0,
+    last: null,
+    gridCells: Infinity,
+  };
 }
 
 /** Whether a fleet sails now: its tags, its ports founded, and nothing during the quiet quests. */
@@ -402,252 +413,6 @@ function windFor(world: World, b: TrafficBoat): Wind {
   return (b.wind = localWind(sea, windEffectAt(world.windBlockers, b.boat, sea)));
 }
 
-/**
- * How far a lane mark is by water in this wind (decision 0215): a grid round the fleet's lane,
- * each cell the time to the mark round land, reefs and the sea's edge for her hull, counted in
- * units sailed at her best speed, 0 at the mark. Upwind a stretch costs what beating up it does,
- * so the grid knows that going round an island off the wind can beat a tack up a channel. Made
- * when a boat first sails for that mark in a wind (to 15°), and the last few kept.
- */
-interface MarkField {
-  x0: number;
-  y0: number;
-  cols: number;
-  rows: number;
-  d: Float32Array;
-}
-/** Which cells of a fleet's grid are open water for her hull. */
-interface OpenGrid {
-  x0: number;
-  y0: number;
-  cols: number;
-  rows: number;
-  open: Uint8Array;
-  version: number;
-  /** The current at each cell, knots east and north (difficulty and the switch applied). */
-  east: Float32Array;
-  north: Float32Array;
-  currents: number;
-}
-const FIELD_CELL = 8;
-/** Wind directions a field is made for: every 15°. */
-const WIND_STEP = 15 * DEG;
-/** Fields kept per fleet: her marks in the last few winds. */
-const FIELDS_KEPT = 24;
-const grids = new WeakMap<TrafficDef, OpenGrid>();
-const fields = new WeakMap<TrafficDef, Map<string, MarkField>>();
-
-function openGrid(world: World, b: TrafficBoat): OpenGrid {
-  const scale = world.currentsOn ? knobs(world.trade.difficulty).currents : 0;
-  const known = grids.get(b.fleet);
-  if (known && known.version === world.land.version && known.currents === scale) return known;
-  // The lane's box and room round it to go about in.
-  const lane = laneOf(world.map, b.fleet);
-  const pad = tuning().fieldPad;
-  const xs = lane.map((p) => p.x);
-  const ys = lane.map((p) => p.y);
-  if (b.fleet.grounds) {
-    xs.push(b.fleet.grounds[0] - b.fleet.grounds[2], b.fleet.grounds[0] + b.fleet.grounds[2]);
-    ys.push(b.fleet.grounds[1] - b.fleet.grounds[2], b.fleet.grounds[1] + b.fleet.grounds[2]);
-  }
-  const x0 = Math.min(...xs) - pad;
-  const y0 = Math.min(...ys) - pad;
-  const cols = Math.ceil((Math.max(...xs) + pad - x0) / FIELD_CELL) + 1;
-  const rows = Math.ceil((Math.max(...ys) + pad - y0) / FIELD_CELL) + 1;
-  const open = new Uint8Array(cols * rows);
-  const r = b.ship.radius + 2;
-  for (let i = 0; i < cols; i++)
-    for (let j = 0; j < rows; j++)
-      open[i * rows + j] = blockedAt(
-        world.map,
-        world.land,
-        x0 + i * FIELD_CELL,
-        y0 + j * FIELD_CELL,
-        r,
-        b.ship.draft,
-        world.piers,
-      )
-        ? 0
-        : 1;
-  const east = new Float32Array(cols * rows);
-  const north = new Float32Array(cols * rows);
-  if (scale > 0)
-    for (let i = 0; i < cols; i++)
-      for (let j = 0; j < rows; j++) {
-        if (!open[i * rows + j]) continue;
-        const water = world.currents.at(x0 + i * FIELD_CELL, y0 + j * FIELD_CELL, scale, flow);
-        east[i * rows + j] = water.east;
-        north[i * rows + j] = water.north;
-      }
-  const grid = {
-    x0,
-    y0,
-    cols,
-    rows,
-    open,
-    version: world.land.version,
-    east,
-    north,
-    currents: scale,
-  };
-  grids.set(b.fleet, grid);
-  return grid;
-}
-
-/** Her speed toward a bearing `rel` off the wind, beating if she must, as a share of her best. */
-function madeGood(ship: ShipClass, rel: number, best: number): number {
-  const wind = { from: 0, speedKn: 14 };
-  const noGo = noGoAngle(ship) + tuning().beatMarginDeg * DEG;
-  const a = Math.abs(wrapAngle(rel));
-  if (a >= noGo) return targetSpeed(ship, a, wind, 1) / best;
-  // Up a stretch inside the no-go zone she sails both close-hauled courses in turn.
-  return ((targetSpeed(ship, noGo, wind, 1) / best) * Math.cos(noGo)) / Math.cos(a);
-}
-
-/** Her best speed on any heading, in a 14-knot wind (the share is the same in any breeze). */
-function bestSpeed(ship: ShipClass): number {
-  let best = 0;
-  for (let k = 0; k < 36; k++)
-    best = Math.max(best, targetSpeed(ship, k * 5 * DEG, { from: 0, speedKn: 14 }, 1));
-  return best;
-}
-
-export function markField(world: World, b: TrafficBoat, mark: Point, wind: Wind): MarkField {
-  let byMark = fields.get(b.fleet);
-  if (!byMark) fields.set(b.fleet, (byMark = new Map()));
-  const step = ((Math.round(wind.from / WIND_STEP) % 24) + 24) % 24;
-  const grid = openGrid(world, b);
-  const key = `${mark.x},${mark.y}:${world.land.version}:${step}:${grid.currents}`;
-  const known = byMark.get(key);
-  if (known) {
-    // The most recent last, so the oldest goes first.
-    byMark.delete(key);
-    byMark.set(key, known);
-    return known;
-  }
-  const { x0, y0, cols, rows, open: water, east, north } = grid;
-  const open = water.slice();
-  const n = cols * rows;
-  const d = new Float32Array(n).fill(Infinity);
-  // The cost of one step to each of the eight neighbours, sailed toward this cell.
-  const from = step * WIND_STEP;
-  const best = bestSpeed(b.ship);
-  // Her speed made good each of the eight ways, knots: from the neighbour (i + di, j + dj) to
-  // here she sails toward −di east, −dj north. The current there helps or hinders.
-  const share: number[] = [];
-  for (let di = -1; di <= 1; di++)
-    for (let dj = -1; dj <= 1; dj++)
-      share.push(di || dj ? best * madeGood(b.ship, Math.atan2(-di, -dj) - from, best) : 0);
-  const cost = (next: number, di: number, dj: number) => {
-    const len = di && dj ? Math.SQRT2 : 1;
-    const along = (-di * east[next]! - dj * north[next]!) / len;
-    const kn = share[(di + 1) * 3 + dj + 1]! + along;
-    return (len * FIELD_CELL * best) / Math.max(best * 0.05, kn);
-  };
-  // Dijkstra from the cells round the mark, eight ways, on a heap of (time, cell).
-  const heapD: number[] = [];
-  const heapC: number[] = [];
-  const push = (cell: number, dist: number) => {
-    if (dist >= d[cell]!) return;
-    d[cell] = dist;
-    heapD.push(dist);
-    heapC.push(cell);
-    let k = heapD.length - 1;
-    while (k > 0) {
-      const up = (k - 1) >> 1;
-      if (heapD[up]! <= heapD[k]!) break;
-      [heapD[up], heapD[k]] = [heapD[k]!, heapD[up]!];
-      [heapC[up], heapC[k]] = [heapC[k]!, heapC[up]!];
-      k = up;
-    }
-  };
-  const pop = () => {
-    const top = heapC[0]!;
-    const lastD = heapD.pop()!;
-    const lastC = heapC.pop()!;
-    if (heapD.length) {
-      heapD[0] = lastD;
-      heapC[0] = lastC;
-      let k = 0;
-      for (;;) {
-        const l = 2 * k + 1;
-        if (l >= heapD.length) break;
-        const m = l + 1 < heapD.length && heapD[l + 1]! < heapD[l]! ? l + 1 : l;
-        if (heapD[k]! <= heapD[m]!) break;
-        [heapD[k], heapD[m]] = [heapD[m]!, heapD[k]!];
-        [heapC[k], heapC[m]] = [heapC[m]!, heapC[k]!];
-        k = m;
-      }
-    }
-    return top;
-  };
-  const mi = (mark.x - x0) / FIELD_CELL;
-  const mj = (mark.y - y0) / FIELD_CELL;
-  for (const i of [Math.floor(mi), Math.ceil(mi)])
-    for (const j of [Math.floor(mj), Math.ceil(mj)])
-      if (i >= 0 && j >= 0 && i < cols && j < rows) {
-        const cell = i * rows + j;
-        open[cell] = 1;
-        push(cell, Math.hypot(x0 + i * FIELD_CELL - mark.x, y0 + j * FIELD_CELL - mark.y));
-      }
-  const done = new Uint8Array(n);
-  while (heapD.length) {
-    const cell = pop();
-    if (done[cell]) continue;
-    done[cell] = 1;
-    const i = Math.floor(cell / rows);
-    const j = cell % rows;
-    for (let di = -1; di <= 1; di++)
-      for (let dj = -1; dj <= 1; dj++) {
-        if (!di && !dj) continue;
-        const a = i + di;
-        const c = j + dj;
-        if (a < 0 || c < 0 || a >= cols || c >= rows) continue;
-        const next = a * rows + c;
-        if (!open[next] || done[next]) continue;
-        push(next, d[cell]! + cost(next, di, dj));
-      }
-  }
-  const field = { x0, y0, cols, rows, d };
-  byMark.set(key, field);
-  if (byMark.size > FIELDS_KEPT) byMark.delete(byMark.keys().next().value!);
-  return field;
-}
-
-/** The distance by water at a point, smoothed between cells; Infinity by land or off the grid. */
-export function fieldAt(f: MarkField, x: number, y: number): number {
-  const u = (x - f.x0) / FIELD_CELL;
-  const v = (y - f.y0) / FIELD_CELL;
-  const i = Math.floor(u);
-  const j = Math.floor(v);
-  if (i < 0 || j < 0 || i + 1 >= f.cols || j + 1 >= f.rows) return Infinity;
-  const fu = u - i;
-  const fv = v - j;
-  const a = f.d[i * f.rows + j]!;
-  const b = f.d[(i + 1) * f.rows + j]!;
-  const c = f.d[i * f.rows + j + 1]!;
-  const e = f.d[(i + 1) * f.rows + j + 1]!;
-  // By a shore some corners are land: the water ones count, and the land's share costs a cell,
-  // so a narrow passage (a cell or two wide) still leads somewhere.
-  let sum = 0;
-  let weight = 0;
-  let dry = 0;
-  for (const [value, w] of [
-    [a, (1 - fu) * (1 - fv)],
-    [b, fu * (1 - fv)],
-    [c, (1 - fu) * fv],
-    [e, fu * fv],
-  ] as const) {
-    if (value === Infinity) dry += w;
-    else {
-      sum += value * w;
-      weight += w;
-    }
-  }
-  if (dry > 0.75 || weight === 0) return Infinity;
-  return sum / weight + dry * FIELD_CELL * 2;
-}
-
 /** Headings the helm weighs: every 10°, and both close-hauled courses. */
 const HEADINGS = Array.from({ length: 36 }, (_, k) => (k * 10 * Math.PI) / 180);
 
@@ -670,9 +435,9 @@ export function pilot(world: World, b: TrafficBoat, wind: Wind): BoatControls {
   if (!target) return { steer: 0, sailStep: 0 };
   const noGo = noGoAngle(b.ship) + t.beatMarginDeg * DEG;
   const left = Math.hypot(target.x - boat.x, target.y - boat.y);
-  const field = onLane(b) ? markField(world, b, target, wind) : null;
   // By a harbour, slow, she takes to the sweeps (the long oars) and rows clear of the quays.
   const lane = laneOf(world.map, b.fleet);
+  const field = onLane(b) ? markField(world, b, lane, target, wind) : null;
   const ends = b.fleet.kind === 'fishing' ? [lane[0]!] : [lane[0]!, lane[lane.length - 1]!];
   // Pinned on a lee shore anywhere, she rows off it the same way; a racer only then (her course's
   // ends are marks at sea, not quays).
@@ -837,7 +602,7 @@ function stepOne(world: World, b: TrafficBoat, dt: number) {
   if (!target || world.time < b.waitUntil) return;
   const d = Math.hypot(target.x - boat.x, target.y - boat.y);
   // Her progress is the way left by water: the long way round an island is still progress.
-  const field = onLane(b) ? markField(world, b, target, b.wind) : null;
+  const field = onLane(b) ? markField(world, b, laneOf(world.map, b.fleet), target, b.wind) : null;
   const togo = field ? fieldAt(field, boat.x, boat.y) : Infinity;
   const progress = togo < Infinity ? togo : d;
   // Measured the other way since the last gain (on or off the grid): a fresh start.
@@ -933,28 +698,39 @@ function separate(a: TrafficBoat, b: TrafficBoat) {
   b.boat.y += dy * k;
 }
 
+/**
+ * The boats awake this step and the step's events: lists kept, not new ones each step (issue
+ * #516). The world copies the events out at once.
+ */
+const awake: TrafficBoat[] = [];
+const stepEvents: WorldEvent[] = [];
+
 /** Steps the boats that sail now, after the player's step (decision 0215). */
 export function stepTraffic(world: World, dt: number): WorldEvent[] {
   const traffic = world.traffic;
   const me = world.boat;
+  traffic.gridCells = tuning().gridCellsPerStep;
   // A jump (a quest, the screenshot tool, a load): wake whoever is near the new place at once.
   if (traffic.last && Math.hypot(me.x - traffic.last.x, me.y - traffic.last.y) > 60)
     traffic.fresh = true;
-  traffic.last = { x: me.x, y: me.y };
+  traffic.last ??= { x: 0, y: 0 };
+  traffic.last.x = me.x;
+  traffic.last.y = me.y;
   if (traffic.fresh || world.time >= traffic.nextPick) {
     traffic.nextPick = world.time + 0.5;
     pick(world, traffic);
   }
-  const events: WorldEvent[] = [];
-  const awake = traffic.boats.filter((b) => b.awake);
+  stepEvents.length = 0;
+  awake.length = 0;
+  for (const b of traffic.boats) if (b.awake) awake.push(b);
   for (const b of awake) {
     stepOne(world, b, dt);
     const e = bumpPlayer(world, b);
-    if (e) events.push(e);
+    if (e) stepEvents.push(e);
   }
   for (let i = 0; i < awake.length; i++)
     for (let j = i + 1; j < awake.length; j++) separate(awake[i]!, awake[j]!);
-  return events;
+  return stepEvents;
 }
 
 /**
@@ -979,6 +755,8 @@ export function stepRival(world: World, dt: number): WorldEvent[] {
 /** Sails one boat alone for `seconds` (the checks and tests), with the world's wind. */
 export function sailAlone(world: World, b: TrafficBoat, seconds: number, dt = 0.1) {
   const end = world.time + seconds;
+  // Alone, she fills her grid at once: no frame waits on it.
+  world.traffic.gridCells = Infinity;
   while (world.time < end) {
     world.time += dt;
     stepOne(world, b, dt);

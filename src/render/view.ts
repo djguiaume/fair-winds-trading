@@ -35,6 +35,9 @@ import { Wake } from './wake';
 import { ImpactDebris } from './impactDebris';
 import { WindStreaks } from './windStreaks';
 import { type GraphicsEffects, type UltraPipeline, allEffects } from './ultraPipeline';
+import { ShaderWarmUp } from './shaderWarmUp';
+import { HarbourPictures } from './harbourPictures';
+import { QualityEffectsCache } from './qualityEffects';
 import { ViewMirror } from './viewMirror';
 import { Rain, rainMayReachArea } from './rain';
 import { CameraRig } from './cameraRig';
@@ -155,7 +158,8 @@ export class GameView {
   private profile!: QualityProfile;
   /** The Ultra pipeline (decision 0221), loaded the first time Ultra is picked. */
   private ultra?: UltraPipeline;
-  private ultraLoading = false;
+  private ultraLoading: Promise<void> | null = null;
+  private readonly shaders = new ShaderWarmUp();
   private readonly mirror = new ViewMirror(() => ({
     boat: () => this.boat.root,
     traffic: this.traffic.root,
@@ -164,14 +168,7 @@ export class GameView {
   }));
   /** The graphics effects switches (Settings); all on by default. */
   readonly effects: GraphicsEffects = allEffects();
-  /**
-   * Created only when selected, by level and waves on or off; retain GPU programs/buffers for
-   * subsequent switches.
-   */
-  private readonly qualityEffects = new Map<
-    `${QualityLevel}:${boolean}`,
-    { ocean: Ocean; streaks: WindStreaks; rain: Rain }
-  >();
+  private readonly qualityEffects = new QualityEffectsCache();
   /** Where the sea camera looks and how the player turned it (decision 0223). */
   readonly rig = new CameraRig(this.camera);
   private readonly target = this.rig.target;
@@ -221,6 +218,7 @@ export class GameView {
     this.beaconLights = new BeaconLights(world.map.islands, byIsland, look);
     this.scene.add(this.lighthouseBeams.root, this.beaconLights.points);
     this.volcanoes = new Volcanoes(this.islands.craters);
+    this.islands.onRebuilt = () => this.islandsRebuilt();
     this.level = level;
     this.boat = this.buildBoat();
     this.edgeBuoys = new EdgeBuoys(seaShape(world.map));
@@ -264,9 +262,11 @@ export class GameView {
       this.shores.get(world.land.islands, world.land.terrain),
     );
     this.scene.add(this.calmWater.root);
+    // The land's own bake, as every quality change rebinds it: the whole map's would be baked
+    // again by the first change (issue #516).
     this.roughWater = new RoughWater(
       world.map.windZones ?? [],
-      this.shores.get(world.map.islands, world.map.terrain),
+      this.shores.get(world.land.islands, world.land.terrain),
     );
     this.scene.add(this.roughWater.root);
     this.shallowsWater = new ShallowsWater(world.map.terrain);
@@ -395,29 +395,18 @@ export class GameView {
     this.sea.setOn(this.wavesChoice ?? QUALITY[level].waves);
     this.rig.orbit.ultra = level === 'ultra';
     this.wake.setQuality(level);
-    this.islands.setQuality(level);
+    this.islands.setQuality(level, true);
     const profile = QUALITY[level];
     if (this.ocean) this.scene.remove(this.ocean.mesh, this.streaks.mesh, this.rain.mesh);
     const shore = this.shores.get(this.world.land.islands, this.world.land.terrain);
-    // ShoreTextureCache releases its previous bake on a live map edit. Rebind inactive
-    // quality levels too, so returning to one never revives a disposed texture.
-    for (const effects of this.qualityEffects.values()) effects.ocean.setShore(shore);
     this.currentWater?.setShore(shore);
     this.calmWater?.setShore(shore);
     this.roughWater?.setShore(shore);
     const seabed = this.seabed();
-    if (seabed) for (const effects of this.qualityEffects.values()) effects.ocean.setSeabed(seabed);
-    const key = `${level}:${this.sea.gerstner}` as const;
-    let effects = this.qualityEffects.get(key);
-    if (!effects) {
-      const others = [...this.qualityEffects.values()].map(({ ocean }) => ocean);
-      effects = {
-        ocean: oceanFor(profile, others, this.world.land, shore, seabed, this.sea, this.look),
-        streaks: new WindStreaks(profile.windStreaks),
-        rain: new Rain(profile.rainDrops),
-      };
-      this.qualityEffects.set(key, effects);
-    }
+    this.qualityEffects.bind(shore, seabed);
+    const effects = this.qualityEffects.get(`${level}:${this.sea.gerstner}`, profile, (others) =>
+      oceanFor(profile, others, this.world.land, shore, seabed, this.sea, this.look),
+    );
     ({ ocean: this.ocean, streaks: this.streaks, rain: this.rain } = effects);
     this.scene.add(this.ocean.mesh, this.streaks.mesh, this.rain.mesh);
 
@@ -433,13 +422,24 @@ export class GameView {
     if (profile.mirror) this.mirror.load(this.renderer, this.scene, this.camera);
     this.ultra?.sceneChanged();
     this.resize(this.width, this.height);
+    // The level's new shaders compile while the last picture stays up (issue #516).
+    void this.shaders.warm(this.renderer, this.scene, this.camera);
+  }
+
+  /**
+   * Before the sea first shows (issue #516): every shader of the scene compiled, then one frame
+   * drawn, which compiles the shadow and picture passes too. The splash waits for it.
+   */
+  async warmUp() {
+    await this.ultraLoading;
+    await this.shaders.warm(this.renderer, this.scene, this.camera);
+    this.render(0);
   }
 
   /** Fetch the Ultra pipeline once; phones never pick Ultra, so they never download it. */
   private loadUltra() {
     if (this.ultra || this.ultraLoading) return;
-    this.ultraLoading = true;
-    void import('./ultraPipeline').then(({ UltraPipeline }) => {
+    this.ultraLoading = import('./ultraPipeline').then(({ UltraPipeline }) => {
       this.ultra = new UltraPipeline(
         this.renderer,
         this.scene,
@@ -468,7 +468,6 @@ export class GameView {
     this.camera.updateProjectionMatrix();
   }
 
-  /** Grow only the islands whose port levels changed; anchors and harbour lights stay valid. */
   /** Look at a map point (moored at home: the island and its spots), or follow the boat (null). */
   setFocus(
     point: { x: number; y: number } | null,
@@ -479,10 +478,10 @@ export class GameView {
     this.rig.setFocus(point, jump, shift);
   }
 
-  setHomeBuildings(byIsland: Record<string, Record<string, string>>) {
-    this.townChanged();
-    this.islands.setHomeBuildings(byIsland);
-    this.volcanoes.setCraters(this.islands.craters);
+  /** `spread`: in play, the island is rebuilt over a few frames (issue #516), as below. */
+  setHomeBuildings(byIsland: Record<string, Record<string, string>>, spread = false) {
+    this.islands.setHomeBuildings(byIsland, spread);
+    if (!spread) this.islandsRebuilt();
   }
 
   /** What stands before or after a quest (decision 0130): island props, sea marks, lights. */
@@ -493,21 +492,23 @@ export class GameView {
     this.target.z = pos.z;
   }
 
-  setQuestsDone(done: ReadonlySet<string>) {
-    this.townChanged();
-    this.islands.setQuestsDone(done);
-    this.volcanoes.setCraters(this.islands.craters);
+  setQuestsDone(done: ReadonlySet<string>, spread = false) {
+    this.islands.setQuestsDone(done, spread);
+    if (!spread) this.islandsRebuilt();
     this.seaMarks.setQuestsDone(done);
     this.lighthouseBeams.setQuestsDone(done);
     this.beaconLights.setQuestsDone(done);
   }
 
-  setSettlementLevels(levels: Record<string, TownLevel>) {
+  /**
+   * The towns at their levels. `spread` (a town grown in play): each island is rebuilt a few
+   * steps a frame and swapped in when done, so its growth never stalls the sea (issue #516).
+   */
+  setSettlementLevels(levels: Record<string, TownLevel>, spread = false) {
     const founded = Object.keys(levels).some((id) => this.levels[id] === 0 && levels[id] !== 0);
     this.levels = { ...levels };
-    this.townChanged();
-    this.islands.setSettlementLevels(levels);
-    this.volcanoes.setCraters(this.islands.craters);
+    this.islands.setSettlementLevels(levels, spread);
+    if (!spread) this.islandsRebuilt();
     if (founded) this.buildLanterns();
     this.lighthouseBeams.setLevels(this.islandLevels(levels));
     this.beaconLights.setLevels(this.islandLevels(levels));
@@ -543,6 +544,8 @@ export class GameView {
   }
 
   render(dt: number) {
+    this.islands.update(TUNING.graphics.builds.msPerFrame);
+    if (this.shaders.holding) return;
     this.followLand();
     const { boat, wind, ship, time } = this.world;
     this.castaway.update(this.castawayWaiting, time);
@@ -638,15 +641,7 @@ export class GameView {
       lantern.updateWorldMatrix(true, false);
       lantern.getWorldPosition(this.boatLantern);
     } else this.boatLantern.set(pos.x, 6, pos.z);
-    this.lanterns.update(glow, this.boatLantern, time, ultra?.night.lanternSize);
-    this.lighthouseBeams.update(time, glow);
-    this.beaconLights.update(time, glow);
-    // Lit windows and street lamps in the towns; Ultra's occlusion shades them, so they shine more.
-    const windows = this.islands.userData.windows as THREE.MeshBasicMaterial | undefined;
-    windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
-    if (ultra) windows?.color.multiplyScalar(1 + (ultra.night.windowGlow - 1) * glow);
-    const lava = this.islands.userData.lava as THREE.MeshBasicMaterial | undefined;
-    lava?.color.copy(LAVA_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
+    const lava = this.lightTowns(glow, time, ultra?.night);
     const erupting = this.volcanoes.update(dt, {
       target: this.target,
       cameraY: this.camera.position.y,
@@ -707,6 +702,42 @@ export class GameView {
       this.renderer.render(this.scene, this.camera);
   }
 
+  /**
+   * Harbour lanterns, lighthouses and beacons, lit windows and street lamps in the towns, lava;
+   * Ultra's occlusion shades the windows, so they shine more. Returns the lava's material.
+   */
+  private lightTowns(
+    glow: number,
+    time: number,
+    ultra?: { lanternSize: number; windowGlow: number },
+  ) {
+    this.lanterns.update(glow, this.boatLantern, time, ultra?.lanternSize);
+    this.lighthouseBeams.update(time, glow);
+    this.beaconLights.update(time, glow);
+    const windows = this.islands.userData.windows as THREE.MeshBasicMaterial | undefined;
+    windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
+    if (ultra) windows?.color.multiplyScalar(1 + (ultra.windowGlow - 1) * glow);
+    const lava = this.islands.userData.lava as THREE.MeshBasicMaterial | undefined;
+    lava?.color.copy(LAVA_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
+    return lava;
+  }
+
+  /** Islands rebuilt: their craters smoke, and the towns' pictures and shadows follow. */
+  private islandsRebuilt() {
+    this.townChanged();
+    this.volcanoes.setCraters(this.islands.craters);
+  }
+
+  /** Finishes the islands still rebuilding now (the tools' screenshots). */
+  finishBuilds() {
+    this.islands.finishBuilds();
+  }
+
+  /** Islands still rebuilding a few steps a frame. */
+  get building(): boolean {
+    return this.islands.building;
+  }
+
   /** Bumped whenever a town's look may change: its pictures are taken again (decision 0211). */
   private townVersion = 0;
   /** A town or its props were rebuilt: new pictures, and Ultra's shadows on the new meshes. */
@@ -714,9 +745,7 @@ export class GameView {
     this.townVersion++;
     this.ultra?.sceneChanged();
   }
-  private readonly pictures = new Map<string, string>();
-  private picturesLook = '';
-  private pictureCamera?: THREE.PerspectiveCamera;
+  private readonly pictures = new HarbourPictures();
 
   /** The light the harbour screen's picture is in now: the shown time of day's. */
   get pictureLight(): HarbourLight {
@@ -730,34 +759,15 @@ export class GameView {
    */
   harbourPicture(portId: string, light: HarbourLight = this.pictureLight): string | null {
     const look = `${this.townVersion}/${this.landVersion}/${this.level}`;
-    // A town or the land changed: every picture is old. The screen may still be loading one, so
-    // they are let go a little later.
-    if (this.picturesLook !== look) {
-      const old = [...this.pictures.values()];
-      setTimeout(() => old.forEach((url) => URL.revokeObjectURL(url)), 10_000);
-      this.pictures.clear();
-    }
-    this.picturesLook = look;
     const key = harbourPictureKey(portId, light, look);
-    const cached = this.pictures.get(key);
+    const cached = this.pictures.cached(key, look);
     if (cached) return cached;
     const port = this.world.map.ports.find((p) => p.id === portId);
     const island = port && this.world.land.islands.find((i) => i.id === port.islandId);
     const pier = this.harbours[portId];
     if (!port || !island || !pier) return null;
     const shot = harbourShot(island, pier, designOf(island)?.harbourView);
-    const pic = HARBOUR_VIEW.picture;
-    const w = Math.round(pic.width * pic.supersample);
-    const h = Math.round(pic.height * pic.supersample);
-
-    const camera = (this.pictureCamera ??= new THREE.PerspectiveCamera(pic.fovDeg, 1, 1, 2000));
-    camera.fov = pic.fovDeg;
-    camera.aspect = w / h;
-    // The town sits right of the middle, clear of the name and the shade on the left.
-    camera.setViewOffset(w, h, -pic.shift * w, 0, w, h);
-    toScene(shot.from.x, shot.from.y, camera.position).setY(shot.fromHeight);
-    const aim = toScene(shot.look.x, shot.look.y, new THREE.Vector3()).setY(shot.lookHeight);
-    camera.lookAt(aim);
+    const { camera, aim, width: w, height: h } = this.pictures.frame(shot);
 
     // The light of that time of day, without the weather; the sea keeps its colour, not its fog.
     const time = harbourLightTime(light);
@@ -778,14 +788,7 @@ export class GameView {
     fog.far = 2e4;
     this.ocean.setFog(fog.near, fog.far);
     this.ocean.update(this.world.time, aim, this.effects, this.sea);
-    const glow = day.night;
-    this.lanterns.update(glow, this.boatLantern, time);
-    this.lighthouseBeams.update(time, glow);
-    this.beaconLights.update(time, glow);
-    const windows = this.islands.userData.windows as THREE.MeshBasicMaterial | undefined;
-    windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
-    const lava = this.islands.userData.lava as THREE.MeshBasicMaterial | undefined;
-    lava?.color.copy(LAVA_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
+    this.lightTowns(day.night, time);
     this.boat.setNightLighting?.(day.night);
     // The lanterns' glow is sized for the sea camera: this close it would hide the town.
     const hidden = [
@@ -805,8 +808,8 @@ export class GameView {
     this.ocean.setFog(near, far);
 
     const warmth = light === 'night' ? PICTURE_GRADE.nightWarmth : 1;
-    const url = pictureUrl(pixels, { width: w, height: h }, pic, warmth);
-    this.pictures.set(key, url);
+    const url = pictureUrl(pixels, { width: w, height: h }, HARBOUR_VIEW.picture, warmth);
+    this.pictures.keep(key, url);
     return url;
   }
 
@@ -825,12 +828,7 @@ export class GameView {
     this.islands.dispose();
     this.lighthouseBeams.dispose();
     this.beaconLights.dispose();
-    for (const effects of this.qualityEffects.values()) {
-      effects.ocean.dispose();
-      effects.streaks.dispose();
-      effects.rain.dispose();
-    }
-    this.qualityEffects.clear();
+    this.qualityEffects.dispose();
     this.shores.dispose();
     this.seabeds.dispose();
     this.stormClouds.dispose();

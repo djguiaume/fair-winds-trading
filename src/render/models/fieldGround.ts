@@ -4,8 +4,10 @@ import { GROUNDS, type GroundCover, STYLES, groundColors, styleColor } from '../
 import type { TerrainDef } from '../../sim/map';
 import { type Heightfield, fieldLod } from '../../sim/heightfield';
 import { valueNoise } from '../../sim/noise';
-import { blurGrid } from '../../sim/smoothField';
+import { blurGridSteps } from '../../sim/smoothField';
+import { ROWS_PER_STEP, type Steps, finish } from '../../sim/steps';
 import { B2 } from './highlandPalette';
+import { dataTexture, sidesTexture } from './fieldGroundTexels';
 
 /**
  * The new look's ground (decision 0222, issue #269): one smooth-shaded grid over a height field,
@@ -177,18 +179,19 @@ function bilinear(values: ArrayLike<number>, w: number, u: number, v: number, st
  * whose share is largest a jittered step aside, so a zone's edge wanders smoothly instead of in
  * steps (rounding the jitter to whole samples made teeth that the shader's crisp edges show).
  */
-function textureSamples(field: Heightfield) {
+function* textureSamples(field: Heightfield) {
   const heights = drawnHeights(field);
   const normals = gridNormals(heights, field.w, field.h, field.cell);
   const f = groundTexels(field);
   const sample = { w: field.w, h: field.h, cell: field.cell, x0: field.x0, y0: field.y0 };
   const w = (field.w - 1) * f + 1,
     h = (field.h - 1) * f + 1;
-  const shares = field.grounds.map((_, g) => {
+  const shares: Float32Array[] = [];
+  for (let g = 0; g < field.grounds.length; g++) {
     const share = Float32Array.from(field.ground, (v) => (v === g ? 1 : 0));
-    blurGrid(share, field.w, field.h, TUNING.terrain.draw.edgeSmooth / field.cell);
-    return share;
-  });
+    yield* blurGridSteps(share, field.w, field.h, TUNING.terrain.draw.edgeSmooth / field.cell);
+    shares.push(share);
+  }
   const fine = {
     heights: new Float32Array(w * h),
     up: new Float32Array(w * h),
@@ -197,7 +200,8 @@ function textureSamples(field: Heightfield) {
   };
   const { jitter } = TUNING.terrain.draw;
   const clamp = (t: number, max: number) => Math.min(max, Math.max(0, t));
-  for (let j = 0; j < h; j++)
+  for (let j = 0; j < h; j++) {
+    if (j && j % ROWS_PER_STEP === 0) yield;
     for (let i = 0; i < w; i++) {
       const k = j * w + i,
         u = i / f,
@@ -229,8 +233,9 @@ function textureSamples(field: Heightfield) {
       }
       fine.confidence[k] = sum > 0 ? best / sum : 1;
     }
+  }
   // Levelness smoothed a little, so a narrow slope threshold draws a smooth line.
-  blurGrid(fine.up, w, h, TUNING.terrain.draw.slopeSmooth / (field.cell / f));
+  yield* blurGridSteps(fine.up, w, h, TUNING.terrain.draw.slopeSmooth / (field.cell / f));
   return { ...sample, w, h, cell: field.cell / f, ...fine };
 }
 
@@ -259,40 +264,6 @@ export interface FieldGroundTextures {
   centre: [number, number];
 }
 
-function dataTexture(
-  data: Uint8Array,
-  w: number,
-  h: number,
-  colorSpace: THREE.ColorSpace,
-  filtered: boolean,
-) {
-  const texture = new THREE.DataTexture(data, w, h, THREE.RGBAFormat);
-  texture.colorSpace = colorSpace;
-  texture.magFilter = filtered ? THREE.LinearFilter : THREE.NearestFilter;
-  texture.minFilter = filtered ? THREE.LinearMipmapLinearFilter : THREE.NearestFilter;
-  texture.generateMipmaps = filtered;
-  texture.needsUpdate = true;
-  return texture;
-}
-
-const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a);
-
-/**
- * Each ground's cliff colours as a row, repeated to the least common width of all rows, so the
- * shader picks band `b` of any ground at column `b mod width` without knowing its count.
- */
-function sidesTexture(sides: readonly (readonly string[])[]) {
-  const width = sides.reduce((w, list) => (w * list.length) / gcd(w, list.length), 1);
-  const data = new Uint8Array(width * sides.length * 4);
-  sides.forEach((list, g) => {
-    for (let b = 0; b < width; b++) {
-      const hex = new THREE.Color(list[b % list.length]).getHex();
-      data.set([hex >> 16, (hex >> 8) & 255, hex & 255, 255], (g * width + b) * 4);
-    }
-  });
-  return dataTexture(data, width, sides.length, THREE.SRGBColorSpace, false);
-}
-
 /**
  * The ground textures of a height field, `groundTexels` texels per sample of the canonical grid
  * (decision 0230), so every quality level shows the same crisp zones however coarse its mesh.
@@ -301,7 +272,15 @@ export function fieldGroundTextures(
   field: Heightfield,
   palette: FieldPalette,
 ): FieldGroundTextures {
-  const { w, h, cell, x0, y0, heights, up, grounds, confidence } = textureSamples(field);
+  return finish(fieldGroundTexturesSteps(field, palette));
+}
+
+/** `fieldGroundTextures` in steps (issue #516). */
+export function* fieldGroundTexturesSteps(
+  field: Heightfield,
+  palette: FieldPalette,
+): Steps<FieldGroundTextures> {
+  const { w, h, cell, x0, y0, heights, up, grounds, confidence } = yield* textureSamples(field);
   const draw = TUNING.terrain.draw;
   const looks = field.grounds.map((g) => palette.look(g === '' || g === 'lake' ? 'sand' : g));
   const tops = looks.map((look) => look.top.map((c) => new THREE.Color(c)));
@@ -309,6 +288,7 @@ export function fieldGroundTextures(
   const texels = new Uint8Array(n * 4);
   const c = new THREE.Color();
   for (let k = 0; k < n; k++) {
+    if (k && k % (w * ROWS_PER_STEP) === 0) yield;
     const x = x0 + (k % w) * cell,
       y = y0 + Math.floor(k / w) * cell;
     const noise = valueNoise(x * draw.mottle, y * draw.mottle, field.seed + 5);
@@ -317,7 +297,7 @@ export function fieldGroundTextures(
   }
   // The bands' height, smoothed so their edges don't trace the field's grid ripples.
   const level = Float32Array.from(heights);
-  blurGrid(level, w, h, draw.bandSmooth / cell);
+  yield* blurGridSteps(level, w, h, draw.bandSmooth / cell);
   let low = Infinity,
     high = -Infinity;
   for (const height of level) {

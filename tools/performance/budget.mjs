@@ -1,8 +1,9 @@
 /* global process, console, URL */
 // `node tools/performance/budget.mjs report.json`: fails when a scenario's draw calls or
-// triangles in a `npm run perf` report go past budget.json, or its graphics memory goes past the
-// limit for the report's level (decision 0246). Frame times are not checked: the
-// headless software renderer says nothing about a tablet (decision 0006), counts do carry over.
+// triangles in a `npm run perf` report go past budget.json, its worst frame work goes past the
+// hitch budget (issue #516), or its graphics memory goes past the limit for the report's level
+// (decision 0246). Frame intervals are not checked: the headless software renderer says nothing
+// about a tablet (decision 0006); counts and the game's own work per frame do carry over.
 import { readFileSync } from 'node:fs';
 
 const METRICS = ['calls', 'triangles'];
@@ -15,6 +16,12 @@ export function overBudget(report, budget) {
       if (r.gpuMemory.totalMB > budget.gpuMemoryMB)
         problems.push(
           `${r.scenario}: graphics memory ${r.gpuMemory.totalMB} MB over budget ${budget.gpuMemoryMB} MB`,
+        );
+  for (const [scenario, limit] of Object.entries(budget.frameWorkMs ?? {}))
+    for (const r of report.runs.filter((run) => run.scenario === scenario))
+      if (r.worstWorkMs > limit)
+        problems.push(
+          `${scenario}: a frame of ${r.worstWorkMs.toFixed(1)} ms work over budget ${limit} ms`,
         );
   for (const [scenario, limits] of Object.entries(budget.scenarios)) {
     const runs = report.runs.filter((r) => r.scenario === scenario);
@@ -30,13 +37,15 @@ export function overBudget(report, budget) {
 
 /**
  * The new look (the default; `?look=v1` is the classic one) has its own count limits, set at
- * High; a report at another level is held to its graphics memory limit only.
+ * High, like the frame work limits on both looks; a report at another level is held to its
+ * graphics memory limit only.
  */
 export function budgetFor(report, budgets) {
   const look = new URL(report.url).searchParams.get('look') === 'v1' ? budgets : budgets.newLook;
   const quality = report.config.settings.quality;
   return {
     scenarios: quality === 'high' ? look.scenarios : {},
+    frameWorkMs: quality === 'high' ? budgets.frameWork.limitsMs : {},
     gpuMemoryMB: budgets.gpuMemory.limitsMB[quality],
   };
 }
