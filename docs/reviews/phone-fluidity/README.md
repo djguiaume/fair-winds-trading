@@ -18,6 +18,22 @@ Fluid is the p95 and the hitches, not the average: a steady 60 fps with one 150 
 | Input response (steer, sail trim) | not measured | boat reacts on the next frame; no input queued behind a stall | feel test |
 | Draw calls / triangles at Medium | 30 to 33 / 32k to 44k | no growth without a reason in the PR | `budget.json`, CI render budget |
 
+## Stalls removed (v1.9, #516, decision 0302)
+
+Headless Chromium (software renderer, 3 fps at High, so frame intervals mean little there): the game's own work in each frame, every animation-frame callback timed (`npm run perf` `worstWorkMs`, the bench's rAF callbacks). Before = main on 2026-11-12, after = the #516 branch, same machine.
+
+| Where | Before | After |
+|---|---|---|
+| `?bench&quality=high`, frames >= 100 ms (3 passes) | 4: 565 and 680 ms as it starts (first use of shaders, water grids), 239 and 108 ms on the route (water grids) | 0 |
+| `?bench&quality=high`, frames >= 50 ms | 5 | 2 in three passes: the route's first frame (87 ms) and 62 ms |
+| `?bench&quality=ultra`, frames >= 100 ms | 4 (607, 427, 134, 111 ms) | 0 |
+| `?bench&quality=ultra`, frames >= 50 ms | 5 | 1 (60 ms, first frames) |
+| Town growth (one level up) | 580 to 660 ms in one frame | worst frame 18 ms, swapped in when built |
+| Quality change (Medium, Low, High) | 105 to 910 ms | 30 to 130 ms, the new shaders compiled with the last picture held |
+| Sailing / docking worst frame | 46 to 69 / 27 to 31 ms | 55 / 28 ms |
+
+CI holds these in `tools/performance/budget.json › frameWork`. **Phone `?bench` after #516: asked of Guillaume (#377), results go here.**
+
 ## What to borrow (effect types, texture detail)
 
 Budgeted ideas, cheapest first. None is started; each needs its own issue and ADR, and its cost measured on all quality levels (decision 0006, 0116).
