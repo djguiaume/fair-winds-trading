@@ -15,8 +15,12 @@ Every part: data driven (decision 0093), CLI plus editor for any authoring chang
 
 **Order:** wave 1 runs #513, #516, #517 and #492 together (no shared files). #514 and #515 start when #513 merges and run side by side (different island files).
 
-**Size:** six parts, over our five-part rule. #514 and #515 are one pass split by sea; #492 is kept because Guillaume asked for it and touches only the quest editor. Guillaume can move #492 to v1.10.
+**Size:** six parts, over our five-part rule. #514 and #515 are one pass split by sea; #492 is kept because Guillaume asked for it and touches only the quest editor. Guillaume kept all six parts (2026-11-12).
 
 **Review:** one combined visual round for #514, #515, #517: before/after JPGs up to 1280 px in `docs/reviews/v1.9/`, to the art director and Guillaume together, desktop only (no layout change).
 
 **Roles:** art director (v1.9) asked once for the town rules and the fix tones. Storyteller (v1.9) asked once which island places quests name, so layouts don't move them.
+
+**OK:** Guillaume OK'd this brief on 2026-11-12 ("Keep all parts. Merging like 1.8."), milestone 11 "v1.9 Believable towns".
+
+**Merge rule (as v1.8):** every thread auto-merges its own PR (CI green, current with main, no open question), visual ones too, with no `visual-ok` wait. Guillaume validates once at the end of the release from the combined sheets, so every visual PR leaves its before/after JPGs in `docs/reviews/v1.9/`. The art director still reviews.
