@@ -112,7 +112,11 @@ function townSvg(plan: TownPlan, issues: IslandIssue[], title: string): string {
 }
 
 /** Writes `<id>-<as>.jpg` (before, after…) per town island into `dir`; the files written. */
-export async function writeTownCharts(dir: string, only?: string, as = 'before'): Promise<string[]> {
+export async function writeTownCharts(
+  dir: string,
+  only?: string,
+  as = 'before',
+): Promise<string[]> {
   const places = islandPlacements(defaultSeas());
   mkdirSync(dir, { recursive: true });
   const { chromium } = await import('playwright');
