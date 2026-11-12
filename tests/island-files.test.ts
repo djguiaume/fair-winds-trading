@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import { SEAS } from '../src/data/grownMap';
 import { ISLAND_DESIGNS, type IslandDesign } from '../src/data/islands';
-import { designedTownParts, islandCheckKit, type TownLevel } from '../src/render/models/towns';
+import { designedTownParts, type TownLevel } from '../src/render/models/towns';
+import { islandCheckKit } from '../src/render/models/islandCheckKit';
 import { checkIsland, type IslandIssue } from '../src/sim/islandChecks';
 
 /** The shipped island files with the radius their island has on the map (the Phase 4 seas too). */
@@ -40,7 +41,9 @@ describe('island files (decision 0101)', () => {
       expect(errors(issues), design.id).toEqual([]);
       // Known warnings: lane pieces the old lanes never drew, Calda above 5,000 triangles, and
       // the hidden yards' houses touching as the old shipyard town placed them (0107).
-      for (const w of issues) expect(['lanes', 'budget', 'overlap'], w.message).toContain(w.check);
+      // The town rules (issue #513) warn until towns 2 and 3 fix the islands.
+      for (const w of issues.filter((i) => !i.check.startsWith('town-')))
+        expect(['lanes', 'budget', 'overlap'], w.message).toContain(w.check);
     }
     // Every file builds its ground at each settlement level for the coast and footing checks.
   }, 30000);

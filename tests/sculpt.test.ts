@@ -24,7 +24,7 @@ import {
 } from '../src/sim/sculpt';
 import { SculptSession } from '../src/sim/sculptSession';
 import { checkSculpt } from '../src/sim/sculptChecks';
-import { islandCheckKit } from '../src/render/models/towns';
+import { islandCheckKit } from '../src/render/models/islandCheckKit';
 import { tidyDesign } from '../src/editor/island/doc';
 import { formatIslandJson } from '../src/editor/model';
 

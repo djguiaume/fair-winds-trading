@@ -23,7 +23,6 @@ import {
   cabin,
   crates,
   cyl,
-  derrick,
   farmhouse,
   fishHouse,
   fishingBoat,
@@ -55,7 +54,7 @@ import { riverParts } from './rivers';
 import { groundSpecks, lavaCracks } from './lavaCracks';
 import { designedGround, facetedGround, lakeRim, outlineShape } from './ground';
 import { type Stand, townProps } from './townProps';
-import { stairs, withoutUndersides } from './townPieces';
+import { type Disc, quarry, stairs, withoutUndersides } from './townPieces';
 
 /**
  * Settlement growth (decision 0060): a port island's town grows in four steps, hamlet, village,
@@ -95,13 +94,6 @@ const PROFILE: Record<Kind, Profile> = {
   stone: { tiers: 4, k: 0.92, back: 0.05, side: 0, step: 0.11, shelf: 0.55 },
   yard: { tiers: 2, k: 0.75, back: 0.28, side: 0.15, step: 0.05, shelf: 0.6 },
 };
-
-interface Disc {
-  x: number;
-  z: number;
-  r: number;
-  y: number;
-}
 
 export interface TownIslandSpec {
   /** Island file id; or a producer `profile`, built from that style's shipped island file. */
@@ -466,38 +458,6 @@ function secondPier(out: Parts, x: number, z0: number, len: number, stone: boole
 }
 
 /**
- * Quarry terraces cut into the seaward cliff, from the top tier down: each level cuts one more
- * pale step, with cut blocks and, from the second cut, a derrick crane.
- */
-function quarry(
-  out: Parts,
-  level: TownLevel,
-  tiers: Disc[],
-  a: number,
-  R: number,
-  sx: number,
-  sz: number,
-) {
-  const dx = Math.cos(a);
-  const dz = Math.sin(a);
-  const face = Math.atan2(dx, dz);
-  for (let i = 0; i < level && i < tiers.length; i++) {
-    const t = tiers[tiers.length - 1 - i]!;
-    const x = t.x + dx * t.r * 0.92 * sx;
-    const z = t.z + dz * t.r * 0.92 * sz;
-    const cutW = R * (0.22 + i * 0.05);
-    out.push(
-      paint(
-        new THREE.BoxGeometry(cutW, 1.3, R * 0.18).rotateY(face).translate(x, t.y - 0.6, z),
-        C.cut,
-      ),
-    );
-    if (i >= 1) put(out, derrick(), x - dx * 0.8, t.y - 0.05, z - dz * 0.8, face);
-    put(out, blocks(3), x + dz * 1.4, t.y - 0.05, z - dx * 1.4, face);
-  }
-}
-
-/**
  * A designed port island at its level, built from its island file (decision 0101): terrain,
  * stairs and paths, the lake, lanes near standing homes, homes, the docks, props and woods.
  */
@@ -640,6 +600,3 @@ function harbourParts(
   // Additional finger piers use the shared harbour plan (including their collision segments).
   for (const p of piers.slice(1)) secondPier(out, p.x, p.z0, p.len, stone);
 }
-
-// The checks' kit lives in its own file; the editor's tools still ask for it here.
-export { islandCheckKit } from './islandCheckKit';

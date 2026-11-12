@@ -40,7 +40,7 @@ import {
   toggleSlopeEdge,
 } from '../src/editor/island/shapes';
 import { History, formatIslandJson } from '../src/editor/model';
-import { islandCheckKit } from '../src/render/models/towns';
+import { islandCheckKit } from '../src/render/models/islandCheckKit';
 import { checkIsland } from '../src/sim/islandChecks';
 
 const IDS = ['calda', 'saltmere', 'westholm', 'south-cay'];

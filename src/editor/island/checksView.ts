@@ -37,6 +37,8 @@ export function renderChecks(
       li('ok', '✓ every prop on its ground, none in the lake or on a cliff edge');
     if (!has('approach') && !has('pier')) li('ok', '✓ clear of the piers and the harbour approach');
     if (!has('growth')) li('ok', '✓ each level only adds: no home is removed');
+    if (!issues.some((i) => i.check.startsWith('town-')))
+      li('ok', '✓ the houses keep the town rules (Town rules page)');
   }
   for (const issue of issues) {
     const item = li(

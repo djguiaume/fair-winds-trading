@@ -1,8 +1,18 @@
 import * as THREE from 'three';
 import type { LaneDef } from '../../data/islands';
-import { C, box, put, type Parts } from './props';
+import { paint } from './geometry';
+import { C, blocks, box, derrick, put, type Parts } from './props';
+import type { TownLevel } from './towns';
 
-/** Pieces of a designed town's build, kept apart so towns.ts stays readable. */
+/** Pieces of a town's build, kept apart so towns.ts stays readable. */
+
+/** A walkable tier top of a classic town island. */
+export interface Disc {
+  x: number;
+  z: number;
+  r: number;
+  y: number;
+}
 
 /** Stairs over a cliff: treads on full masonry down to `base`, a landing at each bend. */
 export function stairs(out: Parts, lane: LaneDef, R: number) {
@@ -57,4 +67,36 @@ export function withoutUndersides(g: THREE.BufferGeometry) {
   trimmed.userData = g.userData;
   g.dispose();
   return trimmed;
+}
+
+/**
+ * Quarry terraces cut into the seaward cliff, from the top tier down: each level cuts one more
+ * pale step, with cut blocks and, from the second cut, a derrick crane.
+ */
+export function quarry(
+  out: Parts,
+  level: TownLevel,
+  tiers: Disc[],
+  a: number,
+  R: number,
+  sx: number,
+  sz: number,
+) {
+  const dx = Math.cos(a);
+  const dz = Math.sin(a);
+  const face = Math.atan2(dx, dz);
+  for (let i = 0; i < level && i < tiers.length; i++) {
+    const t = tiers[tiers.length - 1 - i]!;
+    const x = t.x + dx * t.r * 0.92 * sx;
+    const z = t.z + dz * t.r * 0.92 * sz;
+    const cutW = R * (0.22 + i * 0.05);
+    out.push(
+      paint(
+        new THREE.BoxGeometry(cutW, 1.3, R * 0.18).rotateY(face).translate(x, t.y - 0.6, z),
+        C.cut,
+      ),
+    );
+    if (i >= 1) put(out, derrick(), x - dx * 0.8, t.y - 0.05, z - dz * 0.8, face);
+    put(out, blocks(3), x + dz * 1.4, t.y - 0.05, z - dx * 1.4, face);
+  }
 }

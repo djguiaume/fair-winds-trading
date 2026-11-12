@@ -44,7 +44,7 @@
     {
       "box": [1.2, 0.04, 0.44],
       "at": [0, 0.74, 0.62],
-      "color": "roofs[variant]",
+      "color": { "leanTo": "roofs[variant]" },
       "ops": [["turnX", 0.12]]
     },
     {

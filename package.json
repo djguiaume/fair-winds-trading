@@ -32,7 +32,8 @@
     "theme": "node tools/fw/fw.mjs theme",
     "tune": "node tools/fw/fw.mjs tune",
     "life": "node tools/fw/fw.mjs life",
-    "folk": "node tools/fw/fw.mjs folk"
+    "folk": "node tools/fw/fw.mjs folk",
+    "towns": "node tools/fw/fw.mjs towns"
   },
   "dependencies": {
     "fflate": "^0.8.3",

@@ -1,6 +1,6 @@
-import type { IslandDesign } from '../../data/islands';
+import type { IslandDesign, PropDef } from '../../data/islands';
 import { PROP_TYPES } from '../../render/models/props';
-import { islandCheckKit } from '../../render/models/towns';
+import { islandCheckKit } from '../../render/models/islandCheckKit';
 import { coastDistance } from '../../sim/coast';
 import { islandLayout, layoutGround } from '../../sim/islandLayout';
 import { type Level, newProp } from './doc';
@@ -9,13 +9,16 @@ import { type Level, newProp } from './doc';
 
 const hulls = new Map<string, [number, number][]>();
 /** A prop's plan outline where it stands, from its model (cached by everything but place). */
-export function propHull(
+export const propHull = (design: IslandDesign, R: number, harbour: boolean, index: number) =>
+  hullOf(design, R, harbour, design.props[index]!);
+
+/** The plan outline of a prop, placed in the file or not (the builder's drop preview). */
+export function hullOf(
   design: IslandDesign,
   R: number,
   harbour: boolean,
-  index: number,
+  p: PropDef,
 ): [number, number][] {
-  const p = design.props[index]!;
   const key = JSON.stringify([
     p.type,
     p.turn,

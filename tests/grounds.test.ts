@@ -4,7 +4,8 @@ import { GROUNDS, GROUND_IDS, STYLE_IDS, STYLES, groundColors } from '../src/dat
 import { ISLAND_DESIGNS, type IslandDesign } from '../src/data/islands';
 import { PALETTE } from '../src/data/props';
 import { applySteps } from '../src/editor/island/steps';
-import { designedTownParts, islandCheckKit } from '../src/render/models/towns';
+import { designedTownParts } from '../src/render/models/towns';
+import { islandCheckKit } from '../src/render/models/islandCheckKit';
 import { checkIsland } from '../src/sim/islandChecks';
 import { stepFromArgs } from '../tools/fw/island';
 // @ts-expect-error plain JavaScript module without types

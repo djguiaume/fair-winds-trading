@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { GAME_MAP } from '../src/data/maps';
 import { ISLAND_DESIGNS, type IslandDesign, type SculptEdit } from '../src/data/islands';
-import { islandCheckKit } from '../src/render/models/towns';
+import { islandCheckKit } from '../src/render/models/islandCheckKit';
 import { BakeError, bakeCoast } from '../src/sim/coastBake';
 import { bakeMapProblems } from '../src/sim/coastBakeMap';
 import { checkIsland } from '../src/sim/islandChecks';

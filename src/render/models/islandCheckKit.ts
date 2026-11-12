@@ -1,6 +1,9 @@
 import { type IslandDesign, type PropDef, designQuestIds, questDesign } from '../../data/islands';
+import { filePoint } from '../../sim/forest';
 import type { IslandCheckKit } from '../../sim/islandChecks';
-import { PROP_TYPES, WOODLAND_TREES, put, type Parts } from './props';
+import { sculptFrame } from '../../sim/sculptScript';
+import { designForest } from './forestPlan';
+import { PROP_TYPES, WOODLAND_TREES, type Parts, put } from './props';
 import { extent, nearParts, propParts } from './townProps';
 import { type TownLevel, designedTownParts } from './towns';
 
@@ -51,6 +54,11 @@ export function islandCheckKit(design: IslandDesign, R: number, harbour = true):
       const hull = planHull(parts).map(([x, z]): [number, number] => [x / R, z / R]);
       parts.forEach((g) => g.dispose());
       return hull;
+    },
+    // The new look's forest at the top level, as the game plants it round the town (#513).
+    trees: () => {
+      const island = sculptFrame(design.id, R);
+      return designForest(island, design, 4, harbour).map((t) => filePoint(island, t.x, t.y));
     },
     // Props shown before or after a quest never stand together: count the town as a new voyage
     // finds it and with every one of its quests done, and keep the bigger (decision 0216).
