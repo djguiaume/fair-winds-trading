@@ -30,10 +30,15 @@ Not checked, said plainly:
 - **Sound.** Not heard. One finding comes from the code only (#555).
 - **The story.** Not replayed. The quest review of 2026-10-29 and the v1.6 release stand.
 
-Guillaume was asked five questions at the start and the review went ahead on these guesses: he
-misses Saltline's lighting depth, smoothness and fast start most; desktop first, phone landscape
-second, Xbox third; the follow cam may become the default; cutting things is allowed; the next
-goal is still a stranger's first 15 minutes before a Steam demo.
+Guillaume's answers to the five opening questions (2026-11-12), which the review follows:
+
+1. What he misses most from Saltline: **softness, details, textures** (#572).
+2. Desktop first, phone landscape second, Xbox third: yes.
+3. The follow cam may become the default **if it feels better and both views have the same
+   atmosphere, light and colours** (#573).
+4. Cuts may be recommended; they may or may not be followed.
+5. The next goal is a stranger's first 15 minutes before a Steam demo, **and which features are
+   missing** (section 8).
 
 ## 1. The verdict
 
@@ -46,10 +51,11 @@ goal is still a stranger's first 15 minutes before a Steam demo.
 3. **The first minute is the weakest minute.** A painted title that does not look like the game,
    three clicks and three choices, then "step 1 of 14" over an empty blue sea seen from above.
    Saltline: one button over the live scene.
-4. **Against Saltline, the gap is light, not polygons.** Our High level draws about 31 calls and
+4. **Against Saltline, the gap is light and surface, not polygons.** Our High level draws about 31 calls and
    161k triangles; a desktop has room for ten times that. What Saltline has and we lack is light
    with depth: shadows you see, things that sit on the ground, a sea that sparkles and moves near
-   the camera, a sky that carries the weather. All of it can be bright and storybook.
+   the camera, a sky that carries the weather, and soft, textured surfaces near the camera (Guillaume's own
+   words: softness, details, textures). All of it can be bright and storybook.
 5. **Speed is measured well and proven nowhere.** The budgets are good; the proof on a phone, a
    tablet, a desktop and the Xbox has been waiting for weeks.
 6. **The code is clean except at its centre.** `src/main.ts` is 2026 lines with 334 links; 32 more
@@ -127,6 +133,11 @@ as wind on water, and a lighthouse island on the horizon gives a goal you can se
 
 ![Ultra from above; the market](ultra-and-port.jpg)
 
+**One atmosphere** (#573). The two views are lit and coloured apart: the follow cam has had its own
+sky, fog colour and sea reflection since v1.6, and everything else was tuned from above. The same
+place at the same hour is paler and sunnier from behind the boat, deeper from above. Guillaume's
+condition for a follow-cam default is that they match, so this comes before the light work.
+
 **Advice.** Make the follow cam a first-class view (v1.11 below), then let the player choose the
 default in Settings. Do not force it: the god eye is the better tool for reefs and races, and the
 game's honest sailing is its identity.
@@ -152,6 +163,13 @@ because its lowest level drops effects, not smoothness. Ours:
   2026-11-11 found soft shadows "hard to see from our cameras"; that was from above. Order of
   value: shadows tuned for the follow cam, contact shade, sun glitter, sun-coloured haze. All of it
   bright and blue-shadowed, as the art bible asks. None of Saltline's grit or dark grade.
+- **Softness, detail and texture** (#572), Guillaume's first answer. Everything but the ground is
+  flat faces of one colour with hard, stepped edges. From above that is clean; near the follow cam
+  a wall, the hull, the quay and the sail are blank. The answer that keeps the storybook look and
+  adds no downloads: good anti-aliasing and soft shadow edges on High too, rounded edges near the
+  camera, and small procedural patterns in the material (planks, sail weave, plaster, roof tiles)
+  that fade with distance. It changes art bible rule 1, so it starts with a sheet for Guillaume and
+  the art director.
 - **Waves** (#551), **sky** (#552), **the boat up close** (#553) and **spray** (#554) are the other
   four parts of the follow cam's picture.
 - **What not to take from Saltline:** wet PBR materials, rust, the teal and orange grade, film
@@ -223,6 +241,21 @@ real. Three directions fit it and none needs pirates, fleets or a store port:
 3. **A living calendar** (#567). Market days, festivals and regatta days in the towns, so there is
    a cheerful reason to sail after the story ends.
 
+**Missing features** (what a stranger from a store game will look for and not find; each checked
+in the code):
+
+| Missing | Why it matters | Issue |
+|---|---|---|
+| Several voyages | One save; New game wipes it. Families, a second try on another level | #574 |
+| A captain's log with feats | Nothing is counted; stores expect achievements; small prides suit a cozy game | #575 |
+| Text size, colour-blind check | 11 px text on a TV or phone; amber and red as the only signal | #576 |
+| Changing keys and buttons | Expected on PC; AZERTY keyboards; left-handed players | #577 |
+| A pace for long passages | A sea five times larger, sailed at one real-time pace, no fast travel (rightly) | #578 |
+| Photo mode | Above | #565 |
+
+Present and good, so not missing: pause, controller support with three button styles, two
+languages, save transfer by code and QR, hazard and motion switches, fullscreen, Free Sailing.
+
 Before any of them reaches a store: the stranger playtest (#364) and a licence (#566).
 
 ## 9. Proposed order (#568, for Guillaume to accept or change)
@@ -231,9 +264,10 @@ Before any of them reaches a store: the stranger playtest (#364) and a licence (
 |---|---|---|
 | v1.10 | Villages | #528 with #544; bugs #525, #526, #538 to #543 |
 | v1.11 | Welcome aboard | #531 to #537, #560 |
-| v1.12 | Light and water | #557, #558 first; then #550, #551, #552, #547, #546, #548, #549 |
-| then | Stranger playtest | #364, after #556 and #566 |
-| later | Aboard; Market; Photo mode; Calendar | #553 to #555; #559; #565; #567 |
+| v1.12 | Light and water | #557, #558, #573 first; then #550, #551, #552, #547, #546, #548, #549 |
+| v1.13 | Soft and rich | #572 (sheet first), #553, #554, #555 |
+| then | Stranger playtest | #364, after #556, #566, and the store basics #574, #576, #577 |
+| later | Log and feats; Market; Photo mode; Passages; Calendar | #575; #559; #565; #578; #567 |
 
 Code health beside them, one at a time: #561, #562, #564, #563, #569, #570.
 
@@ -281,6 +315,13 @@ Code health beside them, one at a time: #561, #562, #564, #563, #569, #570.
 | #568 | Roadmap after v1.9 | idea | small | no |
 | #569 | Merged PRs leave their issues open | bug | small | no |
 | #570 | Tests: make the common run quicker | idea | small | no |
+| #572 | Softness, detail and texture on what is near the camera | idea | high | yes |
+| #573 | One atmosphere in both views | idea | medium | yes |
+| #574 | Missing: several voyages (save slots) | idea | medium | small |
+| #575 | Missing: a captain's log with feats | idea | medium to high | small |
+| #576 | Missing: text size, colour-blind check, access settings | idea | medium | yes |
+| #577 | Missing: change the keys and controller buttons | idea | medium | small |
+| #578 | Missing: a pace for long passages | idea | medium | small |
 
 Filed before and linked, not repeated: #528 organic towns, #526 moon on Ultra, #525 dark windows,
 #377 and #291 device rounds, #364 stranger playtest. Closed as done during the review: #513, #516,
