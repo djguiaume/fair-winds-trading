@@ -284,7 +284,11 @@ move on); `questTypes.ts` (the file format), `questFlow.ts` (step to step), `que
 `conditionBasics.ts`, `questConditions.ts` (every kind), one file per family
 (`conditionsVoyage.ts`, `conditionsCargo.ts`, `conditionsSailing.ts`), `conditionChecks.ts`.
 Builder, in `src/editor/quest/`: `doc.ts` with `docText`, `docWords`, `docPlaces`, `docStory`,
-`docChecks`; `form.ts` with `formFields.ts`, `seaFields.ts`, `rewardForm.ts`. Game, in `src/ui/`:
+`docChecks`; `form.ts` with `formFields.ts`, `seaFields.ts`, `rewardForm.ts`. The builder page
+(#492): `builder.ts` (the page, its buttons and checks) on `state.ts` (what is open, edit and
+undo); `lists.ts` (quests and steps); `panel.ts` with `questPanel.ts`, `stepPanel.ts`,
+`seaPanel.ts`; `chartView.ts` and `chartInput.ts` (the chart); `cardView.ts`, `storyView.ts`,
+`play.ts`, `labels.ts`. Game, in `src/ui/`:
 `questView.ts` (cards) with `questWords`, `questJournal`, `questPlaces`, `questLesson`.
 
 Every file in `src/data/quests/` is a quest the engine runs (`src/sim/quests.ts`), several at
