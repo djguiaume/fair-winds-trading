@@ -29,6 +29,7 @@ import { isResidence } from '../../src/render/models/townProps';
 import { type Args, num, pair, pointList } from './islandArgs';
 import { BAKE_HELP, bakeFile } from './islandBake';
 import { runAudit } from './islandAudit';
+import { MOVE_HELP, moveFromArgs } from './islandMove';
 import { SCULPT_HELP, exportJson, listEdits, sculptCall } from './islandSculpt';
 import { type IslandPlace, defaultSeas, islandPlacements, islandProblems } from './check';
 
@@ -59,6 +60,7 @@ steps (island-radius units, harbour toward +z; --level n = from that town level)
   prop      <type> --at "x,z[ x,z …]" [--turn deg --size s --variant v --shape s --length l --y h --fit r --clear r]
             [--level n --to n --tags a,b]
   pier      --at x,z [--length 0.26] [--level n]
+${MOVE_HELP}
   remove    prop|ground|lane|ramp|river|spot|coast|pier <index>, or remove lake
   set       --name … --style … --seed …
   view      --from x,z --look x,z [--height h --look-height h] [--accent #hex] [--art art/ports/id.jpg] [--night-art …]
@@ -204,6 +206,8 @@ export function stepFromArgs(kind: string, args: Args, rest: string[]): IslandSt
     }
     case 'pier':
       return clean({ do: 'pier', at: need(at, '--at x,z'), length: num(args.length), level });
+    case 'move':
+      return moveFromArgs(args, rest);
     case 'remove':
       return clean({
         do: 'remove',

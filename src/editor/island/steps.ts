@@ -31,6 +31,7 @@ import {
   deleteShape,
 } from './shapes';
 import { type WoodsStep, applyWoodsStep } from './groves';
+import { type MoveStep, applyMove } from './moveStep';
 
 /**
  * Island edits as data (decision 0153, `npm run island`): each step is one of the island
@@ -107,6 +108,7 @@ export type IslandStep =
       tags?: string[];
     }
   | { do: 'pier'; at: At; length?: number; level?: Level }
+  | MoveStep
   | {
       do: 'remove';
       what: 'prop' | 'ground' | 'lane' | 'ramp' | 'river' | 'spot' | 'coast' | 'lake' | 'pier';
@@ -158,6 +160,7 @@ export const STEP_KINDS = [
   'spot',
   'prop',
   'pier',
+  'move',
   'remove',
   'set',
   'view',
@@ -293,6 +296,8 @@ export function applyStep(design: IslandDesign, step: IslandStep): string {
       design.piers.push({ x: pos(x), z: pos(z), length: pos(step.length ?? 0.26), from: level });
       return `pier ${design.piers.length - 1}`;
     }
+    case 'move':
+      return applyMove(design, step);
     case 'remove': {
       const i = step.index ?? -1;
       const list: Record<string, unknown[] | undefined> = {
