@@ -50,6 +50,8 @@ export interface TownRules {
     core: number;
     /** Slope warning in the core. */
     coreSlope: number;
+    /** Houses that make a town a main port: a smaller place has no core (issue #514). */
+    mainPort: number;
     /** The houses' centre of mass within this of the harbour. */
     centre: number;
     /** At least this share of the houses within `shareReach` of the harbour. */
@@ -150,6 +152,7 @@ export function townRulesProblems(rules: TownRules, names: TownRuleNames): strin
   for (const key of ['core', 'centre', 'shareReach', 'civic'] as const)
     between(`harbour.${key}`, harbour?.[key], 0, 50);
   between('harbour.coreSlope', harbour?.coreSlope, 0, 60);
+  between('harbour.mainPort', harbour?.mainPort, 0, 200);
   between('harbour.share', harbour?.share, 0, 1);
   between('lanes.turn', lanes?.turn, 0, 90);
   between('lanes.flat', lanes?.flat, 0, 30);
