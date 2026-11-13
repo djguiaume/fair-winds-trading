@@ -33,3 +33,4 @@ worth remembering.
 | [v1.6.387](v1.6.387.md) | merge of the 1.6 PR | 1.6 The far seas' story: a turn in every far sea, on-screen reunions, a chapter after Four Winds, cross-sea far-goods asks, a drawn sky, sea life |
 | [v1.7.392](v1.7.392.md) | merge of the 1.7 PR | 1.7 Tidy, smooth, shiny: quest code and stylesheets split, phone fluidity targets, Ultra reflections of boats and islands, people on the quays |
 | [v1.8.402](v1.8.402.md) | merge of the 1.8 PR | 1.8 A richer look: sea gusts, ground detail, richer houses, bloom on Ultra, lower Ultra memory |
+| [v1.9.411](v1.9.411.md) | merge of the 1.9 PR | 1.9 Believable towns: town rules and check, 16 towns rebuilt, smooth frames, look fixes |
