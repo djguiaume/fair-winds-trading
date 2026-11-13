@@ -4,9 +4,23 @@ v1.9.411 shipped. Your OK means "ready to show Guillaume", never "merged". Your 
 
 ## 1. Open decisions
 
-- **Towns must be organic villages ([#528](https://github.com/djguiaume/fair-winds-trading/issues/528)).** Guillaume ruled on 2026-11-12 that the v1.9 towns read as grids. Redo every town as an old-European village: curving lanes, a square, mixed angles and sizes. The row rule in `src/data/town-rules.json` must be replaced, not tuned. The numbers I gave in v1.9 (12° slope, 15° same-row, 0.4W to 1.5W gaps) caused the grids; keep slope, setback, shore and field rules, drop the same-row angle limit and the even-gap logic. Art bible §12 needs a rewrite to match. My loosened sheets (±6° turn, ±0.15W offset) were too subtle at zoom 1.4: aim for a visible village, judged from the sailing camera.
+- **Towns must be organic villages ([#528](https://github.com/djguiaume/fair-winds-trading/issues/528)).** Guillaume ruled on 2026-11-12 that the v1.9 towns read as grids. Redo every town as an old-European village: curving lanes, a square, mixed angles and sizes. The row rule in `src/data/town-rules.json` must be replaced, not tuned. See 1a for why the grids happened and what to ask for. Art bible §12 needs a rewrite to match. My loosened sheets (±6° turn, ±0.15W offset) were too subtle at zoom 1.4: aim for a visible village, judged from the sailing camera.
 - **No moon disc on Ultra ([#526](https://github.com/djguiaume/fair-winds-trading/issues/526)).** Present since v1.8. Ultra's halo is the only moon cue.
 - **Dark windows at night ([#525](https://github.com/djguiaume/fair-winds-trading/issues/525)).** Cabin recipe window seed (Calda), tan huts at Sunreach, near-black houses at Fogwatch. Rule 10 wants every recipe lit.
+
+## 1a. Lessons: why v1.9 made grids, what a village needs
+
+- **My rules asked for grids.** I gave numbers for a same-row angle (15°), even gaps (0.4W to 1.5W), lanes at a fixed distance from the water and "every house within 2W of a lane". A check built from those numbers rewards parallel rows and equal spacing, and the builder satisfied it exactly. Every town went to 0 fails and 0 warnings and looked worse than before (Westholm's before was livelier).
+- **A pass/fail check is the wrong tool for look.** Keep checks for what can break (house on a steep slope, in the water, on lava, a buried lane). Do not turn "believable" into spacing numbers.
+- **My review was too soft.** I called the loosened sheets "OK to show" while Calda was still four near-parallel rows, and the ±6° turn and ±0.15W offset were invisible at zoom 1.4. Judge each town at the sailing camera for one question: would this pass as a drawing of a real village? If it reads as rows, say must fix.
+- **What an organic old-European village needs (ask for these, not for numbers):**
+  - A centre, such as a square, green or quay head, with the church, market or inn on it. Lanes lead to it from several sides and meet at odd angles.
+  - Curving lanes that follow the contour and the shore, with forks, a dead end at a well or barn, and widths that change. No two lanes parallel and no straight run longer than about 6 houses.
+  - Houses facing the lane or square at their own angles (a spread of 30° or more is normal), packed tight in the core and thinning out toward the edge. Clusters of 2 to 4 houses with shared yards, not evenly spaced rows.
+  - Mixed sizes: a few large buildings, many small ones, some sheds and outbuildings. Mixed roof tones per street.
+  - Edges that blur: gardens, fences, haystacks, boats on the beach, then fields and woods.
+- **How to check it:** compare against Sunreach's old benchmark shot and real aerial photos of small harbour villages. Before and after sheets at one image per row, full size, the town at the sailing camera and at zoom 1.4.
+- **Rules to drop or change in `town-rules.json`:** same-row angle and even gaps (replace with a minimum gap so houses don't merge, and no maximum), "within 2W of a lane" as a hard fail. Keep slope, shore setback, no building on lava or ash, and the harbour-centre idea (a village gathers round its square or quay).
 
 ## 2. Rulings from v1.9 (keep)
 
