@@ -14,3 +14,9 @@ Why houses were dark:
 Fix: every wall keeps one lit pane (`windowPanes`), windows lowered on the cabin, farmhouse, stone, yard, turf and beach houses, rich doors moved or narrowed, the turf cottage's panes moved beside its door. `tests/lit-windows.test.ts` ray-casts each home (plain and rich, 12 variants) from the four corners at the camera's pitch.
 
 Left for the art director: houses at the very bottom of the screen are seen steeper than the camera's pitch, and the deep rich eaves still hide most of their glass there. A soft light spill on the ground under lit windows would read from straight above.
+
+## #526 The moon on Ultra
+
+[moon-526.jpg](moon-526.jpg): the chase camera at night, heading 250°, time 668, the camera lowered to 2° (`--tune {"camera.chase.pitchDeg": 2}`); Ultra and High, before and after.
+
+Why it was missing: Ultra turns its shadow-casting sun 30° and lowers it (`graphics.ultra.shadows.sunTurnDeg`, `sunHeight`, for side shadows at noon), and that shaped light also placed the drawn sky's disc and the sea's glint, so the moon sat 30° off, out of frame. Now only the light that casts shadows is shaped; the disc and its glint stay where the time of day puts them. Ultra shows the moon, its glow, the bloom round it and its path on the sea as High does, plus its mirror image. High is unchanged.

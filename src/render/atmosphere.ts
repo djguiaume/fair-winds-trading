@@ -160,6 +160,7 @@ export class Atmosphere {
   private readonly now = blank();
   private readonly storm = blank();
   private readonly lightDir = new THREE.Vector3();
+  private readonly skyLightDir = new THREE.Vector3();
   /** The haze's colour in this light (decision 0169), for the veil over the screen. */
   readonly hazeColor = new THREE.Color();
   private readonly tintColor = new THREE.Color();
@@ -279,13 +280,15 @@ export class Atmosphere {
     );
     ocean.setSkyReflection(this.reflected, strength);
 
-    // The sun (or moon) moves across the sky; shadows swing with it.
-    const bearing = day.lightBearing + sun.turn;
-    lightDirection(this.lightDir, bearing, day.lightHeight * sun.height);
+    // The sun (or moon) moves across the sky; shadows swing with it. Ultra's shape turns and
+    // lowers only the shadow-casting light: the disc and its glint on the sea stay where the time
+    // of day puts them, so the moon shows on Ultra as on High (issue #526).
+    lightDirection(this.lightDir, day.lightBearing + sun.turn, day.lightHeight * sun.height);
     this.sun.position.copy(target).addScaledVector(this.lightDir, sun.distance);
     this.sun.target.position.copy(target);
-    ocean.setSun(this.lightDir, this.sun.color, this.sun.intensity);
-    this.updateSky(l, skyLook.zenith, day, bearing, sun.height, low, h);
+    lightDirection(this.skyLightDir, day.lightBearing, day.lightHeight);
+    ocean.setSun(this.skyLightDir, this.sun.color, this.sun.intensity);
+    this.updateSky(l, skyLook.zenith, day, low, h);
     this.dome.update(Math.max(0, dt), this.drawnSky, this.windKn);
   }
 
@@ -314,15 +317,13 @@ export class Atmosphere {
     l: Look,
     zenith: THREE.Color,
     day: Daylight,
-    bearing: number,
-    height: number,
     low: number,
     haze: number,
   ) {
     const sky = this.drawnSky;
     sky.horizon.copy(l.sky);
     sky.zenith.copy(zenith);
-    lightDirection(sky.disc, bearing, day.skyHeight * height);
+    lightDirection(sky.disc, day.lightBearing, day.skyHeight);
     sky.discColor.copy(l.sun);
     sky.low = low;
     sky.haze = haze;
