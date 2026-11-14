@@ -23,3 +23,5 @@ Every part: data driven (0093), CLI plus editor for authoring changes (0153), in
 **Roles:** art director (v1.10) asked once: organic rules, references, bugs' look fixes. Storyteller (v1.10) asked once: quest places that must stay when towns are redone.
 
 **Review:** one combined visual round for parts 2 to 6, sheets in `docs/reviews/v1.10/`, to the art director and Guillaume together.
+
+**OK (Guillaume, 2026-11-14):** "7 parts is ok", "Auto merge one review at the end". Merge rule as v1.9: every thread auto-merges its own PR (CI green, current with main, no open question), visual ones too; each leaves before/after JPGs in `docs/reviews/v1.10/` and Guillaume validates once from the combined sheets. References chosen by Guillaume: Vernazza, Polperro, Cadgwith; per-town table in art bible §12.
