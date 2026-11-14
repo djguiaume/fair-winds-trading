@@ -158,19 +158,51 @@ The UI is one identity ([decision 0268](../decisions/0268-a-real-game-rebuild-th
 - **Checked at the v1.5 release:** help, transfer, dialogs, the quest card and note, the club board, Free Sailing and the coach marks all use the components; no style E paint, Barlow or Fraunces is left in the game (decision 0281). The quest card never covers the quest line, the compass or the sail lever on a phone.
 - **Rules learned:** the wind compass is its own dial with a hatched no-go zone; the speed is the biggest number; the harbour is one opaque ledger under a banner of the port's graded picture (0280), or painted art from [the port prompt pack](ports/README.md); menu rows are large plain rows; paper and halo text must read by day, at night and in the Stormbreak.
 
-## 12. Town layout (decision [0301](../decisions/0301-town-layout-rules-and-the-believable-town-check.md))
+## 12. Town layout: the organic village (decisions [0301](../decisions/0301-town-layout-rules-and-the-believable-town-check.md), #528)
 
-The art director's rules for a believable town (v1.9, issue #513), in the art director's words. W is the town's house width (the median house's footprint across its front). Every number lives in `src/data/town-rules.json` (key in brackets), edited on the editors' Town rules page or with `npm run towns`; the island builder's Checks tab and `npm run island -- audit` report where a town breaks them.
+v1.9 turned numbers for "believable" into rows (same-row angle, even gaps, lanes at a fixed distance, every house near a lane) and the builder met them exactly: every town read as a grid. v1.10 replaces that. **The test is one question, judged at the sailing camera: would this pass as a drawing of a real old-European harbour village?** Rows, equal gaps or parallel lanes mean must fix. W is the town's median house width.
 
-- **Flat ground.** Slope under a house footprint at most 12° (8° in a main port's core). Warn 12, fail 18 [`styles.*.slope`, `harbour.coreSlope`, core radius `harbour.core` 8W; a main port is a town of `harbour.mainPort` houses or more, so a hamlet keeps 12°]. A church may stand on a rise up to 18° [`houses.civicSlope`].
-- **Facing.** Door side to the nearest lane or quay within 3W, else to the nearest water. Error ±25° warn, ±45° fail [`houses.facingReach`, `houses.facing`]. Same-row houses within ±15° of each other [`houses.rowTurn`]. Quay houses face the quay. Our houses have no door yet, so front and back count alike.
-- **Spacing.** Gap 0.4W to 1.5W between neighbours; under 0.3W warns (the two merge) [`styles.*.spacing`: merge under, row within]. Town core: no house more than 3W from a house or lane [`styles.*.lonely`]. No overlapping footprints (the overlap check).
-- **Shore setback.** Nearest corner at least 0.8W from the waterline; quay houses at least 0.3W [`styles.*.setback`, `houses.quaySetback`].
-- **Lanes.** Follow the shore or the contour within ±30° [`lanes.turn`; ground flatter than `lanes.flat` has no contour; warn past `lanes.offShare` of a lane], 1W to 3W from the waterline on the harbour side [`lanes.shore`], every house within 2W of one [`styles.*.laneReach`]. Never over 15° [`lanes.slope`]. Dead ends at a house, pier or well [`lanes.endReach`, `types.laneEnds`].
-- **Quays and piers.** Start at the shore, run out square (±30°), on the sheltered side where the ship berths [`piers.shore`, `piers.square`; the sheltered side is by eye].
-- **The harbour is the centre.** Centre of mass within 6W of the berth; at least 60% of houses within 8W; church, market or club within 5W [`harbour.centre`, `harbour.share`, `harbour.shareReach`, `harbour.civic`, `types.civic`]. Outliers (crofts, farm, lighthouse) allowed [`types.outliers`].
-- **Fields and orchards.** Slope under 8°, 2W to 8W from the nearest house, never between house and water, never on the lane [`fields.slope`, `fields.near`, `types.fields`]. A tea garden is a garden, not a field: Sunreach's tea terraces climb the crater slope and stand between the houses and the water by design, so the rule leaves them alone (#515).
-- **Woods.** Slope over 12° or the island's back or far edge, at least 2W from houses, never on the town's water side, never hiding the town from the sailing camera [`woods.slope`, `woods.houseGap`; the camera by eye].
-- **Exceptions by style** [`styles.<style>`]: **tropic** stilts may stand 0 to 2W out over the shallows, slope limit 8°. **Ice**: sheltered side, spacing 0.3W to 1.2W, no fields, snow-pine woods. **Fog**: slope limit 15°, lone crofts up to 6W from a lane, fells on the north side. **Fire** (Emberhold, Cinder Isle): never on lava or ash, at least 3W from lava cracks and the cone's slope, no fields, slope limit 10°.
+**What a village has (ask for these; they are not spacing numbers):**
 
-A failed rule is an error (`grading.fails` is `"error"` since towns 2 and 3, #514 and #515, fixed every island), so `npm run check` holds the line.
+- **A centre.** A square, green or quay head with the church, market or inn on it. At least three lanes reach it from different sides, at odd angles. The harbour stays the centre of gravity: a village gathers round its square or quay.
+- **Curving lanes.** They follow the contour and the shore, fork, narrow, and end at a well, barn or slip. No two lanes parallel; no straight run longer than about six houses.
+- **Houses at their own angles.** They face the lane or square they stand on; a spread of 30° or more across a town is normal, and nothing forces neighbours to match. Clusters of two to four houses share a yard; packed tight in the core, thinning toward the edge.
+- **Mixed sizes and tones.** A few large buildings, many small ones, sheds and outbuildings. Roof tones vary per street.
+- **Blurred edges.** Gardens, fences, haystacks, boats on the beach, then fields and woods.
+
+**Hard rules (these can break, so a check keeps them)** [keys in `src/data/town-rules.json`; editors' Town rules page, `npm run towns`, `npm run island -- audit`]:
+
+- **Slope.** At most 12° under a house (8° in a main port's core); a church may stand on a rise up to 18° [`styles.*.slope`, `harbour.coreSlope`, `houses.civicSlope`]. Lanes never over 15° [`lanes.slope`].
+- **Shore.** Nearest corner at least 0.8W from the waterline; quay houses at least 0.3W; tropic stilts may stand out over the shallows [`styles.*.setback`, `houses.quaySetback`].
+- **No merging.** Footprints never overlap, and neighbours keep a minimum gap (under 0.3W warns). There is no maximum gap and no even-gap rule [`styles.*.spacing` merge only].
+- **Fire.** Never on lava or ash, 3W from lava cracks and the cone's slope.
+- **Piers.** Start at the shore and run out square (±30°) on the sheltered side [`piers.*`].
+- **Fields and woods.** Fields under 8°, never between house and water or on a lane; woods on steep or back ground, 2W from houses, never hiding the town from the sailing camera [`fields.*`, `woods.*`].
+- **Harbour as centre.** Centre of mass within 6W of the berth, at least 60% of houses within 8W [`harbour.*`]. Outliers (crofts, farm, lighthouse) allowed.
+
+**Dropped from v1.9:** same-row angle (`houses.rowTurn`), even gaps (`row within`, the 1.5W maximum), "every house within 2W of a lane" as a fail (`styles.*.laneReach`), lanes held at a fixed 1W to 3W from the water (`lanes.shore`), and the facing check as a pass/fail on ±25° (facing stays a warning on being turned away from the lane). Keep the idea; lose the numbers.
+
+**Style notes.** Ice: sheltered side, snow-pine woods, no fields. Fog: lone crofts allowed far out, fells on the north side. Fire: see hard rules. Tropic: stilts, tea terraces count as gardens.
+
+**How a village gets approved.** Before and after sheets, one image per row, full size, each town at the sailing camera and at `--look town --zoom 1.4`, next to a real reference (see `docs/art/village-references/`). Judge it as a drawing, not against a table.
+
+**Each village feels different (Guillaume, 2026-11-14: "each island/biome must give off a different feeling depending on its biome and industry").** All use the §12 rules above; shape, density, materials and work-clutter change. A town that could swap places with another one after a recolour is a must fix. Reference in brackets (`docs/art/village-references/`).
+
+| Town | Shape and feeling | Industry shows as |
+|---|---|---|
+| **Westholm** (ring) | Farming-and-mill village on gentle ground: a green with the mill beside it, lanes fanning out, loose cottages with gardens [Cadgwith edges] | Mill and millpond, haystacks, fields close to the houses |
+| **Saltmere** (ring) | Fishing village along a shallow bay: a long curved quay lane, houses gathered in clusters behind it [Polperro] | Smokehouses and drying nets near the quay, stacked boats and pots |
+| **Calda** (ring) | Working harbour on a slope: tight stacked core round the slipway, steep stepped lanes [Polperro, Vernazza] | Slipway, boat sheds, ropewalk, hulls under repair |
+| **Stonehaven** (ring) | Stone town, the densest: heavy grey buildings around a market square, narrow lanes, few gardens [Vernazza] | Crane on the quay, quarry cut on the hill, stone stacks |
+| **Abbey Head** (ring) | Small settlement under a big landmark: the abbey and club on the rise, cottages tucked below at odd angles [Cadgwith] | Abbey wall, orchard, club lawn |
+| **Skerry** (ring) | Hamlet of a few homesteads with big open plots between them [Cadgwith] | Plots, sheds, a slip |
+| **Sunreach** (south) | Airy: stilt and beach houses spread on the terrace and round the lagoon, wide lanes, palms and shade between [Vernazza colours, looser] | Tea terraces, drying racks, the tea house |
+| **Palm Key** (south) | Tiny beach hamlet, houses along one curved shore path | Boats on the sand, nets, a lantern pole |
+| **Emberhold** (west) | Sparse, hunkered: low turf-roofed and tarred houses in small groups, lanes bending round the lava, big gaps of black ground | Glassworks with the furnace, steam vents, fish racks |
+| **Cinder Isle** (west) | A fresh settlement: a few new sheds and houses around one warm vent, raw ground, no old core | Vents, ash heaps, tools |
+| **Rimewick** (north) | Compact and bright: houses packed against the cold on the sheltered slope, close together, paths dug between snowbanks | Jam house with steam, drying racks, sledges |
+| **Snowberry Isle** (north) | Seasonal camp: a few houses and weather station, trails over the moor | Cloudberry racks, the station |
+| **Fogwatch** (east) | Scattered crofts: lone houses linked by dry-stone walls and a cart track, a small cluster round the quay and foghorn, turf and tar, almost no trees [Cadgwith] | Foghorn, drying sheds, boathouses, sheep |
+| **Amber Strand** (east) | Outpost that grows: a workshop and a few huts on pale dune, bare ground between | Amber workshop, drying frames |
+
+Build threads: keep each town's existing signature, and judge each one in a before and after sheet next to its table row. If two rows' towns look alike at the sailing camera, say so and change shape, not just colour.
