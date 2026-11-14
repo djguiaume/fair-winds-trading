@@ -313,13 +313,7 @@ export class Atmosphere {
     this.dome.dispose();
   }
 
-  private updateSky(
-    l: Look,
-    zenith: THREE.Color,
-    day: Daylight,
-    low: number,
-    haze: number,
-  ) {
+  private updateSky(l: Look, zenith: THREE.Color, day: Daylight, low: number, haze: number) {
     const sky = this.drawnSky;
     sky.horizon.copy(l.sky);
     sky.zenith.copy(zenith);
