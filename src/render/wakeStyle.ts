@@ -30,7 +30,18 @@ export const wakeStyleUniforms = () => ({
 /** GLSL declarations, before `main`. */
 export const WAKE_STYLE_HEAD = `uniform vec3 uTint;
   uniform float uTintMix;
-  uniform vec4 uStyle;`;
+  uniform vec4 uStyle;
+  // Smooth value noise 0..1: blobs, never squares, however close the camera.
+  float wakeHash(vec2 p) {
+    return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+  }
+  float wakeNoise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = p - i;
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(wakeHash(i), wakeHash(i + vec2(1.0, 0.0)), f.x),
+               mix(wakeHash(i + vec2(0.0, 1.0)), wakeHash(i + vec2(1.0, 1.0)), f.x), f.y);
+  }`;
 
 /**
  * GLSL in `main`: `alpha` and `col` are the plain foam's; `vFoam` is (across -1..1, along,
@@ -47,9 +58,8 @@ export const WAKE_STYLE_BODY = `
   float lines = max(1.0 - smoothstep(0.0, 0.1, abs(across - 0.15)),
                     1.0 - smoothstep(0.0, 0.1, abs(across - 0.55)));
   alpha *= mix(1.0, lines, uStyle.z * vFoam.w);
-  vec2 cell = floor(vec2(vFoam.y * 4.0, vFoam.x * 3.0));
-  float seed = fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453);
-  float twinkle = smoothstep(0.82, 1.0, seed) * (0.5 + 0.5 * sin(uTime * 5.0 + seed * 40.0));
+  float seed = wakeNoise(vec2(vFoam.y * 4.0, vFoam.x * 3.0));
+  float twinkle = smoothstep(0.7, 0.9, seed) * (0.5 + 0.5 * sin(uTime * 5.0 + vFoam.y * 3.0));
   float tail = smoothstep(0.0, 0.06, vFoam.z) * (1.0 - smoothstep(0.08, 0.4, vFoam.z));
   alpha = max(alpha, uStyle.w * twinkle * tail * edge * vFoam.w);
   col = mix(col, uTint, uTintMix);`;
