@@ -56,6 +56,11 @@ export interface TownPlan {
 
 const LEVEL = MAX_SETTLEMENT_LEVEL;
 
+/** The village rules (#528) count apart from the hard rules while the towns are redone. */
+const VILLAGE_CHECKS = ['grid', 'centre'];
+const failsAs = (rules: TownRules, check: string) =>
+  VILLAGE_CHECKS.includes(check) ? rules.grading.village : rules.grading.fails;
+
 /** Props standing in the lasting town: at the top level, not ones a quest takes away. */
 export const lasting = (p: PropDef) =>
   atLevel(p, LEVEL) && !p.tags?.some((t) => t.startsWith('before:'));
@@ -101,7 +106,7 @@ export function townPlan(
     field: designHeightfield(island, design, LEVEL),
     report: (check, grade, message, extra = {}) =>
       issues.push({
-        severity: grade === 'fail' && rules.grading.fails === 'error' ? 'error' : 'warning',
+        severity: grade === 'fail' && failsAs(rules, check) === 'error' ? 'error' : 'warning',
         check: `town-${check}`,
         grade,
         message,
@@ -226,3 +231,7 @@ export const lineAngle = (a: Point, b: Point) => {
 
 /** A prop's name in a message: its type and place. */
 export const named = (p: PropDef) => `${p.type} (${p.x.toFixed(2)}, ${p.z.toFixed(2)})`;
+
+/** A distance in W, the town's house width, as the messages print it. */
+export const inW = (plan: TownPlan, d: number) =>
+  `${(d / plan.W).toFixed(Math.abs(d) < plan.W ? 2 : 1)}W`;

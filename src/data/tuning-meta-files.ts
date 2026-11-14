@@ -1,5 +1,6 @@
 import type { TuningMeta } from './tuning-meta-types';
 import { GRAPHICS_META } from './tuning-meta-graphics';
+import { LAMPS_META } from './tuning-meta-lamps';
 import { CAMERA_META } from './tuning-meta-camera';
 import { BUOYS_META } from './tuning-meta-buoys';
 import { STORMS_META } from './tuning-meta-storms';
@@ -18,10 +19,12 @@ import { SKY_META } from './tuning-meta-sky';
 import { REFLECTION_META } from './tuning-meta-reflection';
 import { GUSTS_META } from './tuning-meta-gusts';
 import { SMOOTHNESS_META } from './tuning-meta-smoothness';
+import { FOLLOW_LOOK_META } from './tuning-meta-follow-look';
 
 /** The meta entries kept in their own files, one subject each, so tuning-meta.ts stays readable. */
 export const FILE_METAS: Readonly<Record<string, TuningMeta>> = {
   ...GRAPHICS_META,
+  ...LAMPS_META,
   ...QUALITY_META,
   ...CAMERA_META,
   ...BUOYS_META,
@@ -40,4 +43,5 @@ export const FILE_METAS: Readonly<Record<string, TuningMeta>> = {
   ...REFLECTION_META,
   ...GUSTS_META,
   ...SMOOTHNESS_META,
+  ...FOLLOW_LOOK_META,
 };

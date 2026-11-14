@@ -199,6 +199,7 @@ export class Ocean {
                 uMirror: { value: null },
                 uMirrorMatrix: { value: new THREE.Matrix4() },
                 uMirrorLook: { value: new THREE.Vector3() },
+                uMirrorSoft: { value: new THREE.Vector4() },
               }
             : {}),
           ...(look.gerstner ? { ...gerstnerUniforms(), ...SHORE_WASH_UNIFORMS } : {}),
@@ -299,6 +300,13 @@ export class Ocean {
     (u.uMirrorMatrix!.value as THREE.Matrix4).copy(matrix);
     const r = TUNING.graphics.reflection;
     (u.uMirrorLook!.value as THREE.Vector3).set(r.strength, r.distortion, strength);
+    const { width, height } = texture.image as { width: number; height: number };
+    (u.uMirrorSoft!.value as THREE.Vector4).set(
+      r.soften.across / Math.max(1, width),
+      r.soften.down / Math.max(1, height),
+      r.soften.ripple,
+      r.soften.dim,
+    );
   }
 
   /** The light (scene space, normalized direction), for the flat shading and the glint. */

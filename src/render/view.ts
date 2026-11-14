@@ -610,7 +610,7 @@ export class GameView {
       -to.y,
       wind.speedKn * TUNING.seamanship.boat.knotToUnits * 0.75,
       windStrength01(wind.speedKn),
-      this.rig.axes,
+      this.rig,
     );
     const { weather } = this.world;
     this.stormClouds.update(weather.storms, time, this.world.boat);
@@ -708,7 +708,7 @@ export class GameView {
   ) {
     this.lanterns.update(glow, this.boatLantern, time, ultra?.lanternSize);
     this.lighthouseBeams.update(time, glow);
-    this.beaconLights.update(time, glow);
+    this.beaconLights.update(time, glow, ultra?.lanternSize);
     const windows = this.islands.userData.windows as THREE.MeshBasicMaterial | undefined;
     windows?.color.copy(WINDOWS_BY_DAY).lerp(WINDOWS_AT_NIGHT, glow);
     if (ultra) windows?.color.multiplyScalar(1 + (ultra.windowGlow - 1) * glow);

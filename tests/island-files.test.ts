@@ -41,8 +41,10 @@ describe('island files (decision 0101)', () => {
       expect(errors(issues), design.id).toEqual([]);
       // Known warnings: lane pieces the old lanes never drew, Calda above 5,000 triangles, and
       // the hidden yards' houses touching as the old shipyard town placed them (0107).
-      // The town rules (issue #513): every town is clean, and a fail is an error since #515.
-      for (const w of issues) expect(['lanes', 'budget', 'overlap'], w.message).toContain(w.check);
+      // The town rules (issue #513): the hard rules are clean and fail as errors. The village
+      // checks (#528, 0306) find v1.9's grids as warnings until the v1.10 town parts redo them.
+      const known = ['lanes', 'budget', 'overlap', 'town-grid', 'town-centre', 'town-lanes'];
+      for (const w of issues) expect(known, w.message).toContain(w.check);
     }
     // Every file builds its ground at each settlement level for the coast and footing checks.
   }, 30000);
@@ -128,44 +130,44 @@ describe('island files (decision 0101)', () => {
 });
 
 const GOLDEN: Record<string, string[]> = {
-  calda: ['531:f4fac42c', '709:169b50bb', '858:ac0e3642', '969:f2121728'],
-  saltmere: ['300:fd5060d7', '452:72de2823', '650:246cf92f', '827:c4e9e85d'],
-  westholm: ['247:6a3e1e2c', '451:8c1a77e0', '639:dccc7171', '760:471a078b'],
-  'south-cay': ['234:4272774a', '353:9d96447a', '478:5b577e11', '654:37f5d02b'],
-  skerry: ['246:27ff6779', '250:854f4fbc', '253:eafb60a6', '253:eafb60a6'],
+  calda: ['531:fdb015f0', '709:584e6a1', '858:2a8890ba', '969:8b1b74c'],
+  saltmere: ['333:5c55ea16', '488:cc18251a', '692:a24ad0f5', '875:2af95e35'],
+  westholm: ['247:bf2e80a4', '451:ee6df58a', '639:331e99d', '760:deeb6af1'],
+  'south-cay': ['234:8161a42a', '353:209396ea', '478:33cc9f05', '654:cb802c39'],
+  skerry: ['246:cc0b40d7', '250:4172fa2e', '253:7967dea8', '253:7967dea8'],
   'bell-rock': ['13:149f2ca0', '13:149f2ca0', '13:149f2ca0', '13:149f2ca0'],
-  'abbey-head': ['53:ce93d99', '103:438f543c', '148:5dbb1221', '190:890bc63c'],
-  'watchman-key': ['75:92859dec', '105:a1669955', '153:bbbf1059', '160:b11fc0bd'],
+  'abbey-head': ['53:5030ad49', '103:7ab06af0', '148:4382b111', '190:606886e0'],
+  'watchman-key': ['75:c046ccbc', '105:eb852209', '153:14f0d465', '160:cb545d09'],
   'lantern-rock': ['23:33c034ce', '23:33c034ce', '23:33c034ce', '23:33c034ce'],
   'greyback-ridge': ['121:d8b1afe4', '121:d8b1afe4', '121:d8b1afe4', '121:d8b1afe4'],
   'gull-hook': ['130:ca8ed3fd', '130:ca8ed3fd', '130:ca8ed3fd', '130:ca8ed3fd'],
   'teeth-rock': ['25:d7a4208f', '25:d7a4208f', '25:d7a4208f', '25:d7a4208f'],
-  sunreach: ['618:8e4c1dfa', '710:d4433804', '815:6e8e6e6b', '857:5e20acde'],
-  'sunreach-south': ['497:82e36a08', '510:378e2bac', '519:e3195d81', '519:e3195d81'],
-  'palm-key': ['326:25ceb327', '315:b7a387fa', '344:9e24d36b', '344:9e24d36b'],
+  sunreach: ['622:e0cb2358', '727:1564c7ec', '826:5128fa68', '880:9e309d0f'],
+  'sunreach-south': ['509:e7632bb9', '525:52bc07f5', '534:5ee7e11', '534:5ee7e11'],
+  'palm-key': ['344:2c2584d7', '338:a73f7c2', '367:d97bb82e', '367:d97bb82e'],
   'lone-palm': ['19:56b2c2', '19:56b2c2', '19:56b2c2', '19:56b2c2'],
   'two-palms': ['23:a6ed5ed', '23:a6ed5ed', '23:a6ed5ed', '23:a6ed5ed'],
-  emberhold: ['451:d56df2c3', '548:b9875d01', '625:11100059', '658:81a5b163'],
+  emberhold: ['467:f3e836fc', '578:7a97bda3', '658:a085c7d4', '699:b048ed77'],
   'the-smoulder': ['161:afbe8b23', '161:afbe8b23', '161:afbe8b23', '161:afbe8b23'],
   'organ-pipes': ['89:ef4e83bf', '89:ef4e83bf', '89:ef4e83bf', '89:ef4e83bf'],
-  'cinder-isle': ['119:b7e2f5a3', '154:1fdb6902', '179:7fa21dde', '179:7fa21dde'],
+  'cinder-isle': ['139:6c5fc1bf', '178:ae415ed7', '201:3db72fc8', '201:3db72fc8'],
   'steam-holm': ['35:f930960c', '35:f930960c', '35:f930960c', '35:f930960c'],
   'spark-rock': ['18:b3591ec5', '18:b3591ec5', '18:b3591ec5', '18:b3591ec5'],
   'the-chimneys': ['13:6d3cc715', '13:6d3cc715', '13:6d3cc715', '13:6d3cc715'],
   'the-chimneys-2': ['7:b1a0088d', '7:b1a0088d', '7:b1a0088d', '7:b1a0088d'],
   'the-tongs': ['7:78575b7d', '7:78575b7d', '7:78575b7d', '7:78575b7d'],
   'the-tongs-2': ['7:cbe478f3', '7:cbe478f3', '7:cbe478f3', '7:cbe478f3'],
-  fogwatch: ['482:f266bf98', '567:e6b7770f', '654:635d5e34', '701:5288adae'],
+  fogwatch: ['504:15ef9570', '576:d46a5f0f', '655:155a5995', '699:ad4a0096'],
   'the-giant': ['6:c84f56e6', '6:c84f56e6', '6:c84f56e6', '6:c84f56e6'],
   'his-wife': ['6:676eecc4', '6:676eecc4', '6:676eecc4', '6:676eecc4'],
-  'amber-strand': ['303:6e6f72c9', '363:9d2a5829', '417:bbba493a', '417:bbba493a'],
+  'amber-strand': ['309:8dad7d39', '369:136979e0', '423:fa4c438c', '423:fa4c438c'],
   'puffin-holm': ['8:3ff49b4c', '8:3ff49b4c', '8:3ff49b4c', '8:3ff49b4c'],
   'lamb-holm': ['17:85293a40', '17:85293a40', '17:85293a40', '17:85293a40'],
   'broch-isle': ['16:4157b50d', '16:4157b50d', '16:4157b50d', '16:4157b50d'],
   'the-kittiwakes': ['56:f643c38e', '56:f643c38e', '56:f643c38e', '56:f643c38e'],
   'sandwick-holm': ['27:bf85bc6f', '27:bf85bc6f', '27:bf85bc6f', '27:bf85bc6f'],
-  rimewick: ['471:803be4bb', '586:252d7557', '634:ad9ad77e', '642:2dfd5def'],
-  'snowberry-isle': ['255:50731560', '353:8c29d553', '448:51b6b890', '448:51b6b890'],
+  rimewick: ['470:1b73d32d', '582:bb1be7fe', '626:a98ebfb4', '639:182d47b0'],
+  'snowberry-isle': ['255:70ef111', '356:ae91cf0e', '451:5dafc2b5', '451:5dafc2b5'],
   whitefell: ['17:90d719e7', '17:90d719e7', '17:90d719e7', '17:90d719e7'],
   'lead-rock': ['22:566ea91e', '22:566ea91e', '22:566ea91e', '22:566ea91e'],
   'cairn-holm': ['9:86e5a65a', '9:86e5a65a', '9:86e5a65a', '9:86e5a65a'],

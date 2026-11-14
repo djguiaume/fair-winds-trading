@@ -1,4 +1,4 @@
-# 0306. Retire the classic look and Kids mode
+# 0307. Retire the classic look and Kids mode
 
 **Status:** Accepted (2026-11-14). Approved by Guillaume 2026-11-13 (issue #563, whole-game review v1.9 §8).
 

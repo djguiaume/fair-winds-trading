@@ -4,9 +4,9 @@ import {
   type House,
   type Point,
   type TownPlan,
-  angleBetween,
   groundAt,
   hullGap,
+  inW,
   lasting,
   lineAngle,
   named,
@@ -17,12 +17,14 @@ import {
 } from './townPlan';
 import { checkTownGround } from './townGroundChecks';
 import { TOWN_RULES, type TownRules } from './townRules';
+import { checkVillage } from './townVillageChecks';
 
 /**
- * The believable-town checks (issue #513): the art director's town layout rules (art bible ›
- * Towns, numbers in `src/data/town-rules.json`) on a designed island's houses. Shared by the
- * island builder, `npm run island` and the audit (`npm run island -- audit`). Each finding is
- * graded warn or fail; a fail counts as `grading.fails` says (an error since every town passes).
+ * The town checks (issues #513, #528): the art director's town layout rules (art bible §12,
+ * numbers in `src/data/town-rules.json`) on a designed island's houses. Shared by the island
+ * builder, `npm run island` and the audit (`npm run island -- audit`). Each finding is graded
+ * warn or fail; a fail counts as `grading.fails` says. The hard rules (slope, ground, shore) live
+ * here and in `townGroundChecks.ts`; what tells a village from a grid in `townVillageChecks.ts`.
  */
 export function checkTown(
   design: IslandDesign,
@@ -40,13 +42,13 @@ export function checkTown(
   }
   houseSpacing(plan);
   harbourCentre(plan);
+  checkVillage(plan);
   checkTownGround(plan);
   return issues;
 }
 
 /** Share of a house's footprint radius its slope is read over. */
 const FOOTING = 0.7;
-const inW = (plan: TownPlan, d: number) => `${(d / plan.W).toFixed(Math.abs(d) < plan.W ? 2 : 1)}W`;
 
 /** Flat ground, never on the style's forbidden ground; churches may stand on a rise. */
 function houseGround(plan: TownPlan, h: House) {
@@ -93,14 +95,13 @@ function houseFacing(plan: TownPlan, h: House): boolean {
     ? [target.at[0] - h.at[0], target.at[1] - h.at[1]]
     : waterAt(plan, h.at[0], h.at[1]).way;
   // The house models have no door: their front and back walls are alike, so either may face it.
+  // Houses stand at their own angles (#528): only one turned away from its lane warns.
   const off = lineAngle(h.front, way);
-  const [warn, fail] = rules.houses.facing;
-  const grade = off > fail ? 'fail' : off > warn ? 'warn' : null;
-  if (grade)
+  if (off > rules.houses.facing)
     plan.report(
       'facing',
-      grade,
-      `${named(h.prop)} faces ${off.toFixed(0)}° away from the ${target?.what ?? 'water'} (warn ${warn}°, fail ${fail}°)`,
+      'warn',
+      `${named(h.prop)} turns ${off.toFixed(0)}° away from the ${target?.what ?? 'water'} (over ${rules.houses.facing}°)`,
       { prop: h.index, at: h.at },
     );
   return target?.what === 'quay';
@@ -131,40 +132,20 @@ function houseShore(plan: TownPlan, h: House, quay: boolean) {
   );
 }
 
-/** Neighbours apart but not merged, rows turned alike, no house alone, every house near a lane. */
+/** Neighbours apart but not merged, and no house alone. No maximum gap: a village has none. */
 function houseSpacing(plan: TownPlan) {
   const { houses, rules, style, W } = plan;
   const outlier = (h: House) => rules.types.outliers.includes(h.prop.type);
   const lanes = plan.lanes.filter((l) => l.length > 1);
-  for (let i = 0; i < houses.length; i++) {
-    const h = houses[i]!;
+  for (const h of houses) {
     const extra = { prop: h.index, at: h.at };
     let closest = Infinity;
-    let rowOff = 0;
-    for (let j = 0; j < houses.length; j++) {
-      if (j === i) continue;
-      const o = houses[j]!;
-      const gap = hullGap(h.hull, o.hull);
-      closest = Math.min(closest, gap);
-      // Side by side: the line between them runs across both fronts, not along either (where
-      // two rows meet at a corner, one house stands before the other, and they are no row).
-      const between: Point = [o.at[0] - h.at[0], o.at[1] - h.at[1]];
-      const across = [h, o].every((a) => Math.abs(90 - angleBetween(a.front, between)) < 45);
-      if (j < i && gap <= style.spacing[1] * W && across)
-        rowOff = Math.max(rowOff, lineAngle(h.front, o.front));
-    }
-    if (closest > 0 && closest < style.spacing[0] * W)
+    for (const o of houses) if (o !== h) closest = Math.min(closest, hullGap(h.hull, o.hull));
+    if (closest > 0 && closest < style.spacing * W)
       plan.report(
         'spacing',
         'warn',
-        `${named(h.prop)} is ${inW(plan, closest)} from its neighbour: the two merge (under ${style.spacing[0]}W)`,
-        extra,
-      );
-    if (rowOff > rules.houses.rowTurn)
-      plan.report(
-        'row',
-        'warn',
-        `${named(h.prop)} turns ${rowOff.toFixed(0)}° from the house beside it (row within ${rules.houses.rowTurn}°)`,
+        `${named(h.prop)} is ${inW(plan, closest)} from its neighbour: the two merge (under ${style.spacing}W)`,
         extra,
       );
     const lane = nearest(h.at, lanes).distance - h.fit;
@@ -175,23 +156,7 @@ function houseSpacing(plan: TownPlan) {
         `${named(h.prop)} stands alone: ${inW(plan, closest)} from a house (over ${style.lonely}W)`,
         extra,
       );
-    if (lanes.length && !outlier(h) && lane > style.laneReach * W)
-      plan.report(
-        'lanes',
-        'warn',
-        `${named(h.prop)} is ${inW(plan, lane)} from a lane (within ${style.laneReach}W)`,
-        extra,
-      );
   }
-  if (!lanes.length && houses.length >= 3)
-    plan.report(
-      'lanes',
-      'warn',
-      `No lanes: ${houses.length} houses, each wants a lane within ${style.laneReach}W`,
-      {
-        at: plan.harbour ?? houses[0]!.at,
-      },
-    );
 }
 
 /** The harbour is the town's centre: its houses, most of them, and its church or market. */

@@ -1,16 +1,27 @@
 // `npm run island -- audit` (issue #513): the town rules over every shipped island with houses,
-// one line per island (or a Markdown table with --md, JSON with --json, plans with --chart dir,
-// named <id>-before.jpg or --as after),
+// one line per island and its follow-cam pose as `npm run shots` options (#544; a Markdown table
+// with --md, JSON with --json, plans with --chart dir, named <id>-before.jpg or --as after),
 // from the same town checks the island builder shows.
 import { ISLAND_DESIGNS } from '../../src/data/islands';
 import { islandCheckKit } from '../../src/render/models/islandCheckKit';
 import { ISLAND_SCALE } from '../../src/sim/islandUnits';
 import { checkTown } from '../../src/sim/townChecks';
+import { TUNING } from '../../src/data/tuning';
+import type { PortDef } from '../../src/sim/map';
+import { MAX_SETTLEMENT_LEVEL } from '../../src/sim/settlement';
+import { distanceToPort } from '../../src/sim/trade';
 import { townPlan } from '../../src/sim/townPlan';
+import { type FollowPose, followPose, followShot } from '../../src/sim/townPose';
 import { TOWN_RULES } from '../../src/sim/townRules';
 import { defaultSeas, islandPlacements } from './check';
 import type { Args } from './islandArgs';
 import { writeTownCharts } from './townChart';
+import { townGroundMap } from './townGroundMap';
+
+export const AUDIT_HELP = `npm run island -- audit [id] [--md|--json|--warnings|--chart dir [--as after] [--grid]]  the town rules on every town
+       (--grid rules the plan every 0.2 with file coordinates, prop indexes and rivers, to design from)
+       audit <id> --ground x0,x1,z0,z1 [--step 0.02]  a text map of the ground the checks read:
+       . flat, + warn slope, # steeper, ~ water, L lava or ash, H house, B building`;
 
 /** The rules in the art bible's order, as the checks name them (`town-<rule>`). */
 export const TOWN_CHECKS = [
@@ -18,8 +29,9 @@ export const TOWN_CHECKS = [
   'ground',
   'shore',
   'facing',
-  'row',
   'spacing',
+  'grid',
+  'centre',
   'lanes',
   'piers',
   'harbour',
@@ -37,6 +49,8 @@ export interface TownAudit {
   W: number;
   warn: number;
   fail: number;
+  /** Where the boat lies for a follow-cam shot of the town on the game's sea (#544). */
+  follow: FollowPose | null;
   /** Findings by rule, "warn/fail". */
   rules: Record<string, [number, number]>;
   messages: string[];
@@ -44,7 +58,15 @@ export interface TownAudit {
 
 /** The town audit of every shipped island with houses, sorted by id. */
 export function townAudit(only?: string): TownAudit[] {
-  const places = islandPlacements(defaultSeas());
+  const seas = defaultSeas();
+  const places = islandPlacements(seas);
+  const sea = seas.phase4!;
+  const onSea = (id: string) => sea.islands.find((i) => i.look?.design === id);
+  const portOf = (island: string) => sea.ports.find((p) => p.islandId === island);
+  const { dockRange, berthReach } = TUNING.seamanship.harbour;
+  /** Out of docking reach, or the boat docks before the follow-cam shot. */
+  const undocked = (port: PortDef | undefined) => (x: number, y: number) =>
+    !port || distanceToPort(sea, { x, y }, port, MAX_SETTLEMENT_LEVEL) > dockRange + berthReach;
   const out: TownAudit[] = [];
   for (const design of Object.values(ISLAND_DESIGNS).sort((a, b) => a.id.localeCompare(b.id))) {
     const place = places.get(design.id);
@@ -56,6 +78,7 @@ export function townAudit(only?: string): TownAudit[] {
     const rules: Record<string, [number, number]> = {};
     for (const rule of TOWN_CHECKS) rules[rule] = [0, 0];
     for (const i of issues) rules[i.check.slice('town-'.length)]![i.grade === 'fail' ? 1 : 0]++;
+    const island = onSea(design.id);
     out.push({
       id: design.id,
       name: design.name,
@@ -64,6 +87,9 @@ export function townAudit(only?: string): TownAudit[] {
       W: Math.round(plan.W * place.R * ISLAND_SCALE * 10) / 10,
       warn: issues.filter((i) => i.grade !== 'fail').length,
       fail: issues.filter((i) => i.grade === 'fail').length,
+      follow: island
+        ? followPose(plan, island, portOf(island.id)?.id, undocked(portOf(island.id)))
+        : null,
       rules,
       messages: issues.map(
         (i) =>
@@ -93,9 +119,17 @@ export function auditTable(audit: TownAudit[]): string {
 }
 
 export async function runAudit(args: Args, only?: string): Promise<number> {
+  if (typeof args.ground === 'string') {
+    if (!only) throw new Error('--ground needs an island: audit sunreach --ground -0.6,0.6,0,0.8');
+    const step = typeof args.step === 'string' ? Number(args.step) : undefined;
+    for (const row of townGroundMap(only, args.ground.split(',').map(Number), step))
+      console.log(row);
+    return 0;
+  }
   if (typeof args.chart === 'string') {
     const as = typeof args.as === 'string' ? args.as : undefined;
-    for (const file of await writeTownCharts(args.chart, only, as)) console.log(`→ ${file}`);
+    for (const file of await writeTownCharts(args.chart, only, as, args.grid === true))
+      console.log(`→ ${file}`);
     return 0;
   }
   const audit = townAudit(only);
@@ -110,6 +144,7 @@ export async function runAudit(args: Args, only?: string): Promise<number> {
           .map((r) => `${r} ${cell(a.rules[r]!)}`)
           .join(', ')}`,
       );
+      if (a.follow) console.log(`  follow cam: npm run shots -- ${followShot(a.follow)}`);
       if (only || args.warnings) for (const m of a.messages) console.log(`  ${m}`);
     }
   return 0;

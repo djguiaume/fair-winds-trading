@@ -1,5 +1,5 @@
 {
-  "note": "Draw calls and triangles per scenario at quality high in the headless run, set about 10% above the measurement (smooth ground, 2026-10-29, #278: about 150k triangles on screen, mostly the island ground; sailing and docking re-set after the town folk of #477 and the rich town houses of #500, which add one mesh per town in view). The classic look and its budget were retired with decision 0306 (#563). A rendering change that needs more raises it here with its reason in the PR. Not a replacement for ?bench on a real device.",
+  "note": "Draw calls and triangles per scenario at quality high in the headless run, set about 10% above the measurement (smooth ground, 2026-10-29, #278: about 150k triangles on screen, mostly the island ground; sailing and docking re-set after the town folk of #477 and the rich town houses of #500, which add one mesh per town in view). The classic look and its budget were retired with decision 0307 (#563). A rendering change that needs more raises it here with its reason in the PR. Not a replacement for ?bench on a real device.",
   "scenarios": {
     "sailing": { "calls": 38, "triangles": 177000 },
     "docking": { "calls": 42, "triangles": 166000 }

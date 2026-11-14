@@ -1,24 +1,9 @@
 import * as THREE from 'three';
+import { PALETTE } from '../data/props';
+import { TUNING } from '../data/tuning';
 import type { IslandDef, PortDef } from '../sim/map';
+import { glowTexture } from './lampGlow';
 import { toScene } from './sceneSpace';
-
-/** A soft round glow, drawn once into a small canvas texture. */
-export function glowTexture(): THREE.Texture {
-  const size = 64;
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = size;
-  const g = canvas.getContext('2d');
-  if (g) {
-    const r = size / 2;
-    const grad = g.createRadialGradient(r, r, 0, r, r, r);
-    grad.addColorStop(0, 'rgba(255, 226, 160, 1)');
-    grad.addColorStop(0.2, 'rgba(255, 176, 80, 0.8)');
-    grad.addColorStop(1, 'rgba(255, 160, 60, 0)');
-    g.fillStyle = grad;
-    g.fillRect(0, 0, size, size);
-  }
-  return new THREE.CanvasTexture(canvas);
-}
 
 /**
  * Warm lights at night (decision 0068): lanterns on every harbour and a stern lantern on the
@@ -48,9 +33,6 @@ export function harbourLanternSpots(
   return spots;
 }
 
-/** World size of a lantern's glow on the levels below Ultra. */
-const GLOW_SIZE = 13;
-
 export class Lanterns {
   readonly points: THREE.Points;
   private readonly geometry = new THREE.BufferGeometry();
@@ -67,7 +49,8 @@ export class Lanterns {
       new THREE.BufferAttribute(this.positions, 3).setUsage(THREE.DynamicDrawUsage),
     );
     this.material = new THREE.PointsMaterial({
-      size: GLOW_SIZE,
+      size: TUNING.graphics.lamps.lanternSize,
+      color: PALETTE.colors.lamp as string,
       map: this.texture,
       transparent: true,
       depthWrite: false,
@@ -87,7 +70,7 @@ export class Lanterns {
   update(glow: number, boat: THREE.Vector3, time: number, size = 1) {
     this.points.visible = glow > 0.02;
     if (!this.points.visible) return;
-    this.material.size = GLOW_SIZE * size;
+    this.material.size = TUNING.graphics.lamps.lanternSize * size;
     this.material.opacity = Math.min(1, glow) * (0.92 + 0.08 * Math.sin(time * 7.3));
     this.positions.set([boat.x, boat.y, boat.z], this.positions.length - 3);
     this.geometry.attributes.position!.needsUpdate = true;

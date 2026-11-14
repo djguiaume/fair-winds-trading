@@ -88,7 +88,7 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
   phones second, Xbox last.**
 - **Polish and extras:** ship cosmetics (sail colours, flags, figureheads), achievements, a real
   **sandbox** mode (everything unlocked, nothing saved; needs its own decision), "play with these
-  controls" in the editors. (Kids mode and the classic look were retired in [0306](decisions/0306-retire-the-classic-look-and-kids-mode.md).)
+  controls" in the editors. (Kids mode and the classic look were retired in [0307](decisions/0307-retire-the-classic-look-and-kids-mode.md).)
 - **Event panel** for big story events ([0174](decisions/0174-event-panel-for-big-story-events.md)),
   only when Guillaume asks.
 

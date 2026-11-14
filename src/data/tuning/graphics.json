@@ -252,6 +252,12 @@
     "strength": 0.55,
     "nightStrength": 0.8,
     "distortion": 0.06,
+    "soften": {
+      "across": 1.5,
+      "down": 6,
+      "ripple": 0.004,
+      "dim": 0.8
+    },
     "levels": {
       "ultra": {
         "resolution": 0.5,
@@ -267,11 +273,36 @@
       }
     }
   },
+  "lamps": {
+    "core": 0.08,
+    "falloff": 0.24,
+    "peak": 0.8,
+    "lanternSize": 16,
+    "beaconSize": 20
+  },
   "houses": {
     "richWithin": 140,
     "hysteresis": 0.1
   },
   "builds": {
     "msPerFrame": 3
+  },
+  "windStreaks": {
+    "halfWidth": 0.09,
+    "lift": 2.2,
+    "chase": {
+      "halfWidth": 0.035,
+      "lift": 0.6,
+      "fadeFrom": 20,
+      "fadeTo": 50,
+      "alpha": 0.7
+    }
+  },
+  "beams": {
+    "radius": 7,
+    "length": 70,
+    "opacity": 0.5,
+    "fade": 1.3,
+    "edge": 1
   }
 }

@@ -256,7 +256,7 @@ export const GRAPHICS_META: Readonly<Record<string, TuningMeta>> = {
     1.5,
     0.05,
     '×',
-    'Size of the pier and boat lantern glows on Ultra against the other levels.',
+    'Size of the lantern and beacon glows on Ultra against the other levels; its bloom adds the halo.',
   ),
   'graphics.ultra.night.windowGlow': num(
     'Window glow',

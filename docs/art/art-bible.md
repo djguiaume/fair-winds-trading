@@ -27,7 +27,7 @@ A bright, low-poly storybook sea: smooth-shaded land and depth-blue water under 
 1. **Flat shading, vertex colours, one lighting.** Every model is lit by the same sun and sky light and coloured per face. No image textures, no outlines, no post-processing passes (one exception: the Ultra quality level on desktop and Xbox, decision [0221](../decisions/0221-an-ultra-quality-level-for-desktop-and-xbox.md), adds tone mapping and ambient occlusion, and since v1.7 the sea mirrors the boats and islands, decision [0292](../decisions/0292-sea-reflections-of-boats-and-islands-on-ultra.md), and since v1.8 a low bloom lets lit windows, lanterns and the moon glow at night, never sails or foam by day, decision [0299](../decisions/0299-bloom-on-ultra-lit-windows-lanterns-and-the-moon-glow-at-nig.md); Low, Medium and High stay without). Since v1.2 ([0222](../decisions/0222-a-new-look-smooth-terrain-blue-water-and-forests.md)) is the default, terrain and water are smooth-shaded and the sea is depth-coloured blue; models, houses, boats and trees stay flat-shaded, and so do stacks, cliffs and cones that were faceted by design. Atmosphere changes only colours and intensities ([0068](../decisions/0068-day-and-night.md)).
 2. **Colours have names, and the names live in data.** A recipe, island or sea says `rock2` or `basalt`, never a hex value in TypeScript. New colours go into `src/data/palette.json` (decision [0093](../decisions/0093-data-driven-content-and-authoring-tools.md)).
 3. **Storybook, never grim.** Saturation stays up, shadows stay coloured (blue, not grey), darks are warm charcoal, never `#000`. A cold, foggy or volcanic biome is still a sunny game on a good day. Pure white is avoided too (`#f6f9fb` at most): it blooms on tablet screens.
-4. **Read at the game camera.** Judge everything from the sailing camera and on a phone, not from the model sheet. Silhouette first, colour second, detail last. Small props are chunky; thin details go away at Low quality.
+4. **Read at both game cameras.** Judge everything from the sailing camera and from the follow cam (the pose `npm run island -- audit` prints, #544), and on a phone, not from the model sheet. A prop must not read as a blank board or stand taller than three houses from the follow cam. Silhouette first, colour second, detail last. Small props are chunky; thin details go away at Low quality.
 5. **One signature per port** (agreed with the head storyteller, story looks in [the brief](../story/storyteller-brief.md)). Each main port has one landmark you can name from the sea (Sunreach's green-roofed tea house, Westholm's mill, Stonehaven's light) and one house palette of its own.
 6. **Night shows the way.** At night ports glow warm (windows, lanterns), lights sweep, and hazards stay readable under blue moonlight. Anything that glows uses the lit-window material (§6).
 7. **Everything is editable.** If a thread adds a look (ground, river, prop, tint), the island builder, sea editor or tuning panel can make and change it, and an agent CLI (`npm run island`, `npm run sea`) can too (Guillaume's rule, 2026-10-24).
@@ -58,6 +58,8 @@ House windows already use one unlit material that is dark by day and bright at n
 - lava cracks and lava rivers (dull red by day, glowing at night),
 - the volcano's crater,
 - warm windows in the snow.
+
+Every home shows a lit window from any side (issue #525, `tests/lit-windows.test.ts`): `windowPanes` keeps one lit pane on each wall, and a recipe's windows sit low enough that the sea camera, at its usual pitch, sees them under the eaves of both the plain and the rich house; doors, lean-tos and porches stand clear of them.
 
 Lava needs a brighter day tint than windows (lava glows by day too), so the material gets a second pair of day/night tints for **ember** faces, as data in `palette.json`. A slow pulse of that tint is allowed (one uniform, no per-vertex work).
 
@@ -179,12 +181,13 @@ v1.9 turned numbers for "believable" into rows (same-row angle, even gaps, lanes
 - **Piers.** Start at the shore and run out square (±30°) on the sheltered side [`piers.*`].
 - **Fields and woods.** Fields under 8°, never between house and water or on a lane; woods on steep or back ground, 2W from houses, never hiding the town from the sailing camera [`fields.*`, `woods.*`].
 - **Harbour as centre.** Centre of mass within 6W of the berth, at least 60% of houses within 8W [`harbour.*`]. Outliers (crofts, farm, lighthouse) allowed.
+- **Not a grid** (decision [0306](../decisions/0306-organic-village-town-rules-replace-the-row-rule.md)). In a village of 8 houses or more: the fronts spread 30° or more, folded to one square grid (under 20° fails); no straight row of 4 alike houses at even gaps (6 fails); 3 lanes reach the centre from different sides; no lane straight for over 8W, no two lanes side by side [`village.*`, `lanes.straight`, `lanes.parallel*`]. Only the spread and rows fail; the rest warns, and the sheets judge it.
 
 **Dropped from v1.9:** same-row angle (`houses.rowTurn`), even gaps (`row within`, the 1.5W maximum), "every house within 2W of a lane" as a fail (`styles.*.laneReach`), lanes held at a fixed 1W to 3W from the water (`lanes.shore`), and the facing check as a pass/fail on ±25° (facing stays a warning on being turned away from the lane). Keep the idea; lose the numbers.
 
 **Style notes.** Ice: sheltered side, snow-pine woods, no fields. Fog: lone crofts allowed far out, fells on the north side. Fire: see hard rules. Tropic: stilts, tea terraces count as gardens.
 
-**How a village gets approved.** Before and after sheets, one image per row, full size, each town at the sailing camera and at `--look town --zoom 1.4`, next to a real reference (see `docs/art/village-references/`). Judge it as a drawing, not against a table.
+**How a village gets approved.** Before and after sheets, one image per row, full size, each town at the sailing camera, at `--look town --zoom 1.4` and from the follow cam (the pose `npm run island -- audit <id>` prints), next to a real reference (see `docs/art/village-references/`). Judge it as a drawing, not against a table.
 
 **Each village feels different (Guillaume, 2026-11-14: "each island/biome must give off a different feeling depending on its biome and industry").** All use the §12 rules above; shape, density, materials and work-clutter change. A town that could swap places with another one after a recolour is a must fix. Reference in brackets (`docs/art/village-references/`).
 

@@ -52,6 +52,9 @@ uniform float uFresnelPower;
 uniform sampler2D uMirror;
 uniform mat4 uMirrorMatrix;
 uniform vec3 uMirrorLook;
+// Water, not glass (issue #542): x, y the blur across and down (texture units), z the ripples'
+// sway, w how much of the reflected light reaches the eye.
+uniform vec4 uMirrorSoft;
 #endif
 #ifdef REFLECT
 uniform vec3 uSunColor;
@@ -212,7 +215,15 @@ void main() {
   // the floor so a steep view still shows the hulls; its alpha is clear where nothing was drawn.
   vec4 mirrorAt = uMirrorMatrix * vec4(vWorld, 1.0);
   vec2 mirrorUv = mirrorAt.xy / mirrorAt.w + n.xz * uMirrorLook.y;
-  vec4 mirrored = texture2D(uMirror, mirrorUv);
+  // Ripples sway it even on a calm quay; four taps stretched down soften the half-size texture's
+  // stair steps and draw a lit window out into a streak instead of a square.
+  mirrorUv.x += uMirrorSoft.z * sin(vWorld.z * 0.8 + uTime * 1.2) * sin(vWorld.x * 0.45 - uTime * 0.9);
+  vec2 blur = uMirrorSoft.xy;
+  vec4 mirrored = 0.25 * (texture2D(uMirror, mirrorUv + blur * vec2(-0.5, -1.5))
+                        + texture2D(uMirror, mirrorUv + blur * vec2(0.5, -0.5))
+                        + texture2D(uMirror, mirrorUv + blur * vec2(-0.5, 0.5))
+                        + texture2D(uMirror, mirrorUv + blur * vec2(0.5, 1.5)));
+  mirrored.rgb = min(mirrored.rgb * uMirrorSoft.w, vec3(1.0));
   col = mix(col, mirrored.rgb, mirrored.a * mirrorKept * uMirrorLook.z * max(fresnel * uReflect, uMirrorLook.x));
 #endif
 #ifdef REFLECT
