@@ -41,9 +41,8 @@ describe('island files (decision 0101)', () => {
       expect(errors(issues), design.id).toEqual([]);
       // Known warnings: lane pieces the old lanes never drew, Calda above 5,000 triangles, and
       // the hidden yards' houses touching as the old shipyard town placed them (0107).
-      // The town rules (issue #513): the hard rules are clean and fail as errors. The village
-      // checks (#528, 0306) find v1.9's grids as warnings until the v1.10 town parts redo them.
-      const known = ['lanes', 'budget', 'overlap', 'town-grid', 'town-centre', 'town-lanes'];
+      // The town rules (#513) and the village checks (#528, 0306) are clean and fail as errors.
+      const known = ['lanes', 'budget', 'overlap'];
       for (const w of issues) expect(known, w.message).toContain(w.check);
     }
     // Every file builds its ground at each settlement level for the coast and footing checks.
@@ -130,14 +129,14 @@ describe('island files (decision 0101)', () => {
 });
 
 const GOLDEN: Record<string, string[]> = {
-  calda: ['531:fdb015f0', '709:584e6a1', '858:2a8890ba', '969:8b1b74c'],
-  saltmere: ['333:5c55ea16', '488:cc18251a', '692:a24ad0f5', '875:2af95e35'],
-  westholm: ['247:bf2e80a4', '451:ee6df58a', '639:331e99d', '760:deeb6af1'],
-  'south-cay': ['234:8161a42a', '353:209396ea', '478:33cc9f05', '654:cb802c39'],
+  calda: ['503:f9f210fa', '678:1d353dd1', '860:94ea87ab', '1035:ba3fed3d'],
+  saltmere: ['317:9d801ce4', '550:4e2b43fe', '781:26801f63', '979:f6a495b2'],
+  westholm: ['262:7a66864a', '504:83c1b67c', '711:50d1a365', '868:c81e0aba'],
+  'south-cay': ['224:319a6604', '359:c2a1a107', '479:c3e7ae17', '633:9bf1e0c4'],
   skerry: ['246:cc0b40d7', '250:4172fa2e', '253:7967dea8', '253:7967dea8'],
   'bell-rock': ['13:149f2ca0', '13:149f2ca0', '13:149f2ca0', '13:149f2ca0'],
-  'abbey-head': ['53:5030ad49', '103:7ab06af0', '148:4382b111', '190:606886e0'],
-  'watchman-key': ['75:c046ccbc', '105:eb852209', '153:14f0d465', '160:cb545d09'],
+  'abbey-head': ['53:5030ad49', '102:3507cae6', '147:9f62109d', '190:69b424cb'],
+  'watchman-key': ['76:17d35a90', '106:efe1b6f5', '153:59e4691e', '160:10fbce8e'],
   'lantern-rock': ['23:33c034ce', '23:33c034ce', '23:33c034ce', '23:33c034ce'],
   'greyback-ridge': ['121:d8b1afe4', '121:d8b1afe4', '121:d8b1afe4', '121:d8b1afe4'],
   'gull-hook': ['130:ca8ed3fd', '130:ca8ed3fd', '130:ca8ed3fd', '130:ca8ed3fd'],
