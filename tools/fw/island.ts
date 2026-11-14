@@ -28,7 +28,7 @@ import { FORESTS } from '../../src/data/forests';
 import { isResidence } from '../../src/render/models/townProps';
 import { type Args, num, pair, pointList } from './islandArgs';
 import { BAKE_HELP, bakeFile } from './islandBake';
-import { runAudit } from './islandAudit';
+import { AUDIT_HELP, runAudit } from './islandAudit';
 import { MOVE_HELP, moveFromArgs } from './islandMove';
 import { SCULPT_HELP, exportJson, listEdits, sculptCall } from './islandSculpt';
 import { type IslandPlace, defaultSeas, islandPlacements, islandProblems } from './check';
@@ -38,7 +38,7 @@ const ROOT = process.cwd();
 
 const HELP = `npm run island -- <id|file.json> [step] [options]   change an island file, check it, one line
 npm run island -- new <id> [options]                  a new island file (src/data/islands/<id>.json)
-npm run island -- audit [id] [--md|--json|--warnings|--chart dir [--as after]]  the town rules on every town
+${AUDIT_HELP}
 
 new:   --outline "x,z x,z …" or --blob r=1,points=14,rough=0.22,stretch=1,turn=0 (default)
        --name "Palm Key" --style <a palette.json style: timber, fish, ice…> --seed 7103 --low 0.06 --force

@@ -47,7 +47,7 @@
       "prop": "woodland-snowfir",
       "height": 2.04,
       "vars": { "s": 1 },
-      "scale": [0.75, 1.25],
+      "scale": [0.55, 0.95],
       "tints": ["#ffffff", "#eef1f4", "#dde2e8"]
     },
     "birch": {

@@ -16,6 +16,12 @@ import { TOWN_RULES } from '../../src/sim/townRules';
 import { defaultSeas, islandPlacements } from './check';
 import type { Args } from './islandArgs';
 import { writeTownCharts } from './townChart';
+import { townGroundMap } from './townGroundMap';
+
+export const AUDIT_HELP = `npm run island -- audit [id] [--md|--json|--warnings|--chart dir [--as after] [--grid]]  the town rules on every town
+       (--grid rules the plan every 0.2 with file coordinates, prop indexes and rivers, to design from)
+       audit <id> --ground x0,x1,z0,z1 [--step 0.02]  a text map of the ground the checks read:
+       . flat, + warn slope, # steeper, ~ water, L lava or ash, H house, B building`;
 
 /** The rules in the art bible's order, as the checks name them (`town-<rule>`). */
 export const TOWN_CHECKS = [
@@ -113,9 +119,17 @@ export function auditTable(audit: TownAudit[]): string {
 }
 
 export async function runAudit(args: Args, only?: string): Promise<number> {
+  if (typeof args.ground === 'string') {
+    if (!only) throw new Error('--ground needs an island: audit sunreach --ground -0.6,0.6,0,0.8');
+    const step = typeof args.step === 'string' ? Number(args.step) : undefined;
+    for (const row of townGroundMap(only, args.ground.split(',').map(Number), step))
+      console.log(row);
+    return 0;
+  }
   if (typeof args.chart === 'string') {
     const as = typeof args.as === 'string' ? args.as : undefined;
-    for (const file of await writeTownCharts(args.chart, only, as)) console.log(`→ ${file}`);
+    for (const file of await writeTownCharts(args.chart, only, as, args.grid === true))
+      console.log(`→ ${file}`);
     return 0;
   }
   const audit = townAudit(only);

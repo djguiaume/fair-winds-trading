@@ -50,7 +50,38 @@ function groundCells(plan: TownPlan, x0: number, z0: number, span: number) {
   return out.join('');
 }
 
-function townSvg(plan: TownPlan, issues: IslandIssue[], title: string): string {
+/** A ruled plan to design from: a line and its file coordinate every 0.2, each prop's index. */
+function gridMarks(plan: TownPlan, x0: number, z0: number, span: number): string {
+  const STEP = 0.2;
+  const font = span / 90;
+  const out: string[] = [];
+  const label = (x: number, z: number, text: string, fill = '#fff') =>
+    `<text x="${x}" y="${z}" font-size="${font}" fill="${fill}" stroke="#000" stroke-width="${font / 10}" paint-order="stroke">${text}</text>`;
+  for (let k = Math.ceil(x0 / STEP); k * STEP < x0 + span; k++) {
+    const v = k * STEP;
+    out.push(
+      `<line x1="${v}" y1="${z0}" x2="${v}" y2="${z0 + span}" stroke="#000" stroke-opacity="0.35" stroke-width="${span / 900}"/>`,
+      label(v, z0 + font, v.toFixed(1)),
+    );
+  }
+  for (let k = Math.ceil(z0 / STEP); k * STEP < z0 + span; k++) {
+    const v = k * STEP;
+    out.push(
+      `<line x1="${x0}" y1="${v}" x2="${x0 + span}" y2="${v}" stroke="#000" stroke-opacity="0.35" stroke-width="${span / 900}"/>`,
+      label(x0, v, v.toFixed(1)),
+    );
+  }
+  for (const river of plan.design.rivers ?? [])
+    out.push(
+      `<polyline points="${svgPoints(river.points)}" fill="none" stroke="#3aa0d8" stroke-width="${span / 250}"/>`,
+    );
+  plan.design.props.forEach((p, i) => {
+    if (plan.kit.types[p.type]?.building) out.push(label(p.x, p.z, String(i), '#ffe45c'));
+  });
+  return out.join('');
+}
+
+function townSvg(plan: TownPlan, issues: IslandIssue[], title: string, grid = false): string {
   const { design, kit, W } = plan;
   const xs = design.coasts.flat().map((p) => p[0]!),
     zs = design.coasts.flat().map((p) => p[1]!);
@@ -105,17 +136,20 @@ function townSvg(plan: TownPlan, issues: IslandIssue[], title: string): string {
       `<text x="${i.at[0] + W * 0.35}" y="${i.at[1]}" font-size="${font}" fill="${colour}" stroke="#000" stroke-width="${font / 12}" paint-order="stroke">${i.check.slice(5)}</text>`,
     );
   }
+  if (grid) parts.push(gridMarks(plan, x0, z0, span));
   const fails = issues.filter((i) => i.grade === 'fail').length;
   const head = `${title}: ${plan.houses.length} houses, ${fails} fail (red), ${issues.length - fails} warn (orange). Harbour toward the bottom (white ring: arrival pier root). Ground by slope: green under ${plan.style.slope[0]}°, tan to ${plan.style.slope[1]}°, brown steeper, red: forbidden ground.`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="${x0} ${z0} ${span} ${span}">${parts.join('')}</svg>
 <p>${head}</p>`;
 }
 
-/** Writes `<id>-<as>.jpg` (before, after…) per town island into `dir`; the files written. */
+/** Writes `<id>-<as>.jpg` (before, after…) per town island into `dir`; the files written.
+ * `grid` rules the plan with file coordinates and prop indexes, to design a layout from. */
 export async function writeTownCharts(
   dir: string,
   only?: string,
   as = 'before',
+  grid = false,
 ): Promise<string[]> {
   const places = islandPlacements(defaultSeas());
   mkdirSync(dir, { recursive: true });
@@ -133,7 +167,7 @@ export async function writeTownCharts(
       const plan = townPlan(design, kit, TOWN_RULES, []);
       if (!plan) continue;
       await page.setContent(
-        `<style>body{margin:0;background:#0d2a3a;color:#fff;font:14px sans-serif}svg{display:block}p{margin:6px 10px}</style>${townSvg(plan, checkTown(design, kit), design.name)}`,
+        `<style>body{margin:0;background:#0d2a3a;color:#fff;font:14px sans-serif}svg{display:block}p{margin:6px 10px}</style>${townSvg(plan, checkTown(design, kit), design.name, grid)}`,
       );
       const out = join(dir, `${design.id}-${as}.jpg`);
       await page.screenshot({ path: out, type: 'jpeg', quality: 80, fullPage: true });
