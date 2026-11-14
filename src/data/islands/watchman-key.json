@@ -180,18 +180,18 @@
     { "type": "slipway-hull", "x": 0.53, "z": 0.74, "turn": 32, "y": 0.0582, "from": 4 },
     {
       "type": "yard-house",
-      "x": -0.047,
-      "z": 0.447,
-      "turn": -1,
+      "x": -0.02,
+      "z": 0.44,
+      "turn": 9,
       "size": 1.25,
       "variant": 0,
       "from": 1
     },
     {
       "type": "yard-house",
-      "x": -0.317,
-      "z": 0.441,
-      "turn": -1,
+      "x": -0.335,
+      "z": 0.45,
+      "turn": -12,
       "size": 1.25,
       "variant": 1,
       "from": 1
@@ -208,8 +208,8 @@
     {
       "type": "yard-house",
       "x": -0.575,
-      "z": 0.17,
-      "turn": -90,
+      "z": 0.19,
+      "turn": -76,
       "size": 1.25,
       "variant": 3,
       "from": 3
@@ -217,8 +217,8 @@
     {
       "type": "yard-house",
       "x": -0.63,
-      "z": -0.12,
-      "turn": -91,
+      "z": -0.115,
+      "turn": -98,
       "size": 1.25,
       "variant": 4,
       "from": 3

@@ -87,9 +87,11 @@ describe('producer island geography', () => {
           .filter((g) => g.userData.tree)
           .map((g) => g.userData.tree as { x: number; z: number }),
       );
-      expect(trees[0]!.length, kind).toBeGreaterThan(10);
+      // A village keeps close to its harbour (#528): bare Saltmere has no wood left to clear.
+      expect(trees[0]!.length, kind).toBeGreaterThanOrEqual(10);
       expect(trees[1]!.length, kind).toBeGreaterThan(0);
-      expect(trees[1]!.length, kind).toBeLessThan(trees[0]!.length);
+      if (kind === 'fish') expect(trees[1]!.length, kind).toBeLessThanOrEqual(trees[0]!.length);
+      else expect(trees[1]!.length, kind).toBeLessThan(trees[0]!.length);
       for (const tree of trees[1]!) expect(trees[0], kind).toContainEqual(tree);
       if (kind === 'grain')
         expect(stages[1]!.filter((g) => g.userData.field).length).toBeGreaterThan(
@@ -239,7 +241,8 @@ describe('producer island geography', () => {
         const p = g.userData.tree as { x: number; z: number };
         return layoutGround(layout, p.x, p.z, 0.04) === 0.32;
       });
-    expect(upland.length).toBeGreaterThanOrEqual(20);
+    // Two woodcutters' cabins and their lane stand in the upland wood since the village (#528).
+    expect(upland.length).toBeGreaterThanOrEqual(15);
     expect(Math.max(...layout.surfaces.map((s) => s.height))).toBeGreaterThan(0.9);
     for (const g of parts.filter((g) => g.userData.tree)) {
       const p = g.userData.tree as { x: number; z: number };

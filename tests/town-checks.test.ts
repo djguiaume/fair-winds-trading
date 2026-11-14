@@ -197,18 +197,17 @@ describe('village, not grid (issue #528)', () => {
     expect(longestStraight(bent, 0.05)).toBeLessThan(1.6);
   });
 
-  it('fails v1.9 Calda for its grid and passes it with houses at their own angles', () => {
+  it('passes the village Calda and fails it with every house turned one way', () => {
     const grid = (issues: IslandIssue[]) =>
       issues.filter((i) => i.check === 'town-grid' && !i.prop);
-    expect(grid(shipped).map((i) => i.grade)).toEqual(['fail']);
-    // Each home turned its own way (a fixed spread, not random): the town spreads.
-    const turned = town((d) =>
-      d.props.forEach((p, i) => {
-        if (p.type === 'cabin' || p.type === 'cottage')
-          p.turn = (p.turn ?? 0) + ((i * 37) % 80) - 40;
+    expect(grid(shipped)).toEqual([]);
+    // v1.9's grid: every home square to the same streets.
+    const squared = town((d) =>
+      d.props.forEach((p) => {
+        if (p.type === 'cabin' || p.type === 'cottage') p.turn = 0;
       }),
     );
-    expect(grid(turned)).toEqual([]);
+    expect(grid(squared).map((i) => i.grade)).toEqual(['fail']);
   }, 20000);
 
   it('fails a long straight row of alike houses at even gaps', () => {

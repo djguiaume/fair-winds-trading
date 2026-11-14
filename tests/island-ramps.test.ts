@@ -28,6 +28,11 @@ function edgeFrame(d: IslandDesign) {
 }
 function withRamp(): IslandDesign {
   const d = structuredClone(ISLAND_DESIGNS.calda!);
+  // The village's terrace (#528) lies under that edge: the fixture is Calda without it.
+  const terrace = d.ground.find((g) => g.height === 0.2)!;
+  d.ground = d.ground.filter((g) => g !== terrace);
+  d.props = d.props.filter((p) => coastDistance(p.x, p.z, terrace.outline!).distance > 0.05);
+  d.lanes = [];
   const at = edgeFrame(d);
   // Homes standing where the ramp goes move away (here: are left out).
   d.props = d.props.filter((p) => Math.hypot(p.x - at(0.12)[0], p.z - at(0.12)[1]) > 0.3);
