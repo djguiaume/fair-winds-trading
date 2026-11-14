@@ -59,6 +59,8 @@ House windows already use one unlit material that is dark by day and bright at n
 - the volcano's crater,
 - warm windows in the snow.
 
+Every home shows a lit window from any side (issue #525, `tests/lit-windows.test.ts`): `windowPanes` keeps one lit pane on each wall, and a recipe's windows sit low enough that the sea camera, at its usual pitch, sees them under the eaves of both the plain and the rich house; doors, lean-tos and porches stand clear of them.
+
 Lava needs a brighter day tint than windows (lava glows by day too), so the material gets a second pair of day/night tints for **ember** faces, as data in `palette.json`. A slow pulse of that tint is allowed (one uniform, no per-vertex work).
 
 ### Smoke and steam (decision [0178](../decisions/0178-volcano-smoke-and-eruptions.md))

@@ -51,7 +51,8 @@ export const isMolten = (geometry: THREE.BufferGeometry) => geometry.userData.la
 /**
  * Window panes on the walls of a w × d house whose windows sit at height y, centred on (cx, cz):
  * `front` panes on the front (+Z) and back walls and `side` on each end. `seed` picks which stay
- * dark at night.
+ * dark at night, but every wall keeps one lit (art bible rule 10, issue #525), so a house seen
+ * from any side shows a light.
  */
 export function windowPanes(
   w: number,
@@ -64,27 +65,30 @@ export function windowPanes(
   cz = 0,
   paneSize = 1,
 ): THREE.BufferGeometry[] {
-  const out: THREE.BufferGeometry[] = [];
-  let k = 0;
-  const pane = (rotY: number, x: number, z: number) => {
-    const lit = (seed * 7 + k++ * 3) % 10 < 7;
-    const g = new THREE.PlaneGeometry(0.2 * paneSize, 0.26 * paneSize)
-      .rotateY(rotY)
-      .translate(cx + x, y, cz + z);
-    out.push(glowing(paint(g, lit ? LIT_GLASS : DARK_GLASS)));
-  };
+  const panes: { wall: number; rotY: number; x: number; z: number; lit: boolean }[] = [];
+  const pane = (wall: number, rotY: number, x: number, z: number) =>
+    panes.push({ wall, rotY, x, z, lit: (seed * 7 + panes.length * 3) % 10 < 7 });
   const along = (n: number, len: number) =>
     Array.from({ length: n }, (_, i) => ((i + 1) / (n + 1) - 0.5) * len);
   const off = 0.012;
   for (const x of along(front, w)) {
-    pane(0, x, d / 2 + off);
-    pane(Math.PI, x, -d / 2 - off);
+    pane(0, 0, x, d / 2 + off);
+    pane(1, Math.PI, x, -d / 2 - off);
   }
   for (const z of along(side, d)) {
-    pane(Math.PI / 2, w / 2 + off, z);
-    pane(-Math.PI / 2, -w / 2 - off, z);
+    pane(2, Math.PI / 2, w / 2 + off, z);
+    pane(3, -Math.PI / 2, -w / 2 - off, z);
   }
-  return out;
+  for (let wall = 0; wall < 4; wall++) {
+    const on = panes.filter((p) => p.wall === wall);
+    if (on.length && !on.some((p) => p.lit)) on[on.length >> 1]!.lit = true;
+  }
+  return panes.map(({ rotY, x, z, lit }) => {
+    const g = new THREE.PlaneGeometry(0.2 * paneSize, 0.26 * paneSize)
+      .rotateY(rotY)
+      .translate(cx + x, y, cz + z);
+    return glowing(paint(g, lit ? LIT_GLASS : DARK_GLASS));
+  });
 }
 
 /** Jittered closed outline of radius ~R, stretched by sx/sz. */
