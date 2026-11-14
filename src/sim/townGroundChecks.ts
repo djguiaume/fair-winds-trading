@@ -6,6 +6,7 @@ import {
   type TownPlan,
   angleBetween,
   groundAt,
+  inW,
   lasting,
   lineAngle,
   named,
@@ -22,7 +23,6 @@ export function checkTownGround(plan: TownPlan) {
   plan.design.lanes.forEach((lane, i) => {
     if (lane.kind !== 'stairs' && lane.y === undefined) laneShape(plan, i);
   });
-  waterfront(plan);
   piers(plan);
   civicGround(plan);
   fields(plan);
@@ -30,12 +30,11 @@ export function checkTownGround(plan: TownPlan) {
   hazards(plan);
 }
 
-const inW = (plan: TownPlan, d: number) => `${(d / plan.W).toFixed(Math.abs(d) < plan.W ? 2 : 1)}W`;
 const dist = (a: Point, b: Point) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 const at = (p: PropDef): Point => [p.x, p.z];
 
 /** Pieces of a lane about half a house long: their middles and their way. */
-function lanePieces(plan: TownPlan, line: Point[]) {
+export function lanePieces(plan: TownPlan, line: Point[]) {
   const pieces: { mid: Point; way: Point; a: Point; b: Point }[] = [];
   for (let k = 1; k < line.length; k++) {
     const a = line[k - 1]!,
@@ -119,29 +118,6 @@ function laneEndOk(plan: TownPlan, i: number, end: Point) {
     plan.lanes.some((l, k) => k !== i && l.length > 1 && nearestOn(end, l).distance <= reach) ||
     waterAt(plan, end[0], end[1]).depth <= reach
   );
-}
-
-/** A port has a lane along its waterfront, by the harbour. */
-function waterfront(plan: TownPlan) {
-  const { harbour, rules, W } = plan;
-  const lanes = plan.lanes.filter(
-    (l, i) => l.length > 1 && plan.design.lanes[i]!.kind !== 'stairs',
-  );
-  if (!harbour || !lanes.length) return;
-  const [near, far] = rules.lanes.shore;
-  const found = lanes.some((l) =>
-    lanePieces(plan, l).some(({ mid }) => {
-      const depth = waterAt(plan, mid[0], mid[1]).depth;
-      return dist(mid, harbour) <= rules.harbour.core * W && depth >= near * W && depth <= far * W;
-    }),
-  );
-  if (!found)
-    plan.report(
-      'lanes',
-      'warn',
-      `No lane along the waterfront: one ${near}W to ${far}W from the water by the harbour`,
-      { at: harbour },
-    );
 }
 
 /** Piers start at the shore and run out square to it. */

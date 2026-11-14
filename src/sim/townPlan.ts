@@ -226,3 +226,7 @@ export const lineAngle = (a: Point, b: Point) => {
 
 /** A prop's name in a message: its type and place. */
 export const named = (p: PropDef) => `${p.type} (${p.x.toFixed(2)}, ${p.z.toFixed(2)})`;
+
+/** A distance in W, the town's house width, as the messages print it. */
+export const inW = (plan: TownPlan, d: number) =>
+  `${(d / plan.W).toFixed(Math.abs(d) < plan.W ? 2 : 1)}W`;

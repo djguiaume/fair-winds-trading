@@ -12,12 +12,10 @@ export interface StyleRules {
   slope: [number, number];
   /** Nearest footprint corner from the waterline; below 0 a house may stand out over the water. */
   setback: number;
-  /** [closer than this warns (houses merge), neighbours this close form a row]. */
-  spacing: [number, number];
+  /** Neighbours closer than this merge (a warning). No maximum: a village has no even gaps. */
+  spacing: number;
   /** A house further than this from every other house and lane stands alone. */
   lonely: number;
-  /** Every house within this of a lane. */
-  laneReach: number;
   /** "yes" or "no": whether the style grows fields and orchards. */
   fields: string;
   /** Ground materials (island file names) a house never stands on. */
@@ -40,10 +38,34 @@ export interface TownRules {
     quaySetback: number;
     /** A door faces the nearest lane or quay within this, else the nearest water. */
     facingReach: number;
-    /** Facing error: [warn, fail]. */
-    facing: [number, number];
-    /** Houses side by side in a row turn within this of each other. */
+    /** A house turned further than this from its lane, quay or water warns (never fails). */
+    facing: number;
+  };
+  /**
+   * What makes a village and not a grid (issue #528, art bible §12): the fronts' spread, no long
+   * straight rows at even gaps, and a centre that lanes reach from several sides.
+   */
+  village: {
+    /** Towns with this many houses or more are judged as villages; hamlets are not. */
+    houses: number;
+    /** The fronts' turn spread over the town, folded to 90° (any square layout is one grid): [warn under, fail under]. */
+    spread: [number, number];
+    /** A straight row of houses turned alike at even gaps, this many long: [warn, fail]. */
+    row: [number, number];
+    /** Houses in a row turn within this of the first. */
     rowTurn: number;
+    /** Their middles stay within this of the row's line. */
+    rowLine: number;
+    /** The next house of a row within this gap. */
+    rowGap: number;
+    /** Even gaps: each step within this share of the one before. */
+    evenGap: number;
+    /** Lanes reaching the centre from different sides. */
+    centreLanes: number;
+    /** A lane reaches the centre when it passes within this. */
+    centreReach: number;
+    /** Lanes count as different sides when they leave at least this far apart (degrees). */
+    centreApart: number;
   };
   harbour: {
     /** The main port's core: houses this close to the harbour. */
@@ -67,12 +89,20 @@ export interface TownRules {
     flat: number;
     /** A lane warns when more than this share of it runs off the shore and contour. */
     offShare: number;
-    /** The waterfront lane: [near, far] from the waterline, by the harbour. */
-    shore: [number, number];
     /** Steepest a lane climbs; steeper needs stairs. */
     slope: number;
     /** A lane's end within this of a building, a pier, a lane end prop or another lane. */
     endReach: number;
+    /** Longest straight run of a lane (about six houses). */
+    straight: number;
+    /** A run is straight while its points stay within this of its chord. */
+    bow: number;
+    /** Two lanes within this of the same way (degrees) run parallel... */
+    parallel: number;
+    /** ...when they are this close... */
+    parallelGap: number;
+    /** ...for this long. */
+    parallelRun: number;
   };
   piers: {
     /** A pier runs out within this of square to the shore. */
@@ -90,6 +120,12 @@ export interface TownRules {
     slope: number;
     /** Trees keep this far from houses. */
     houseGap: number;
+  };
+  review: {
+    /** The audit's follow-cam pose: the boat this far past the shore (world units, #544). */
+    followOffshore: number;
+    /** ...and the shot waits this long (ms) for the port's name card to fade. */
+    followWait: number;
   };
   types: {
     civic: string[];
@@ -135,20 +171,30 @@ export function townRulesProblems(rules: TownRules, names: TownRuleNames): strin
     const at = `styles.${id}`;
     span(`${at}.slope`, s.slope, 0, 60);
     between(`${at}.setback`, s.setback, -5, 5);
-    span(`${at}.spacing`, s.spacing, 0, 10);
+    between(`${at}.spacing`, s.spacing, 0, 10);
     between(`${at}.lonely`, s.lonely, 0, 30);
-    between(`${at}.laneReach`, s.laneReach, 0, 30);
     if (s.fields !== 'yes' && s.fields !== 'no') fail(`${at}.fields`, '"yes" or "no"');
     for (const g of s.avoid ?? [])
       if (!names.grounds.includes(g)) fail(`${at}.avoid`, `"${g}" is not a ground (palette.json)`);
     between(`${at}.hazardGap`, s.hazardGap, 0, 20);
   }
-  const { houses, harbour, lanes, piers, fields, woods } = rules;
+  const { houses, village, harbour, lanes, piers, fields, woods } = rules;
   between('houses.civicSlope', houses?.civicSlope, 0, 60);
   between('houses.quaySetback', houses?.quaySetback, -5, 5);
   between('houses.facingReach', houses?.facingReach, 0, 20);
-  span('houses.facing', houses?.facing, 0, 180);
-  between('houses.rowTurn', houses?.rowTurn, 0, 90);
+  between('houses.facing', houses?.facing, 0, 90);
+  between('village.houses', village?.houses, 0, 200);
+  const [warn, worst] = village?.spread ?? [];
+  if (!(worst! >= 0 && warn! >= worst! && warn! <= 90))
+    fail('village.spread', '[warn under, fail under] with 0 ≤ fail ≤ warn ≤ 90');
+  span('village.row', village?.row, 2, 100);
+  between('village.rowTurn', village?.rowTurn, 0, 90);
+  between('village.rowLine', village?.rowLine, 0, 10);
+  between('village.rowGap', village?.rowGap, 0, 20);
+  between('village.evenGap', village?.evenGap, 0, 1);
+  between('village.centreLanes', village?.centreLanes, 0, 12);
+  between('village.centreReach', village?.centreReach, 0, 20);
+  between('village.centreApart', village?.centreApart, 0, 180);
   for (const key of ['core', 'centre', 'shareReach', 'civic'] as const)
     between(`harbour.${key}`, harbour?.[key], 0, 50);
   between('harbour.coreSlope', harbour?.coreSlope, 0, 60);
@@ -157,15 +203,21 @@ export function townRulesProblems(rules: TownRules, names: TownRuleNames): strin
   between('lanes.turn', lanes?.turn, 0, 90);
   between('lanes.flat', lanes?.flat, 0, 30);
   between('lanes.offShare', lanes?.offShare, 0, 1);
-  span('lanes.shore', lanes?.shore, 0, 20);
   between('lanes.slope', lanes?.slope, 0, 60);
   between('lanes.endReach', lanes?.endReach, 0, 10);
+  between('lanes.straight', lanes?.straight, 0, 50);
+  between('lanes.bow', lanes?.bow, 0, 5);
+  between('lanes.parallel', lanes?.parallel, 0, 90);
+  between('lanes.parallelGap', lanes?.parallelGap, 0, 50);
+  between('lanes.parallelRun', lanes?.parallelRun, 0, 50);
   between('piers.square', piers?.square, 0, 90);
   between('piers.shore', piers?.shore, 0, 10);
   between('fields.slope', fields?.slope, 0, 60);
   span('fields.near', fields?.near, 0, 50);
   between('woods.slope', woods?.slope, 0, 60);
   between('woods.houseGap', woods?.houseGap, 0, 20);
+  between('review.followOffshore', rules.review?.followOffshore, 5, 200);
+  between('review.followWait', rules.review?.followWait, 0, 30000);
   for (const [key, list] of Object.entries(rules.types ?? {}))
     for (const type of list)
       if (!names.props.includes(type))
