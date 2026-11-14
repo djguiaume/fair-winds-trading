@@ -185,3 +185,24 @@ v1.9 turned numbers for "believable" into rows (same-row angle, even gaps, lanes
 **Style notes.** Ice: sheltered side, snow-pine woods, no fields. Fog: lone crofts allowed far out, fells on the north side. Fire: see hard rules. Tropic: stilts, tea terraces count as gardens.
 
 **How a village gets approved.** Before and after sheets, one image per row, full size, each town at the sailing camera and at `--look town --zoom 1.4`, next to a real reference (see `docs/art/village-references/`). Judge it as a drawing, not against a table.
+
+**Each village feels different (Guillaume, 2026-11-14: "each island/biome must give off a different feeling depending on its biome and industry").** All use the §12 rules above; shape, density, materials and work-clutter change. A town that could swap places with another one after a recolour is a must fix. Reference in brackets (`docs/art/village-references/`).
+
+| Town | Shape and feeling | Industry shows as |
+|---|---|---|
+| **Westholm** (ring) | Farming-and-mill village on gentle ground: a green with the mill beside it, lanes fanning out, loose cottages with gardens [Cadgwith edges] | Mill and millpond, haystacks, fields close to the houses |
+| **Saltmere** (ring) | Fishing village along a shallow bay: a long curved quay lane, houses gathered in clusters behind it [Polperro] | Smokehouses and drying nets near the quay, stacked boats and pots |
+| **Calda** (ring) | Working harbour on a slope: tight stacked core round the slipway, steep stepped lanes [Polperro, Vernazza] | Slipway, boat sheds, ropewalk, hulls under repair |
+| **Stonehaven** (ring) | Stone town, the densest: heavy grey buildings around a market square, narrow lanes, few gardens [Vernazza] | Crane on the quay, quarry cut on the hill, stone stacks |
+| **Abbey Head** (ring) | Small settlement under a big landmark: the abbey and club on the rise, cottages tucked below at odd angles [Cadgwith] | Abbey wall, orchard, club lawn |
+| **Skerry** (ring) | Hamlet of a few homesteads with big open plots between them [Cadgwith] | Plots, sheds, a slip |
+| **Sunreach** (south) | Airy: stilt and beach houses spread on the terrace and round the lagoon, wide lanes, palms and shade between [Vernazza colours, looser] | Tea terraces, drying racks, the tea house |
+| **Palm Key** (south) | Tiny beach hamlet, houses along one curved shore path | Boats on the sand, nets, a lantern pole |
+| **Emberhold** (west) | Sparse, hunkered: low turf-roofed and tarred houses in small groups, lanes bending round the lava, big gaps of black ground | Glassworks with the furnace, steam vents, fish racks |
+| **Cinder Isle** (west) | A fresh settlement: a few new sheds and houses around one warm vent, raw ground, no old core | Vents, ash heaps, tools |
+| **Rimewick** (north) | Compact and bright: houses packed against the cold on the sheltered slope, close together, paths dug between snowbanks | Jam house with steam, drying racks, sledges |
+| **Snowberry Isle** (north) | Seasonal camp: a few houses and weather station, trails over the moor | Cloudberry racks, the station |
+| **Fogwatch** (east) | Scattered crofts: lone houses linked by dry-stone walls and a cart track, a small cluster round the quay and foghorn, turf and tar, almost no trees [Cadgwith] | Foghorn, drying sheds, boathouses, sheep |
+| **Amber Strand** (east) | Outpost that grows: a workshop and a few huts on pale dune, bare ground between | Amber workshop, drying frames |
+
+Build threads: keep each town's existing signature, and judge each one in a before and after sheet next to its table row. If two rows' towns look alike at the sailing camera, say so and change shape, not just colour.
