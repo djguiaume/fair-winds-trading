@@ -41,8 +41,10 @@ describe('island files (decision 0101)', () => {
       expect(errors(issues), design.id).toEqual([]);
       // Known warnings: lane pieces the old lanes never drew, Calda above 5,000 triangles, and
       // the hidden yards' houses touching as the old shipyard town placed them (0107).
-      // The town rules (issue #513): every town is clean, and a fail is an error since #515.
-      for (const w of issues) expect(['lanes', 'budget', 'overlap'], w.message).toContain(w.check);
+      // The town rules (issue #513): the hard rules are clean and fail as errors. The village
+      // checks (#528, 0306) find v1.9's grids as warnings until the v1.10 town parts redo them.
+      const known = ['lanes', 'budget', 'overlap', 'town-grid', 'town-centre', 'town-lanes'];
+      for (const w of issues) expect(known, w.message).toContain(w.check);
     }
     // Every file builds its ground at each settlement level for the coast and footing checks.
   }, 30000);

@@ -1,14 +1,14 @@
 {
   "grading": {
-    "fails": "error"
+    "fails": "error",
+    "village": "warning"
   },
   "styles": {
     "default": {
       "slope": [12, 18],
       "setback": 0.8,
-      "spacing": [0.3, 1.5],
+      "spacing": 0.3,
       "lonely": 3,
-      "laneReach": 2,
       "fields": "yes",
       "avoid": ["lavafield"],
       "hazardGap": 0
@@ -16,9 +16,8 @@
     "tropic": {
       "slope": [8, 12],
       "setback": -2,
-      "spacing": [0.3, 1.5],
+      "spacing": 0.3,
       "lonely": 3,
-      "laneReach": 2,
       "fields": "yes",
       "avoid": ["lavafield"],
       "hazardGap": 0
@@ -26,9 +25,8 @@
     "ice": {
       "slope": [12, 18],
       "setback": 0.8,
-      "spacing": [0.2, 1.2],
+      "spacing": 0.2,
       "lonely": 3,
-      "laneReach": 2,
       "fields": "no",
       "avoid": ["lavafield"],
       "hazardGap": 0
@@ -36,9 +34,8 @@
     "fog": {
       "slope": [15, 20],
       "setback": 0.8,
-      "spacing": [0.3, 1.5],
+      "spacing": 0.3,
       "lonely": 6,
-      "laneReach": 6,
       "fields": "yes",
       "avoid": ["lavafield"],
       "hazardGap": 0
@@ -46,9 +43,8 @@
     "volcano": {
       "slope": [10, 15],
       "setback": 0.8,
-      "spacing": [0.3, 1.5],
+      "spacing": 0.3,
       "lonely": 3,
-      "laneReach": 2,
       "fields": "no",
       "avoid": ["lavafield", "ashrock"],
       "hazardGap": 3
@@ -58,8 +54,19 @@
     "civicSlope": 18,
     "quaySetback": 0.3,
     "facingReach": 3,
-    "facing": [25, 45],
-    "rowTurn": 15
+    "facing": 60
+  },
+  "village": {
+    "houses": 8,
+    "spread": [30, 20],
+    "row": [4, 6],
+    "rowTurn": 10,
+    "rowLine": 0.35,
+    "rowGap": 2,
+    "evenGap": 0.25,
+    "centreLanes": 3,
+    "centreReach": 2,
+    "centreApart": 45
   },
   "harbour": {
     "core": 8,
@@ -74,9 +81,13 @@
     "turn": 30,
     "flat": 4,
     "offShare": 0.3,
-    "shore": [1, 3],
     "slope": 15,
-    "endReach": 1
+    "endReach": 1,
+    "straight": 8,
+    "bow": 0.25,
+    "parallel": 12,
+    "parallelGap": 5,
+    "parallelRun": 4
   },
   "piers": {
     "square": 30,
@@ -97,5 +108,9 @@
     "fields": ["field"],
     "quays": ["paving"],
     "laneEnds": ["signpost", "flagpole", "name-board", "hot-spring", "warm-spring", "market-hall"]
+  },
+  "review": {
+    "followOffshore": 30,
+    "followWait": 7000
   }
 }
