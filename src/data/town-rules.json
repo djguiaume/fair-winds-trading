@@ -1,6 +1,7 @@
 {
   "grading": {
-    "fails": "warning"
+    "fails": "error",
+    "village": "warning"
   },
   "styles": {
     "default": {

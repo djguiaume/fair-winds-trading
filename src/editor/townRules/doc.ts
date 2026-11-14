@@ -67,7 +67,7 @@ export const TOWN_RULES_DOC: FieldsDoc<TownRulesDoc> = {
     review:
       'The follow-cam pose `npm run island -- audit` prints per town (#544): the boat followOffshore world units past the shore, the shot waiting followWait ms.',
     grading:
-      'fails: what a failed rule counts as: "warning" while the v1.10 town parts redo the towns as villages (#528), "error" once every town passes.',
+      'fails: what a failed hard rule (slope, ground, shore) counts as, "error". village: what a failed village rule (a grid) counts as: "warning" while the v1.10 town parts redo the towns (#528), "error" once every town passes.',
   },
   names: 'Grounds are palette.json ground ids; types are prop ids (src/data/props/).',
 };

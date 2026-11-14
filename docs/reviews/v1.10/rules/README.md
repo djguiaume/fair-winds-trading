@@ -6,7 +6,7 @@ The rules part of [#528](https://github.com/djguiaume/fair-winds-trading/issues/
 
 - **Out:** the row rule (`houses.rowTurn`), the even-gap maximum, "every house within 2W of a lane", the waterfront lane at 1W to 3W, facing as a fail. Facing now warns only past 60°.
 - **In** (`village` section of `src/data/town-rules.json`, towns of 8 houses or more): the fronts' spread folded to one square grid (under 30° warns, under 20° fails); straight rows of alike houses at even gaps (4 warn, 6 fail); 3 lanes reaching the centre from different sides; no lane straight for over 8W; no two lanes side by side. Only spread and rows fail.
-- **`grading.fails` is `"warning"`** until the last town part flips it back to `"error"`.
+- **Grid fails count as warnings** (`grading.village`) until the last town part sets it to `"error"`; the hard rules (`grading.fails`) stay errors.
 - **Follow-cam pose:** `npm run island -- audit [id]` prints each town's `npm run shots` options (`follow` in `--json`), the boat out past the shore, bow on to the centre.
 
 Calibration: v1.8's ring towns spread 47° to 78°; v1.9's 5° to 15°.

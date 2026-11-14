@@ -26,8 +26,10 @@ export interface StyleRules {
 
 export interface TownRules {
   grading: {
-    /** "warning" while towns 2 and 3 fix the islands, then "error": what a failed rule counts as. */
+    /** What a failed hard rule (slope, ground, shore) counts as: "warning" or "error". */
     fails: string;
+    /** What a failed village rule (a grid, #528) counts as: "warning" while the v1.10 town parts redo the towns, then "error". */
+    village: string;
   };
   /** By island style; `default` for any style not listed. */
   styles: Record<string, StyleRules>;
@@ -164,8 +166,9 @@ export function townRulesProblems(rules: TownRules, names: TownRuleNames): strin
     if (!(Array.isArray(v) && v.length === 2 && a! >= lo && b! >= a! && b! <= hi))
       fail(where, `[low, high] with ${lo} ≤ low ≤ high ≤ ${hi}`);
   };
-  const fails = rules.grading?.fails;
-  if (fails !== 'warning' && fails !== 'error') fail('grading.fails', '"warning" or "error"');
+  for (const key of ['fails', 'village'] as const)
+    if (!['warning', 'error'].includes(rules.grading?.[key]))
+      fail(`grading.${key}`, '"warning" or "error"');
   if (!rules.styles?.default) fail('styles', 'needs a "default" entry');
   for (const [id, s] of Object.entries(rules.styles ?? {})) {
     const at = `styles.${id}`;

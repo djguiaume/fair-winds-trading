@@ -96,7 +96,9 @@ describe('town checks (issue #513)', () => {
     const untidy = town((d) => (d.props[cabin]!.turn = (d.props[cabin]!.turn ?? 0) + 90));
     expect(untidy.length).toBeGreaterThan(0);
     for (const i of untidy) {
-      const error = i.grade === 'fail' && TOWN_RULES.grading.fails === 'error';
+      const counts =
+        i.check === 'town-grid' ? TOWN_RULES.grading.village : TOWN_RULES.grading.fails;
+      const error = i.grade === 'fail' && counts === 'error';
       expect(i.severity).toBe(error ? 'error' : 'warning');
       expect(i.check).toMatch(/^town-/);
       expect(['warn', 'fail']).toContain(i.grade);
@@ -123,6 +125,7 @@ describe('town checks (issue #513)', () => {
   it('counts a fail as an error once the rules say so', () => {
     const strict = structuredClone(TOWN_RULES);
     strict.grading.fails = 'error';
+    strict.grading.village = 'error';
     // A cabin with half its footprint in the sea, as in the waterline test.
     const p = calda.props[cabin]!;
     const [x, z] = calda.coasts[0]!.reduce((a, b) =>
@@ -221,6 +224,8 @@ describe('village, not grid (issue #528)', () => {
       (i) => i.check === 'town-grid' && /6 houses in a straight row/.test(i.message),
     );
     expect(row?.grade).toBe('fail');
+    // A grid fail counts as `grading.village` says; a hard rule's as `grading.fails`.
+    expect(row?.severity).toBe(TOWN_RULES.grading.village === 'error' ? 'error' : 'warning');
   }, 20000);
 
   it('warns of parallel lanes and of a centre few lanes reach', () => {
