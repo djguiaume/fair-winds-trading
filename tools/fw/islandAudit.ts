@@ -18,6 +18,11 @@ import type { Args } from './islandArgs';
 import { writeTownCharts } from './townChart';
 import { townGroundMap } from './townGroundMap';
 
+export const AUDIT_HELP = `npm run island -- audit [id] [--md|--json|--warnings|--chart dir [--as after] [--grid]]  the town rules on every town
+       (--grid rules the plan every 0.2 with file coordinates, prop indexes and rivers, to design from)
+       audit <id> --ground x0,x1,z0,z1 [--step 0.02]  a text map of the ground the checks read:
+       . flat, + warn slope, # steeper, ~ water, L lava or ash, H house, B building`;
+
 /** The rules in the art bible's order, as the checks name them (`town-<rule>`). */
 export const TOWN_CHECKS = [
   'slope',
