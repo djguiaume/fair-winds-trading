@@ -6,14 +6,18 @@ Each sheet: before left, after right; top row the sailing camera, bottom row the
 
 | Town | Sheet | Feeling asked (§12 table) | What changed |
 |---|---|---|---|
-| Calda | [sheet](calda.jpg) | Working harbour on a slope, tight core round the slipway | The three-street grid is gone. Lanes fan out from the quay head; a new low terrace east of the bay carries a second group of cabins; two woodcutters' cabins stand up in the wood. A boat shed and planks by the slipway, wood sheds and fences where the village thins. Lamps 31 to 16. |
+| Calda | [sheet](calda.jpg) | Working harbour on a slope, tight core round the slipway | The three-street grid is gone. A small square ringed by lanes at the quay head, lanes fanning out from it, cabins of mixed sizes in uneven groups; a new low terrace east of the bay carries a second group of cabins; two woodcutters' cabins stand up in the wood. A boat shed and planks by the slipway, wood sheds and fences where the village thins. Lamps 31 to 16. |
 | Saltmere | [sheet](saltmere.jpg) | Fishing village along a bay: a curved quay lane, clusters behind it | One quay lane curves round the bay, with short lanes to the kirk, the smokehouses and the east lobe. Houses nearest the quay are smaller than the outer ones. The racks and crates of the net green stand loose, not in ranks. |
 | Westholm | [sheet](westholm.jpg) | Farming-and-mill village: a green, lanes fanning out | Farmhouses round an open green; lanes leave it for the mills, the granary, the cove and the east pier. One field moved so no field lies between a house and its water. |
-| Stonehaven | [sheet](stonehaven.jpg) | Stone town, the densest, round a market square | A market hall and a small square at the pier head; one winding main street under the cliff to the stairs, a wharf lane past the crane, a quay lane east. Eight houses stand loose round the keep, with field walls. Crane, quarry and stone stacks untouched. |
+| Stonehaven | [sheet](stonehaven.jpg) | Stone town, the densest, round a market square | A market hall on a square ringed by lanes at the pier head, the biggest houses fronting it; one winding main street under the cliff to the stairs, a wharf lane past the crane, a quay lane east with a staggered row. Eight houses stand in three groups round the keep, with field walls. Crane, quarry and stone stacks untouched. |
 | Abbey Head | [sheet](abbey-head.jpg) | Cottages tucked below the abbey at odd angles | The cottages turn to their own angles and no longer stand in two straight files. |
 | Watchman Key | [sheet](watchman-key.jpg) | Hamlet under the light (not in the table) | Same: each cottage has its own angle. |
 
 Skerry keeps its home plots (they are quest places, and it was no grid). Lantern Rock and Teeth Rock have no houses.
+
+## Art director's review
+
+Saltmere and Westholm passed at first look. Calda's core still read as rows and Stonehaven as loose scatter: both were reworked (the sheets show the second version).
 
 ## Not done
 
@@ -25,7 +29,7 @@ Ring firs stood about three houses tall. `forests.json`: pine scale 0.8-1.35 →
 
 ## Budget and tests
 
-- Ring mesh at the phones' far level: 21,587 triangles, limit raised 21,500 → 21,700 (decision 0307: Calda's terrace is new ground, Westholm's lanes are longer). Per island all inside 8,500: Calda 8,275, Saltmere 8,301, Westholm 6,051, Stonehaven 5,161.
+- Ring mesh at the phones' far level: 21,641 triangles, limit raised 21,500 → 21,700 (decision 0307: Calda's terrace is new ground, the lanes are longer). Per island all inside 8,500: Calda 8,313, Saltmere 8,301, Westholm 6,051, Stonehaven 5,181.
 - `tests/island-layout.test.ts`: Calda keeps 15 upland trees or more (was 20); Saltmere may keep its ten trees as it grows. Level 1 of each town is still one cluster by the harbour.
 
 ## Re-create

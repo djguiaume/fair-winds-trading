@@ -129,10 +129,10 @@ describe('island files (decision 0101)', () => {
 });
 
 const GOLDEN: Record<string, string[]> = {
-  calda: ['503:f9f210fa', '678:1d353dd1', '860:94ea87ab', '1035:ba3fed3d'],
+  calda: ['527:89f9edc5', '697:a3528725', '879:ef51a746', '1054:80e26aa8'],
   saltmere: ['317:9d801ce4', '550:4e2b43fe', '781:26801f63', '979:f6a495b2'],
   westholm: ['262:7a66864a', '504:83c1b67c', '711:50d1a365', '868:c81e0aba'],
-  'south-cay': ['224:319a6604', '359:c2a1a107', '479:c3e7ae17', '633:9bf1e0c4'],
+  'south-cay': ['241:9ac4b4b5', '372:1dc63e04', '493:31dfd151', '643:64e8b14e'],
   skerry: ['246:cc0b40d7', '250:4172fa2e', '253:7967dea8', '253:7967dea8'],
   'bell-rock': ['13:149f2ca0', '13:149f2ca0', '13:149f2ca0', '13:149f2ca0'],
   'abbey-head': ['53:5030ad49', '102:3507cae6', '147:9f62109d', '190:69b424cb'],
