@@ -23,7 +23,7 @@ always the same patch of sea.
 
 ```
 npm run shots -- --at 0,-330 --heading 180 --quality high --chase --wait 20000   # wake
-npm run shots -- --at 0,-330 --heading 180 --quality high --chase --wait 20000 --script docs/reviews/v1.10/follow-cam/wake-style.js
+npm run shots -- --at 0,-330 --heading 180 --quality high --chase --wait 20000 --script docs/reviews/v1.10/follow-cam/src/wake-style.js
 npm run shots -- --at 0,-330 --heading 90 --quality high --chase                 # streaks
 npm run shots -- --at 0,-330 --heading 90 --quality high --night --zoom 1.8      # beam from above
 npm run shots -- --at 243,-116 --heading 120 --quality ultra --chase --time 560 --wait 9000   # beam, mirror at night
