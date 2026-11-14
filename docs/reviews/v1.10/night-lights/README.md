@@ -14,3 +14,17 @@ Why houses were dark:
 Fix: every wall keeps one lit pane (`windowPanes`), windows lowered on the cabin, farmhouse, stone, yard, turf and beach houses, rich doors moved or narrowed, the turf cottage's panes moved beside its door. `tests/lit-windows.test.ts` ray-casts each home (plain and rich, 12 variants) from the four corners at the camera's pitch.
 
 Left for the art director: houses at the very bottom of the screen are seen steeper than the camera's pitch, and the deep rich eaves still hide most of their glass there. A soft light spill on the ground under lit windows would read from straight above.
+
+## #526 The moon on Ultra
+
+[moon-526.jpg](moon-526.jpg): the chase camera at night, heading 250°, time 668, the camera lowered to 2° (`--tune {"camera.chase.pitchDeg": 2}`); Ultra and High, before and after.
+
+Why it was missing: Ultra turns its shadow-casting sun 30° and lowers it (`graphics.ultra.shadows.sunTurnDeg`, `sunHeight`, for side shadows at noon), and that shaped light also placed the drawn sky's disc and the sea's glint, so the moon sat 30° off, out of frame. Now only the light that casts shadows is shaped; the disc and its glint stay where the time of day puts them. Ultra shows the moon, its glow, the bloom round it and its path on the sea as High does, plus its mirror image. High is unchanged.
+
+## #543 Small warm lamps, no white discs
+
+[halos-543.jpg](halos-543.jpg): Saltmere's pier at night, sails down, the sea camera and the chase camera on High and Ultra, before and after.
+
+Why they blew out: every lamp glow was one flat texture, 80% bright out to a fifth of its width and still half bright beyond, drawn large (lanterns 13 units, beacons 30) and added on top of the scene; the beacons' texture was pure white, and Ultra's bloom added a second halo round it.
+
+Fix: one shared glow (`src/render/lampGlow.ts`) for lanterns, beacons and the other boats' lamps: a small solid core, then a quick fall (`graphics.json › lamps`: core, falloff, peak below 1), tinted by each lamp's colour (lanterns the art bible's `lamp`). Lanterns 16 units, beacons 20; on Ultra both shrink by `ultra.night.lanternSize` and the bloom gives the soft halo. `tests/lamp-glow.test.ts` keeps each glow narrower than its lamp stands tall and its halo under full strength. All five numbers are on the `?tune` page.
