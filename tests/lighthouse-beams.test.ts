@@ -62,3 +62,18 @@ it('lights every lighthouse of the island files, and only once it is built', () 
   }
   beams.dispose();
 });
+
+it('draws a beam as additive light that fades out, never a grey solid (issue #541)', () => {
+  const beams = new LighthouseBeams(PHASE1_MAP.islands);
+  const material = (beams.root.children[0]!.children[0] as THREE.Mesh)
+    .material as THREE.ShaderMaterial;
+  expect(material.blending).toBe(THREE.AdditiveBlending);
+  // Fog fades the beam's own alpha rather than adding the fog's grey on top.
+  expect(material.fragmentShader).not.toContain('fog_fragment');
+  expect(material.fragmentShader).toContain('smoothstep(fogNear, fogFar');
+  beams.update(1, 1);
+  const lit = material.uniforms.uOpacity!.value as number;
+  beams.update(2, 0.5);
+  expect(material.uniforms.uOpacity!.value).toBeCloseTo(lit / 2);
+  beams.dispose();
+});
