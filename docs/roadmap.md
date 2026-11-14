@@ -87,8 +87,8 @@ store plan of [0204](decisions/0204-selling-on-android-iphone-and-xbox.md) comes
   playtest (#364), a licence decision and a trailer from the v2 look. Order: **Steam with a free web demo first,
   phones second, Xbox last.**
 - **Polish and extras:** ship cosmetics (sail colours, flags, figureheads), achievements, a real
-  **sandbox** mode (everything unlocked, nothing saved; needs its own decision), the **Kids mode**
-  rework ([0043](decisions/0043-shelve-kids-mode.md)), "play with these controls" in the editors.
+  **sandbox** mode (everything unlocked, nothing saved; needs its own decision), "play with these
+  controls" in the editors. (Kids mode and the classic look were retired in [0306](decisions/0306-retire-the-classic-look-and-kids-mode.md).)
 - **Event panel** for big story events ([0174](decisions/0174-event-panel-for-big-story-events.md)),
   only when Guillaume asks.
 

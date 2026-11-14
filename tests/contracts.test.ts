@@ -130,32 +130,29 @@ describe('delivery contracts (0028)', () => {
     expect(read).toEqual(createContracts(PHASE1_MAP));
   });
 
-  for (const mode of ['adult', 'kids'] as const) {
-    it(`${mode}: the harbour lists orders and delivers this port's`, () => {
-      const world = createWorld(PHASE1_MAP, SLOOP);
-      const port = PHASE1_MAP.ports[0]!;
-      world.trade.dockedAt = port.id;
-      document.body.innerHTML = '<div id="panel" hidden></div>';
-      const container = document.querySelector<HTMLElement>('#panel')!;
-      const panel = new TradePanel(container, world);
-      panel.uiMode = mode;
-      // Every order on its own tab (decision 0049), Kids mode too since the v1.5 harbour (#443).
-      panel.open('orders');
-      const deliver = () => container.querySelector<HTMLButtonElement>('#tp-deliver')!;
-      // Greyed, yet still reachable by the pad (decision 0192).
-      expect(deliver().getAttribute('aria-disabled')).toBe('true');
-      const others = container.querySelectorAll('.contract-list li');
-      // Only charted ports: the hidden yards' orders show once discovered (decision 0048).
-      expect(others).toHaveLength(PHASE1_MAP.ports.filter((p) => !p.hidden).length - 1);
+  it(`the harbour lists orders and delivers this port's`, () => {
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    const port = PHASE1_MAP.ports[0]!;
+    world.trade.dockedAt = port.id;
+    document.body.innerHTML = '<div id="panel" hidden></div>';
+    const container = document.querySelector<HTMLElement>('#panel')!;
+    const panel = new TradePanel(container, world);
+    // Every order on its own tab (decision 0049).
+    panel.open('orders');
+    const deliver = () => container.querySelector<HTMLButtonElement>('#tp-deliver')!;
+    // Greyed, yet still reachable by the pad (decision 0192).
+    expect(deliver().getAttribute('aria-disabled')).toBe('true');
+    const others = container.querySelectorAll('.contract-list li');
+    // Only charted ports: the hidden yards' orders show once discovered (decision 0048).
+    expect(others).toHaveLength(PHASE1_MAP.ports.filter((p) => !p.hidden).length - 1);
 
-      const order = world.trade.contracts.byPort[port.id]!;
-      world.trade.captain.cargo[order.good] = order.qty;
-      panel.render();
-      const gold = world.trade.captain.gold;
-      deliver().click();
-      expect(world.trade.captain.gold).toBe(gold + order.reward);
-      expect(container.querySelector('#tp-deliver')).toBeNull();
-      expect(container.querySelector('.trade-status')!.textContent).toContain(String(order.reward));
-    });
-  }
+    const order = world.trade.contracts.byPort[port.id]!;
+    world.trade.captain.cargo[order.good] = order.qty;
+    panel.render();
+    const gold = world.trade.captain.gold;
+    deliver().click();
+    expect(world.trade.captain.gold).toBe(gold + order.reward);
+    expect(container.querySelector('#tp-deliver')).toBeNull();
+    expect(container.querySelector('.trade-status')!.textContent).toContain(String(order.reward));
+  });
 });

@@ -35,7 +35,6 @@ Where
   --tab market|orders|quay|shipyard   the port screen's tab
   --zoom z                      camera distance, 1 = default, larger = farther (no game limit)
   --look x,y                    camera on this map point instead of the boat
-  --look v1 | v1,x,y            the classic ground (?look=v1) for comparison, and the camera on that
                                 point; the new look (v2, decision 0222) is the default
   --yaw deg --tilt deg          a turned camera (0223): the bearing it looks to, degrees down
   --chase                       the close chase camera behind the boat (0272), already switched

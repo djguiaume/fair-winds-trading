@@ -5,7 +5,6 @@ import { designOf, type PropDef } from '../data/islands';
 import { PROP_RECIPES } from '../data/props';
 import { ISLAND_SCALE } from '../sim/islandUnits';
 import { propStand } from './models/townProps';
-import type { TerrainLook } from './terrainLook';
 
 /** Height of each landmark's lamp above the model's foot, at size 1 (see landmarks.ts). */
 const LAMP_Y = { lighthouse: 4.8, beacon: 5.15 } as const;
@@ -21,8 +20,6 @@ export interface LandmarkLamp {
 export function landmarkLamps(
   islands: readonly IslandDef[],
   type: keyof typeof LAMP_Y,
-  /** Under the new look (decision 0222) props stand on the shared height field. */
-  look: TerrainLook = 'v1',
 ): LandmarkLamp[] {
   const out: LandmarkLamp[] = [];
   for (const island of islands) {
@@ -34,7 +31,7 @@ export function landmarkLamps(
       const lamp = type === 'beacon' ? PROP_RECIPES[prop.type]?.lamp : undefined;
       if (prop.type !== type && !lamp) continue;
       const p = islandPoint(island, prop.x, prop.z),
-        stand = propStand(island, design, prop.from ?? 1, look),
+        stand = propStand(island, prop.from ?? 1),
         ground = prop.y !== undefined ? prop.y * R : stand(prop.x, prop.z),
         y = (ground + (lamp?.y ?? LAMP_Y[type]) * (prop.size ?? 1)) * ISLAND_SCALE;
       out.push({ position: new THREE.Vector3(p.x, y, -p.y), island, prop });

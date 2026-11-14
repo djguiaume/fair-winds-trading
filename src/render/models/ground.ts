@@ -20,12 +20,10 @@ import { BEACH_TOP, ISLAND_SCALE } from '../../sim/islandUnits';
 import { isGlowing, paint, paintFaces, paintGroups } from './geometry';
 import { craterPool } from './lavaCracks';
 import type { Parts } from './props';
-import { B2 } from './highlandPalette';
 
 /**
- * The islands' ground, apart from what stands on it (issue #268): the classic extruded tiers of
- * the island files and terrain shapes, and the pieces that stay faceted in the new look
- * (decision 0222, `?look=v2`), whose rolling ground is `fieldGround.ts`.
+ * The islands' ground, apart from what stands on it (issue #268): the pieces that stay faceted
+ * (`smooth: 0` shapes, decision 0222) beside the rolling ground of `fieldGround.ts`.
  */
 
 /** An island file's outline as a three.js shape, in reference units (z drawn as -y). */
@@ -345,27 +343,4 @@ export function iceField(feature: TerrainDef, seed: number): Parts {
     parts.push(paint(slab, i % 2 ? '#c5e4ee' : '#eef4f8'));
   }
   return parts;
-}
-
-/** Barrier island tiers' colours, beach first (heights: `terrain.json › ridge`, decision 0031). */
-const RIDGE_COLORS = [B2.sand, B2.rock, B2.rock2, B2.grass];
-
-/**
- * The classic ground of a terrain shape: a barrier island's terraces, the beach on the exact
- * collision outline and each tier inset so nothing overhangs the shore; a sandbank's flat top.
- */
-export function featureGround(feature: TerrainDef): Parts {
-  if (feature.kind === 'sandbank')
-    return [
-      paint(
-        extrudeOutline(feature.outline, -0.4, TUNING.terrain.sandbankTop),
-        feature.look?.color ?? B2.sand,
-      ),
-    ];
-  if (feature.kind !== 'island') return [];
-  const { insets, bottoms, tops } = TUNING.terrain.ridge;
-  return insets.map((inset, i) => {
-    const outline = inset ? insetOutline(feature.outline, inset) : feature.outline;
-    return paint(extrudeOutline(outline, bottoms[i]!, tops[i]!), RIDGE_COLORS[i] ?? B2.grass);
-  });
 }

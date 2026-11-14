@@ -12,7 +12,6 @@ import { FORESTS } from '../../data/forests';
 import { isGlowing, paint } from './geometry';
 import { PROP_TYPES, WOODLAND_TREES, put, type Parts } from './props';
 import { lanePieces } from './townLanes';
-import type { TerrainLook } from '../terrainLook';
 import type { Steps } from '../../sim/steps';
 
 /** The height a prop stands at over a point of its island (reference units, harbour toward +Z). */
@@ -36,19 +35,9 @@ export function standHeight(layout: IslandLayout, x: number, z: number, R: numbe
     : 0;
 }
 
-/**
- * Where a prop stands on an island at a level: on the shared height field under the new look
- * (decision 0222), on the classic tiers otherwise.
- */
-export function propStand(
-  island: IslandDef,
-  design: IslandDesign,
-  level: number,
-  look: TerrainLook,
-): Stand {
-  if (look === 'v2') return fieldStand(island, islandHeightfield(island, level));
-  const layout = islandLayout(design, level);
-  return (x, z) => standHeight(layout, x, z, island.radius / ISLAND_SCALE);
+/** Where a prop stands on an island at a level: on the shared height field (decision 0222). */
+export function propStand(island: IslandDef, level: number): Stand {
+  return fieldStand(island, islandHeightfield(island, level));
 }
 
 /** How far a lane lies over the new look's ground: clear of its small bumps across the lane. */

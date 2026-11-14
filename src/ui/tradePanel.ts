@@ -7,7 +7,6 @@ import { capacity, cargoUsed, findPort } from '../sim/trade';
 import type { World } from '../sim/world';
 import type { PadButton } from '../input/gamepad';
 import { formatNumber, t } from '../i18n';
-import type { UiMode } from './settings';
 import { guardSoftDisabled, softDisable } from './padFocus';
 import { harbourAccent } from '../render/harbourView';
 import { el, trapTab } from './components/dom';
@@ -66,7 +65,6 @@ export class TradePanel {
   private readonly keeper: KeeperLines;
   private readonly deals: HarbourDeals;
 
-  uiMode: UiMode = 'adult';
   onAction: () => void = () => {};
   onTrade: (kind: 'buy' | 'sell', good: GoodId | null) => void = () => {};
   onRender: () => void = () => {};
@@ -228,11 +226,10 @@ export class TradePanel {
 
   /** The tabs, on top of the paper. */
   private tabs(people: readonly QuayItem[]): HTMLElement {
-    const kids = this.uiMode === 'kids';
     const fresh = people.filter((p) => p.fresh).length;
     return harbourTabs({
       tabs: [
-        { id: 'market', label: t(kids ? 'kids.tabMarket' : 'trade.tabMarket') },
+        { id: 'market', label: t('trade.tabMarket') },
         { id: 'orders', label: t('trade.tabOrders'), badge: openOrderCount(this.world) },
         ...(this.quay
           ? [
@@ -243,7 +240,7 @@ export class TradePanel {
               },
             ]
           : []),
-        { id: 'shipyard', label: t(kids ? 'kids.tabShipyard' : 'trade.tabShipyard') },
+        { id: 'shipyard', label: t('trade.tabShipyard') },
       ],
       selected: this.tab,
       onSelect: (id) => this.show(id as TradePanelTab),
@@ -337,7 +334,6 @@ export class TradePanel {
   }
 
   private footer(fresh: readonly QuayItem[]): HTMLElement {
-    const kids = this.uiMode === 'kids';
     const extras: HTMLElement[] = [];
     const repair = this.deals.repairButton();
     if (repair) extras.push(repair);
@@ -356,7 +352,7 @@ export class TradePanel {
       status: this.deals.message,
       legend: this.legend(),
       extras,
-      sailLabel: t(kids ? 'kids.undock' : 'trade.undock'),
+      sailLabel: t('trade.undock'),
       onSail: () => this.close(),
     });
   }

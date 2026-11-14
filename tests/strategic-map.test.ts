@@ -180,6 +180,9 @@ describe('Windward Ring trading map', () => {
       }
     }
     const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false });
+    // The ground and trees have their own render budget (tools/performance/budget.json).
+    for (const part of mesh.children.flatMap((g) => g.children))
+      if (part.name === 'ground' || part.name === 'forest') part.removeFromParent();
     // Decision 0073: preserve the complete land + window triangle budget despite local batches.
     // The phones' levels draw the plain homes; the rich homes add about 1,000 (#500). The ring's
     // believable towns (#514, decision 0303) raised the first by 500: lanes for the two hamlets that had

@@ -19,7 +19,6 @@ import { townWalks } from './folkWalks';
 import { lifeClock } from './lifeModels';
 import { type Stand, propStand } from './models/townProps';
 import { QUALITY_LEVELS, type QualityLevel } from './quality';
-import type { TerrainLook } from './terrainLook';
 
 /** What the town folk read of the world: the ports, the land standing now, where the boat is. */
 export interface FolkWorld {
@@ -86,7 +85,6 @@ export class TownFolk {
   constructor(
     private readonly world: FolkWorld,
     private readonly level: () => QualityLevel,
-    private readonly look: TerrainLook,
     /** Town levels by port id, 0 for a site not founded yet (decision 0157). */
     private levels: Readonly<Record<string, number>>,
   ) {
@@ -205,7 +203,7 @@ export class TownFolk {
     people.sort(() => rng() - 0.5);
     return {
       island,
-      stand: propStand(island, design, level, this.look),
+      stand: propStand(island, level),
       rng,
       people,
       presence: 0,

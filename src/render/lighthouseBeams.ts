@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import type { IslandDef } from '../sim/map';
 import { atLevel, type PropDef, questShown } from '../data/islands';
 import { landmarkLamps } from './landmarkLamps';
-import type { TerrainLook } from './terrainLook';
 
 /** Beams by the lighthouse prop's variation: 0 Saltmere's opposing pair, 1 one, 2 three. */
 const BEAMS = [2, 1, 3];
@@ -33,13 +32,9 @@ export class LighthouseBeams {
     .rotateZ(Math.PI / 2)
     .translate(35, 0, 0);
   /** `levels`: town level by island id; others stand at level 1 with a dock, else at 4. */
-  constructor(
-    islands: readonly IslandDef[],
-    levels: Record<string, number> = {},
-    look: TerrainLook = 'v1',
-  ) {
+  constructor(islands: readonly IslandDef[], levels: Record<string, number> = {}) {
     this.root.name = 'lighthouse-beams';
-    for (const { position, island, prop } of landmarkLamps(islands, 'lighthouse', look)) {
+    for (const { position, island, prop } of landmarkLamps(islands, 'lighthouse')) {
       const group = new THREE.Group();
       group.position.copy(position);
       const beams = BEAMS[prop.variant ?? 0] ?? 2;

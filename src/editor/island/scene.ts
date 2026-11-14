@@ -58,7 +58,7 @@ export function mergeParts(parts: Parts): THREE.BufferGeometry {
   return merged;
 }
 
-/** The new look's rolling ground (`?look=v2`), drawn apart from the faceted island. */
+/** The new look's rolling ground, drawn apart from the faceted island. */
 const groundMesh = () =>
   new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshLambertMaterial());
 

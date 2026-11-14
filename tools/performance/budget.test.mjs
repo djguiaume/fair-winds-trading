@@ -19,22 +19,17 @@ test('a scenario missing from the report is a problem', () => {
   assert.equal(overBudget({ runs: [] }, budget).length, 1);
 });
 const budgets = {
-  scenarios: { a: 1 },
-  newLook: { scenarios: { a: 2 } },
+  scenarios: { a: 2 },
   frameWork: { limitsMs: { sailing: 100 } },
   gpuMemory: { limitsMB: { ultra: 470 } },
 };
 const reportAt = (url, quality) => ({ url, config: { settings: { quality } } });
-test('the new look has its own budget', () => {
+test('a report at High is held to the scenario counts', () => {
   assert.deepEqual(budgetFor(reportAt('http://x/?debug=', 'high'), budgets), {
-    scenarios: budgets.newLook.scenarios,
+    scenarios: budgets.scenarios,
     frameWorkMs: budgets.frameWork.limitsMs,
     gpuMemoryMB: undefined,
   });
-  assert.equal(
-    budgetFor(reportAt('http://x/?look=v1&debug=', 'high'), budgets).scenarios,
-    budgets.scenarios,
-  );
 });
 test('Ultra is held to its graphics memory, not to the counts set at High', () => {
   const ultra = budgetFor(reportAt('http://x/?debug=', 'ultra'), budgets);
