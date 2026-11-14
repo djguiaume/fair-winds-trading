@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { type Rng, createRng } from '../sim/rng';
 import { NORTH_UP, type ViewAxes } from './cameraOrbit';
+import { TUNING } from '../data/tuning';
 
 interface Streak {
   x: number;
@@ -8,6 +9,17 @@ interface Streak {
   age: number;
   life: number;
 }
+
+/** What the streaks need of the camera: its ground axes, where it stands, how low it is. */
+export interface StreakView {
+  readonly axes: Readonly<ViewAxes>;
+  readonly eye: Readonly<THREE.Vector3>;
+  /** 0 the sea camera .. 1 the follow cam. */
+  readonly low: number;
+}
+
+/** The sea camera looking north: the streaks as they always were. */
+const FROM_ABOVE: StreakView = { axes: NORTH_UP, eye: new THREE.Vector3(), low: 0 };
 
 /** The streak field across and up the screen, turning with the camera (decision 0223). */
 const AREA_X = 200;
@@ -67,7 +79,9 @@ export class WindStreaks {
   /**
    * `toX/toZ`: scene-space unit vector the wind blows toward; `speed` in units/s. `strength` 0..1
    * (decision 0040): around a normal breeze the streaks look as before; a calm thins and fades
-   * them, strong wind makes every streak show and brightens them a little.
+   * them, strong wind makes every streak show and brightens them a little. Seen from the low follow
+   * cam (`view.low`), the streaks lie thinner on the water and fade out near the camera (issue
+   * #540), so the closest never read as bars.
    */
   update(
     dt: number,
@@ -76,12 +90,16 @@ export class WindStreaks {
     toZ: number,
     speed: number,
     strength = 0.56,
-    axes: Readonly<ViewAxes> = NORTH_UP,
+    view: StreakView = FROM_ABOVE,
   ) {
+    const { axes, eye, low } = view;
+    const look = TUNING.graphics.windStreaks;
+    const follow = look.chase;
     const len = 3 + speed * 0.18;
-    const w = 0.09;
+    const w = THREE.MathUtils.lerp(look.halfWidth, follow.halfWidth, low);
+    const y = THREE.MathUtils.lerp(look.lift, follow.lift, low);
     const shown = Math.min(1, 0.4 + 1.1 * strength) * this.streaks.length;
-    const alpha = 0.35 * (0.5 + 0.9 * strength);
+    const alpha = 0.35 * (0.5 + 0.9 * strength) * THREE.MathUtils.lerp(1, follow.alpha, low);
     this.streaks.forEach((s, i) => {
       s.age += dt;
       s.x += toX * speed * dt;
@@ -92,34 +110,35 @@ export class WindStreaks {
         Math.abs(dx * axes.rightX + dz * axes.rightZ) > AREA_X / 2 ||
         Math.abs(dx * axes.forwardX + dz * axes.forwardZ) > AREA_Z / 2;
       if (s.age > s.life || far) this.streaks[i] = s = this.spawn(center.x, center.z, axes);
-      const fade = Math.sin(Math.PI * Math.min(1, s.age / s.life));
+      const near = THREE.MathUtils.smoothstep(
+        Math.hypot(s.x - eye.x, s.z - eye.z),
+        follow.fadeFrom,
+        follow.fadeTo,
+      );
+      const fade = Math.sin(Math.PI * Math.min(1, s.age / s.life)) * (1 - low * (1 - near));
       const px = -toZ * w;
       const pz = toX * w;
       const hx = toX * len * 0.5;
       const hz = toZ * len * 0.5;
-      const y = 2.2;
-      this.positions.set(
-        [
-          s.x - hx + px,
-          y,
-          s.z - hz + pz,
-          s.x - hx - px,
-          y,
-          s.z - hz - pz,
-          s.x + hx + px,
-          y,
-          s.z + hz + pz,
-          s.x + hx - px,
-          y,
-          s.z + hz - pz,
-        ],
-        i * 12,
-      );
+      this.corner(i * 4, s.x - hx + px, y, s.z - hz + pz, 0);
+      this.corner(i * 4 + 1, s.x - hx - px, y, s.z - hz - pz, 0);
       const a = i < shown ? alpha * fade : 0;
-      this.colors.set([1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, a, 1, 1, 1, a], i * 16);
+      this.corner(i * 4 + 2, s.x + hx + px, y, s.z + hz + pz, a);
+      this.corner(i * 4 + 3, s.x + hx - px, y, s.z + hz - pz, a);
     });
     this.geometry.attributes.position!.needsUpdate = true;
     this.geometry.attributes.color!.needsUpdate = true;
+  }
+
+  /** One white corner of a streak, written in place (no array per frame). */
+  private corner(v: number, x: number, y: number, z: number, alpha: number) {
+    this.positions[v * 3] = x;
+    this.positions[v * 3 + 1] = y;
+    this.positions[v * 3 + 2] = z;
+    this.colors[v * 4] = 1;
+    this.colors[v * 4 + 1] = 1;
+    this.colors[v * 4 + 2] = 1;
+    this.colors[v * 4 + 3] = alpha;
   }
 
   dispose() {

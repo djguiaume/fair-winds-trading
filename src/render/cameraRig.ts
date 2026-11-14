@@ -31,6 +31,16 @@ export class CameraRig {
 
   constructor(private readonly camera: THREE.PerspectiveCamera) {}
 
+  /** Where the camera stands, for effects that change close to it (the wind streaks). */
+  get eye(): Readonly<THREE.Vector3> {
+    return this.camera.position;
+  }
+
+  /** 0 the sea camera .. 1 the follow cam, eased as the view switches. */
+  get low(): number {
+    return this.chase.eased;
+  }
+
   setZoom(zoom: number) {
     this.zoom = clamp(zoom, TUNING.camera.zoomMin, TUNING.camera.zoomMax);
   }

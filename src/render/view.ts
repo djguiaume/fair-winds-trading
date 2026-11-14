@@ -615,7 +615,7 @@ export class GameView {
       -to.y,
       wind.speedKn * TUNING.seamanship.boat.knotToUnits * 0.75,
       windStrength01(wind.speedKn),
-      this.rig.axes,
+      this.rig,
     );
     const { weather } = this.world;
     this.stormClouds.update(weather.storms, time, this.world.boat);

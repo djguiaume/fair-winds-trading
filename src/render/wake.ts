@@ -9,13 +9,16 @@ const CAPACITY = 64;
 export const WAKE_DETAIL = {
   ultralow: { points: 24, life: 1.8, interval: 0.1, centre: false },
   low: { points: 24, life: 1.8, interval: 0.1, centre: false },
-  medium: { points: 40, life: 2.6, interval: 0.075, centre: true },
-  high: { points: 64, life: 3.4, interval: 0.06, centre: true },
-  ultra: { points: 64, life: 3.4, interval: 0.06, centre: true },
+  medium: { points: 40, life: 3.2, interval: 0.08, centre: true },
+  high: { points: 64, life: 5, interval: 0.078, centre: true },
+  ultra: { points: 64, life: 5, interval: 0.078, centre: true },
 } as const;
 
 /** The player's bow waves hug her shoulders; the other boats' run further aft as a V. */
 const BOW_WAVE = { aft: 0.35, spread: 0.48 };
+
+/** How much foam is left at `t` (0 new .. 1 gone): eases out at both ends, so the tail melts away. */
+export const fadeAstern = (t: number) => (1 - t) ** 2 * (1 + 2 * t);
 
 interface Point {
   x: number;
@@ -82,10 +85,12 @@ export class FoamStrips {
         ${WAKE_STYLE_HEAD}
         varying vec4 vFoam;
         void main() {
-          float edge = 1.0 - smoothstep(0.3, 1.0, abs(vFoam.x));
-          float breakup = 0.64 + 0.22 * sin(vFoam.y * 2.8 + vFoam.x * 4.0 - uTime * 0.9)
-                                  + 0.14 * sin(vFoam.y * 6.1 - vFoam.x * 7.0 + uTime * 0.5);
-          float alpha = edge * smoothstep(0.18, 0.8, breakup) * vFoam.z;
+          // Soft foam streaked along the trail (issue #539): smooth noise, no grid of sines, so a
+          // low camera sees no chequer, and no threshold, so the fade astern has no hard end.
+          float edge = 1.0 - smoothstep(0.2, 1.0, abs(vFoam.x));
+          float breakup = wakeNoise(vec2(vFoam.y * 0.7 - uTime * 0.15, vFoam.x * 1.6 + uTime * 0.1)) * 0.6
+                        + wakeNoise(vec2(vFoam.y * 1.9 + uTime * 0.3, vFoam.x * 3.3)) * 0.4;
+          float alpha = edge * mix(0.25, 1.0, breakup) * vFoam.z;
           vec3 col = mix(uEdge, uFoam, vFoam.w);
           ${WAKE_STYLE_BODY}
           gl_FragColor = vec4(col, alpha);
@@ -301,8 +306,8 @@ export class Wake extends FoamStrips {
         b = this.history[i + 1]!;
       const at = a.age / detail.life,
         bt = b.age / detail.life;
-      const af = (1 - at) ** 2 * a.strength,
-        bf = (1 - bt) ** 2 * b.strength;
+      const af = fadeAstern(at) * a.strength,
+        bf = fadeAstern(bt) * b.strength;
       const ax = i === 0 && strength > 0 ? x : a.x;
       const az = i === 0 && strength > 0 ? z : a.z;
       for (const side of [-1, 1]) {
@@ -313,14 +318,14 @@ export class Wake extends FoamStrips {
           az + a.sz * spreadA * side,
           a.sx,
           a.sz,
-          hull.beam * 0.12 + at * 0.55,
+          hull.beam * 0.12 + at * 1.1,
           af * 0.65,
           a.distance,
           b.x + b.sx * spreadB * side,
           b.z + b.sz * spreadB * side,
           b.sx,
           b.sz,
-          hull.beam * 0.12 + bt * 0.55,
+          hull.beam * 0.12 + bt * 1.1,
           bf * 0.65,
           b.distance,
           1,
