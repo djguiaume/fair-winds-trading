@@ -120,9 +120,6 @@ describe('translations (decision 0037)', () => {
     const yard = document.getElementById('trade-panel')!.textContent!;
     expect(yard).toContain('8,7\u00a0nd');
     expect(yard).not.toContain('du sloop');
-    panel.uiMode = 'kids';
-    panel.open('market');
-    expect(document.getElementById('trade-panel')!.textContent).toContain(fr['kids.undock']);
 
     const chart = new SeaChart(document.getElementById('chart') as HTMLDialogElement, world, {});
     chart.open();

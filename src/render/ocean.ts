@@ -12,7 +12,6 @@ import { oceanFragmentShader as fragmentShader } from './oceanShader';
 import { type SeaWaves, gerstnerDefines, gerstnerUniforms } from './seaWaves';
 import { type GustUniforms, gustUniforms } from './seaGusts';
 import { SHORE_WASH_UNIFORMS, shoreWashOff } from './shoreWash';
-import type { TerrainLook } from './terrainLook';
 
 /** Conservative displacement bound: the classic waves' three amplitudes, or every band's cap. */
 export const maxWaveHeight = () =>
@@ -36,8 +35,6 @@ export function oceanFor(
   shore: ShoreTexture,
   seabed?: SeabedTexture,
   waves?: Pick<SeaWaves, 'gerstner'>,
-  /** `v2` colours the water by `seabed`; otherwise it only calms the Gerstner waves. */
-  terrain: TerrainLook = 'v2',
 ): Ocean {
   const gerstner = !!waves?.gerstner;
   const gusts = gerstner && profile.fancyWater && profile.gusts;
@@ -56,7 +53,7 @@ export function oceanFor(
     mirror: profile.mirror,
     plain: profile.plain,
     ultra: profile.ultra,
-    seabed: terrain === 'v2' ? seabed : undefined,
+    seabed,
     gerstner,
     gusts,
     coast: gerstner ? seabed : undefined,
@@ -81,7 +78,7 @@ export interface WaterLook {
   plain?: boolean;
   /** Ultra's tone mapping (decision 0221): its shore foam lifts under a storm to keep reading. */
   ultra?: boolean;
-  /** Coloured by the seabed's depth and the sea's own colours (`?look=v2`, issue #274). */
+  /** Coloured by the seabed's depth and the sea's own colours (issue #274). */
   seabed?: SeabedTexture;
   /** The wind and storm driven Gerstner waves (`?waves=v2`, decision 0245). */
   gerstner?: boolean;

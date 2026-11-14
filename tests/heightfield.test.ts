@@ -162,23 +162,18 @@ describe('the shared height field', () => {
   });
 });
 
-describe('the new look (the default) against ?look=v1', () => {
+describe('the island ground', () => {
   const ground = (islands: HighlandIslands, id: string) =>
     islands.getObjectByName(`island:${id}`)!.getObjectByName('ground') as THREE.Mesh;
 
-  it('draws each island file from its field, harbours where the classic look has them', () => {
-    const map = GAME_MAP;
-    const classic = new HighlandIslands(map, false, {}, 'v1');
-    const v2 = new HighlandIslands(map, false, {}, 'v2', 'high');
-    expect(v2.userData.harbours).toEqual(classic.userData.harbours);
+  it('draws each island file from its field', () => {
+    const v2 = new HighlandIslands(GAME_MAP, false, {}, 'high');
     for (const island of designed) expect(ground(v2, island.id), island.id).toBeDefined();
-    expect(ground(classic, designed[0]!.id)).toBeUndefined();
-    classic.dispose();
     v2.dispose();
   }, 30_000);
 
   it('changes only the ground mesh with the quality level, never the field', () => {
-    const v2 = new HighlandIslands(GAME_MAP, false, {}, 'v2', 'high');
+    const v2 = new HighlandIslands(GAME_MAP, false, {}, 'high');
     const id = designed[0]!.id;
     const field = islandHeightfield(designed[0]!);
     const before = ground(v2, id).geometry.attributes.position!.count;

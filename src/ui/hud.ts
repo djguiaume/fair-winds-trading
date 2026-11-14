@@ -182,10 +182,6 @@ export class Hud {
   /** Settings › Wind compass off: the dial goes, but only on the hardest level (Guillaume). */
   compassOff = false;
 
-  set isKidMode(on: boolean) {
-    this.compass.isKidMode = on;
-  }
-
   /** Quest cargo aboard, a line each, for the hold list (decision 0213). */
   set questCargo(lines: () => string[]) {
     this.actions.questCargo = lines;

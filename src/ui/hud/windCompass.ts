@@ -40,8 +40,6 @@ export class WindCompass {
   private readonly windLines: WindLines;
   private gauge = createWindGauge(0);
   private gaugeReady = false;
-  /** Kids mode says the strength as a plain word and hides the knots. */
-  isKidMode = false;
 
   constructor() {
     this.root.id = 'wind-compass';
@@ -114,11 +112,13 @@ export class WindCompass {
     this.pos.dataset.point = point ?? 'down';
     const { force } = this.gauge;
     this.root.dataset.force = String(force);
-    const word = t(`${this.isKidMode ? 'kidsWind' : 'windForce'}.${WIND_FORCES[force]}`);
+    const word = t(`windForce.${WIND_FORCES[force]}`);
     const { wind } = world;
-    const breeze = this.isKidMode
-      ? word
-      : t('hud.breeze', { force: word, dir: compassPoint(wind.from), kn: wind.speedKn.toFixed(0) });
+    const breeze = t('hud.breeze', {
+      force: word,
+      dir: compassPoint(wind.from),
+      kn: wind.speedKn.toFixed(0),
+    });
     // Name the lee so a sudden drop in speed reads as the island, not a bug (decision 0027).
     setText(this.breeze, lee ? `${breeze} · ${t('hud.lee')}` : breeze);
     this.windLines.show(world, dt);

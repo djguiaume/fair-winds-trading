@@ -64,7 +64,7 @@ describe('rich town houses (issue #500)', () => {
   it('swaps the towns’ homes by distance, on High and Ultra only', () => {
     const map = { ...PHASE1_MAP, terrain: [] };
     for (const level of ['low', 'high'] as const) {
-      const model = new HighlandIslands(map, false, undefined, 'v1', level);
+      const model = new HighlandIslands(map, false, undefined, level);
       const lods: THREE.LOD[] = [];
       model.traverse((o) => o instanceof THREE.LOD && lods.push(o));
       expect(lods.length).toBeGreaterThan(0);

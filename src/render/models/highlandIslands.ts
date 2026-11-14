@@ -8,10 +8,9 @@ import { terrainHeightfield } from '../../sim/terrainField';
 import { QUALITY, type QualityLevel } from '../quality';
 import { setGroundCover } from './fieldGroundCover';
 import { houseLod, setRichHouses } from './houseDetail';
-import type { TerrainLook } from '../terrainLook';
 import { isGlowing, isMolten, mergeAll, vertexColorMaterial } from './geometry';
 import type { Crater, IslandModel, IslandsBuilder } from './types';
-import { featureGround, iceField } from './ground';
+import { iceField } from './ground';
 import {
   type FieldGroundTextures,
   designPalette,
@@ -68,8 +67,6 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     private readonly map: MapDef,
     private readonly shadows: boolean,
     levels = {} as Record<string, TownLevel>,
-    /** `?look=v2` (decision 0222): the ground drawn from the shared height field. */
-    private readonly look: TerrainLook = 'v1',
     quality: QualityLevel = 'high',
   ) {
     super();
@@ -91,11 +88,8 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
       // Shallows are water: ShallowsWater tints them at sea (decision 0152), nothing stands there.
       if (feature.kind === 'shallows' || feature.kind === 'bergs') continue;
       const seed = terrainSeed(map, feature);
-      const field = this.look === 'v2' ? terrainHeightfield(feature, seed) : null;
-      const parts =
-        feature.kind === 'ice'
-          ? iceField(feature, seed)
-          : [...(field ? [] : featureGround(feature)), ...terrainProps(feature, seed)];
+      const field = terrainHeightfield(feature, seed);
+      const parts = feature.kind === 'ice' ? iceField(feature, seed) : terrainProps(feature, seed);
       const group = this.batch(parts);
       group.name = `terrain:${feature.id}`;
       if (field) this.addGround(group, field, fieldGroundTextures(field, featurePalette(feature)));
@@ -155,8 +149,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
     const level = port ? this.levels[port.id] : undefined;
     const design = designOf(island);
     const shown = shownLevel(island, level);
-    const field =
-      this.look === 'v2' && design ? yield* islandHeightfieldSteps(island, shown) : null;
+    const field = design ? yield* islandHeightfieldSteps(island, shown) : null;
     yield;
     const stand = field ? fieldStand(island, field) : undefined;
     const clearings = field ? emptyClearings(island, design!, !!island.look?.dock) : undefined;
@@ -395,5 +388,5 @@ function sameGeometry(a: THREE.BufferGeometry, b: THREE.BufferGeometry) {
   );
 }
 
-export const buildHighlandIslands: IslandsBuilder = (map, { shadows, levels, look, quality }) =>
-  new HighlandIslands(map, shadows, levels, look, quality);
+export const buildHighlandIslands: IslandsBuilder = (map, { shadows, levels, quality }) =>
+  new HighlandIslands(map, shadows, levels, quality);

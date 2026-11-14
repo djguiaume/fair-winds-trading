@@ -14,7 +14,7 @@ import { PROP_TYPES, type PropGroup } from '../../render/models/props';
 import { designedTownParts, type TownLevel } from '../../render/models/towns';
 import { islandCheckKit } from '../../render/models/islandCheckKit';
 import { propParts, standHeight } from '../../render/models/townProps';
-import { builderLook, newLookGround, previewIsland } from './newLook';
+import { newLookGround, previewIsland } from './newLook';
 import type { IslandIssue } from '../../sim/islandChecks';
 import { islandLayout, layoutGround } from '../../sim/islandLayout';
 import type { IslandDef, MapDef } from '../../sim/map';
@@ -296,10 +296,10 @@ function rebuild(without?: number) {
         ? view.design
         : { ...view.design, props: view.design.props.filter((_, i) => view.from[i] !== without) };
     // Terrain edits, or the terrain tools, draw the ground from the height field (issue #271);
-    // else `?look=v2` draws the game's new-look ground (decision 0222). Props stand on either.
-    const sculpting = mode === 'terrain' || (!!design.sculpt?.edits.length && builderLook !== 'v2');
+    // else the game's own ground is drawn (decision 0222). Props stand on either.
+    const sculpting = mode === 'terrain';
     const stand = terrain?.prepare(design, sculpting);
-    const v2 = !stand && builderLook === 'v2' ? newLookGround(shown, R, level, harbour) : undefined;
+    const v2 = !stand ? newLookGround(shown, R, level, harbour) : undefined;
     parts = designedTownParts(shown, R, level as TownLevel, harbour, stand ?? v2?.stand);
     ground = v2?.ground;
   } catch (error) {

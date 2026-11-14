@@ -3,14 +3,6 @@ import { applyGraphicsOverrides } from '../perf/graphicsOverrides';
 import type { QualitySetting } from '../render/quality';
 import { type MotionMode, isMotionMode } from './motionMode';
 
-export type UiMode = 'adult' | 'kids';
-
-/**
- * Kids mode is hidden until its rework (decision 0043): the code stays, but it can't be picked
- * and a saved 'kids' preference falls back to Captain mode. Flip to true to bring it back.
- */
-export const KIDS_MODE_AVAILABLE = false;
-
 /** Player settings, saved in localStorage (versioned key so the format can change later). */
 export interface Settings {
   quality: QualitySetting;
@@ -19,7 +11,6 @@ export interface Settings {
   seenWindHint: boolean;
   /** The one-time "ease the sails" message has been shown (decision 0078). */
   seenPressHint: boolean;
-  uiMode: UiMode;
   /** Quiet HUD (issue #441): only the wind compass and the instrument at sea; off by default. */
   quietHud: boolean;
   /** The wind compass dial; it can be switched off on the hardest level only (Guillaume). */
@@ -93,7 +84,6 @@ const DEFAULTS: Settings = {
   seenHelp: false,
   seenWindHint: false,
   seenPressHint: false,
-  uiMode: 'adult',
   quietHud: false,
   windCompass: true,
   language: null,
@@ -151,7 +141,6 @@ export function loadSettings(search = ''): Settings {
     settings.voices = settings.voices !== false;
     if (typeof settings.haze !== 'object' || !settings.haze) settings.haze = {};
     if (typeof settings.effects !== 'object' || !settings.effects) settings.effects = {};
-    if (!KIDS_MODE_AVAILABLE) settings.uiMode = 'adult';
     testOverrides = applyGraphicsOverrides(search, settings);
     return settings;
   } catch {

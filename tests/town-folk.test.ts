@@ -107,7 +107,7 @@ describe('the person model and the town folk view (issue #477)', () => {
       boat: { x: saltmere.x - saltmere.radius - 20, y: saltmere.y },
     };
     let quality: 'high' | 'ultralow' = 'high';
-    const folk = new TownFolk(world, () => quality, 'v2', levels);
+    const folk = new TownFolk(world, () => quality, levels);
     for (let t = 0; t < 3; t += 0.1) folk.update(0.1, t, 0);
     const shown = folk.mesh.count;
     expect(shown).toBe(townPeople(TOWN_FOLK.town, 4));

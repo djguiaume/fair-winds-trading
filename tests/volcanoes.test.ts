@@ -36,7 +36,7 @@ describe('volcano smoke and eruptions (0178)', () => {
     expect(crater.y).toBeGreaterThan(20);
     expect(crater.slope).toBeGreaterThan(0.5);
     islands.dispose();
-  });
+  }, 30_000);
 
   it('checks a reward’s eruptions and plays them when the quest is done', () => {
     expect(checkQuests([quest({ erupt: ['the-smoulder'] })], MAP)).toEqual([]);

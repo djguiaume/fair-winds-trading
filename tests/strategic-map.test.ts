@@ -17,6 +17,7 @@ import { terrainProps } from '../src/render/models/terrainProps';
 import { triangleCount } from '../src/render/models/geometry';
 import { drawnTriangles } from '../src/render/models/houseDetail';
 import { Ocean } from '../src/render/ocean';
+import { withoutGround } from './helpers/withoutGround';
 
 const terrain = PHASE1_MAP.terrain!;
 const square: TerrainDef = {
@@ -180,11 +181,10 @@ describe('Windward Ring trading map', () => {
       }
     }
     const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false });
-    // Decision 0073: preserve the complete land + window triangle budget despite local batches.
-    // The phones' levels draw the plain homes; the rich homes add about 1,000 (#500). The ring's
-    // believable towns (#514, 0303) raised the first by 500 (hamlet lanes, trees round tighter
-    // towns), the villages (#528, 0307) by 200 more (Calda's terrace, longer lanes).
-    expect(drawnTriangles(mesh, 'far')).toBeLessThan(21700);
+    withoutGround(mesh);
+    // Decision 0073: the land + window triangle budget despite local batches. Phones draw plain
+    // homes (rich ones add about 1,000, #500); #514 (decision 0303) added 500 for lanes and trees.
+    expect(drawnTriangles(mesh, 'far')).toBeLessThan(21500);
     expect(drawnTriangles(mesh, 'near')).toBeLessThan(23000);
     mesh.dispose();
   });

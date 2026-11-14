@@ -27,7 +27,6 @@ import {
   type QualityLevel,
   type QualityProfile,
 } from './quality';
-import { type TerrainLook, terrainLook } from './terrainLook';
 import { SeaWaves } from './seaWaves';
 import { toScene } from './sceneSpace';
 import { HazeVeil } from './hazeVeil';
@@ -152,7 +151,7 @@ export class GameView {
   private roughWater?: RoughWater;
   private shallowsWater?: ShallowsWater;
   private readonly shores = new ShoreTextureCache();
-  /** The seabed's depth for the new look's water (issue #274); only baked under `?look=v2`. */
+  /** The seabed's depth for the water (issue #274). */
   private readonly seabeds = new SeabedTextureCache();
   private streaks!: WindStreaks;
   private profile!: QualityProfile;
@@ -183,8 +182,6 @@ export class GameView {
     canvas: HTMLCanvasElement,
     private readonly world: World,
     level: QualityLevel,
-    /** `?look=v2`: the new look's ground from the shared height field (decision 0222). */
-    private readonly look: TerrainLook = terrainLook(location.search),
   ) {
     this.renderer = gameRenderer(canvas, QUALITY[level]);
     this.canvasDepth = this.renderer.getContextAttributes().depth !== false;
@@ -210,12 +207,11 @@ export class GameView {
     this.islands = buildIslands(world.map, {
       shadows: true,
       levels: this.levels,
-      look,
       quality: level,
     });
     const byIsland = this.islandLevels(this.levels);
-    this.lighthouseBeams = new LighthouseBeams(world.map.islands, byIsland, look);
-    this.beaconLights = new BeaconLights(world.map.islands, byIsland, look);
+    this.lighthouseBeams = new LighthouseBeams(world.map.islands, byIsland);
+    this.beaconLights = new BeaconLights(world.map.islands, byIsland);
     this.scene.add(this.lighthouseBeams.root, this.beaconLights.points);
     this.volcanoes = new Volcanoes(this.islands.craters);
     this.islands.onRebuilt = () => this.islandsRebuilt();
@@ -227,7 +223,7 @@ export class GameView {
     this.bergs = new DriftingBergs(world.map);
     this.traffic = new TrafficView(world.map, this.sea.heightAt);
     this.seaLife = new SeaLife(world, () => this.level, this.sea.heightAt);
-    this.townFolk = new TownFolk(world, () => this.level, look, this.levels);
+    this.townFolk = new TownFolk(world, () => this.level, this.levels);
     this.scene.add(
       this.bergs.root,
       this.traffic.root,
@@ -297,9 +293,8 @@ export class GameView {
     }
   }
 
-  /** The land's seabed bake: the new look's water (`?look=v2`), the waves' calm (when on). */
+  /** The land's seabed bake: the water's depth colours and the waves' calm (when on). */
   private seabed() {
-    if (this.look !== 'v2' && !this.sea.gerstner) return undefined;
     const land = drawnLand(this.world.map, this.world.land, this.levels, this.sea.gerstner);
     return this.sea.calmBy(this.seabeds.get(land));
   }
@@ -405,7 +400,7 @@ export class GameView {
     const seabed = this.seabed();
     this.qualityEffects.bind(shore, seabed);
     const effects = this.qualityEffects.get(`${level}:${this.sea.gerstner}`, profile, (others) =>
-      oceanFor(profile, others, this.world.land, shore, seabed, this.sea, this.look),
+      oceanFor(profile, others, this.world.land, shore, seabed, this.sea),
     );
     ({ ocean: this.ocean, streaks: this.streaks, rain: this.rain } = effects);
     this.scene.add(this.ocean.mesh, this.streaks.mesh, this.rain.mesh);

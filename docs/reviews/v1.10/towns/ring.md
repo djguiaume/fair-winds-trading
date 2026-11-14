@@ -1,6 +1,6 @@
 # v1.10 villages: the ring towns (#528 ring, #544)
 
-The ring towns redone as villages (art bible §12, decisions 0306 and 0307). `npm run island -- audit` shows 0 fails and 0 warnings on all 16 towns, and the village rules now fail as errors (`grading.village`). Every change is a `npm run island` step. No island, port, pier, quest place or signature building moved; no town level changed.
+The ring towns redone as villages (art bible §12, decisions 0306 and 0308). `npm run island -- audit` shows 0 fails and 0 warnings on all 16 towns, and the village rules now fail as errors (`grading.village`). Every change is a `npm run island` step. No island, port, pier, quest place or signature building moved; no town level changed.
 
 Each sheet: before left, after right; top row the sailing camera, bottom row the follow cam from the pose the audit prints. Town at level 4, desktop, High.
 
@@ -29,7 +29,7 @@ Ring firs stood about three houses tall. `forests.json`: pine scale 0.8-1.35 →
 
 ## Budget and tests
 
-- Ring mesh at the phones' far level: 21,641 triangles, limit raised 21,500 → 21,700 (decision 0307: Calda's terrace is new ground, the lanes are longer). Per island all inside 8,500: Calda 8,313, Saltmere 8,301, Westholm 6,051, Stonehaven 5,181.
+- No budget raised: the ring mesh at the phones' far level draws 14,744 triangles without the ground, limit 21,500. Per island all inside 8,500: Calda 8,313, Saltmere 8,301, Westholm 6,051, Stonehaven 5,181.
 - `tests/island-layout.test.ts`: Calda keeps 15 upland trees or more (was 20); Saltmere may keep its ten trees as it grows. Level 1 of each town is still one cluster by the harbour.
 
 ## Re-create

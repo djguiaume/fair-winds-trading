@@ -1,4 +1,4 @@
-# 0307. Ring towns rebuilt as villages; village rules now hard
+# 0308. Ring towns rebuilt as villages; village rules now hard
 
 **Status:** Accepted (2026-11-14).
 
@@ -21,7 +21,7 @@ v1.9 made the ring towns pass the hard town rules by laying them out as streets 
 
 - **Art director's review** (v1.10): Saltmere and Westholm passed; Calda's core still read as rows and Stonehaven as loose scatter, so both got their square and tighter, uneven groups before the merge.
 
-- **Ring mesh budget +200** (`tests/strategic-map.test.ts`, far level 21,500 to 21,700; it draws 21,641): Calda costs about 170 more (its terrace is new ground, its square new lanes) and Westholm about 190; Saltmere and Stonehaven got cheaper. Per island all stay inside 8,500 (Calda 8,313, Saltmere 8,301 with the new open racks).
+- **No budget raised.** The ring mesh test counts lanes, homes and trees without the ground since the classic look went (decision 0307): 14,744 triangles at the phones' far level, limit 21,500. Calda's terrace and the longer lanes fit inside every island's 8,500 (Calda 8,313, Saltmere 8,301 with the new open racks).
 - **Westholm has no millpond yet.** The art bible asks for one; a pond small enough to fit between the green and the west fields draws as a patch of sand (its rim covers the water), and a larger one takes two houses' ground. It needs its own plan.
 - Tests tied to the old layouts follow the villages (`tests/island-layout.test.ts`): Calda keeps 15 upland trees or more (was 20; the two cabins and their lane clear some), and bare Saltmere may keep its ten trees as it grows, since the village no longer spreads into them. Golden island hashes regenerated.
 - The first three homes of each town still stand together by the harbour (level 1 is one cluster).

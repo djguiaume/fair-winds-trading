@@ -6,18 +6,12 @@ import type { IslandDef } from '../../sim/map';
 import { designPalette, fieldGround, fieldGroundTextures } from '../../render/models/fieldGround';
 import { fieldGroundMaterial } from '../../render/models/fieldGroundShader';
 import { type Stand, fieldStand } from '../../render/models/townProps';
-import { type TerrainLook, terrainLook } from '../../render/terrainLook';
 
 /** The new look's ground as the builder's views draw it (each view its own mesh). */
 export interface NewLookGround {
   geometry: THREE.BufferGeometry;
   material: THREE.MeshLambertMaterial;
 }
-
-/** The island builder draws the new look's ground like the game; `editor.html?look=v1` the classic one. */
-export const builderLook: TerrainLook = terrainLook(
-  typeof location === 'undefined' ? '' : location.search,
-);
 
 /** The island the builder shows: the file at the origin, harbour toward +z, as the game sees it. */
 export function previewIsland(design: IslandDesign, R: number, harbour: boolean): IslandDef {

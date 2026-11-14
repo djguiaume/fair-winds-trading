@@ -1,18 +1,11 @@
 {
-  "note": "Draw calls and triangles per scenario at quality high in the headless run (about 10% above the measurement, re-set 2026-10-30: CI measured 49.5k docking after the #277 island review (shared props, current water); classic sailing re-set 2026-11-05 to 10% above 65.4k, measured with the town folk of #477 on the quays). Rich town houses (#500, 2026-11-11): each town in view draws its homes as one more mesh (+1 call per town) and the near homes have about 70 more triangles each: measured sailing 31 calls and 161k (v2), 34 and 69.8k (classic), so sailing is re-set 10% above. A rendering change that needs more raises it here with its reason in the PR. Not a replacement for ?bench on a real device.",
-  "newLook": {
-    "note": "?look=v2 at High (2026-10-29, #278): the smooth ground draws about 2.4x the classic triangles on screen, about 150k, mostly the island ground. Medium and Low are cheaper (50k and 36k). Set 10% above the measurement; a Low/Medium tablet is the reason to watch it, so confirm with ?bench on a device.",
-    "scenarios": {
-      "sailing": { "calls": 38, "triangles": 177000 },
-      "docking": { "calls": 42, "triangles": 166000 }
-    }
-  },
+  "note": "Draw calls and triangles per scenario at quality high in the headless run, set about 10% above the measurement (smooth ground, 2026-10-29, #278: about 150k triangles on screen, mostly the island ground; sailing and docking re-set after the town folk of #477 and the rich town houses of #500, which add one mesh per town in view). The classic look and its budget were retired with decision 0307 (#563). A rendering change that needs more raises it here with its reason in the PR. Not a replacement for ?bench on a real device.",
   "scenarios": {
-    "sailing": { "calls": 38, "triangles": 76500 },
-    "docking": { "calls": 40, "triangles": 54500 }
+    "sailing": { "calls": 38, "triangles": 177000 },
+    "docking": { "calls": 42, "triangles": 166000 }
   },
   "frameWork": {
-    "note": "Hitch budget (issue #516): the worst main-thread work in one frame (ms), every animation-frame callback timed from the scenario's action on (simulation, HUD, builds spread over frames, shader waits, the render call), at quality high on both looks. Unlike the frame interval it barely depends on the software renderer, so it carries over to a device: a hitch is a frame of 100 ms or more, and a town growing in play keeps every frame under twice the 60 fps frame (33.3 ms). Headless measurement 2026-11-12: sailing and docking about 30 ms, town growth about 23 ms. A raise needs its reason in the PR.",
+    "note": "Hitch budget (issue #516): the worst main-thread work in one frame (ms), every animation-frame callback timed from the scenario's action on (simulation, HUD, builds spread over frames, shader waits, the render call), at quality high. Unlike the frame interval it barely depends on the software renderer, so it carries over to a device: a hitch is a frame of 100 ms or more, and a town growing in play keeps every frame under twice the 60 fps frame (33.3 ms). Headless measurement 2026-11-12: sailing and docking about 30 ms, town growth about 23 ms. A raise needs its reason in the PR.",
     "limitsMs": { "sailing": 100, "docking": 100, "townGrowth": 33.3 }
   },
   "gpuMemory": {

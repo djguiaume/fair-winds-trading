@@ -35,14 +35,6 @@ export const keyHold = (v) => {
   return { key, n: Number(n) || 1 };
 };
 
-/** `--look`: a ground look (`v1`, `v2`), a camera point (`x,y`), or both (`v2,x,y`). */
-export function lookOption(v) {
-  if (v === undefined) return { look: null, ground: null };
-  const [first, ...rest] = Array.isArray(v) ? v : String(v).split(',');
-  if (!/^v[12]$/.test(String(first))) return { look: pair(v), ground: null };
-  return { look: rest.length ? pair(rest) : null, ground: first };
-}
-
 /** The file name of a shot when `--name` is not given. */
 export function defaultName(s) {
   if (s.editor)
@@ -56,7 +48,6 @@ export function defaultName(s) {
     s.boot ?? (s.menu ? 'menu' : where),
     s.chart && 'chart',
     s.night && 'night',
-    s.ground === 'v1' && 'v1',
     s.lang !== 'en' && s.lang,
   ]
     .filter(Boolean)

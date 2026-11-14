@@ -22,14 +22,13 @@ const click = (selector: string) => {
   b.click();
 };
 /** The coach on the real sea, chart and harbour screen, wired like the game (decision 0151). */
-function setup(mode: 'adult' | 'kids' = 'adult') {
+function setup() {
   const v = tutorialVoyage();
   const { world, quests } = v;
   // The sea HUD builds its own buttons (issue #441): Map, Menu and the sails the coach rings.
   new Hud(world, { seen: true, markSeen: () => {} });
   const card = new TutorialCoach(quests, v.harbours);
   const panel = new TradePanel(document.getElementById('trade-panel')!, world);
-  panel.uiMode = mode;
   quests.onEvent = (e) => {
     if (e.type === 'finished' && e.quest === TUTORIAL) card.finished = e.quest;
     card.render();
@@ -100,36 +99,34 @@ describe('tutorial coach marks in real UI surfaces', () => {
     expect(document.querySelector('.coach h3')!.textContent).toBe('2/14 · Let the wind help');
   });
 
-  for (const mode of ['adult', 'kids'] as const) {
-    it(`${mode}: real market buys and Sell All complete the tutorial; failed buys do not advance`, () => {
-      const { v, world, card, panel } = setup(mode);
-      v.reachMarket();
-      panel.open();
-      v.screen('market');
-      card.setSurface('market');
-      expect(v.step).toBe('buy');
-      world.trade.captain.gold = 0;
-      // Stale button still invokes the real API and must not advance the lesson.
-      click('[data-action="buy"][data-good="fish"][data-qty="1"]');
-      expect(v.step).toBe('buy');
-      world.trade.captain.gold = 120;
-      panel.render();
-      click('[data-action="buy"][data-good="fish"][data-qty="1"]');
-      expect(v.step).toBe('choose-delivery');
-      expect(document.querySelector('#tutorial-market .tutorial-card')).not.toBeNull();
-      v.course('calda');
-      world.trade.dockedAt = null;
-      v.dock('calda');
-      panel.render();
-      click('#tp-sell-all');
-      expect(v.quests.isDone(TUTORIAL)).toBe(true);
-      expect(document.querySelector('#tutorial-market .tutorial-card')!.textContent).toContain(
-        'First delivery complete',
-      );
-      click('#tutorial-finish');
-      expect(document.querySelector<HTMLElement>('.tutorial-card')!.hidden).toBe(true);
-    });
-  }
+  it(`real market buys and Sell All complete the tutorial; failed buys do not advance`, () => {
+    const { v, world, card, panel } = setup();
+    v.reachMarket();
+    panel.open();
+    v.screen('market');
+    card.setSurface('market');
+    expect(v.step).toBe('buy');
+    world.trade.captain.gold = 0;
+    // Stale button still invokes the real API and must not advance the lesson.
+    click('[data-action="buy"][data-good="fish"][data-qty="1"]');
+    expect(v.step).toBe('buy');
+    world.trade.captain.gold = 120;
+    panel.render();
+    click('[data-action="buy"][data-good="fish"][data-qty="1"]');
+    expect(v.step).toBe('choose-delivery');
+    expect(document.querySelector('#tutorial-market .tutorial-card')).not.toBeNull();
+    v.course('calda');
+    world.trade.dockedAt = null;
+    v.dock('calda');
+    panel.render();
+    click('#tp-sell-all');
+    expect(v.quests.isDone(TUTORIAL)).toBe(true);
+    expect(document.querySelector('#tutorial-market .tutorial-card')!.textContent).toContain(
+      'First delivery complete',
+    );
+    click('#tutorial-finish');
+    expect(document.querySelector<HTMLElement>('.tutorial-card')!.hidden).toBe(true);
+  });
 });
 
 describe('coach marks (decision 0061)', () => {

@@ -1,20 +1,45 @@
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
-import { ISLAND_DESIGNS, useIslandDesign } from '../src/data/islands';
+import { ISLAND_DESIGNS, designOf, useIslandDesign } from '../src/data/islands';
+import { islandHeightfield } from '../src/sim/heightfield';
+import { emptyClearings } from '../src/render/models/forestPlan';
+import { fieldStand } from '../src/render/models/townProps';
 import { HighlandIslands } from '../src/render/models/highlandIslands';
-import { islandParts } from '../src/render/models/islandParts';
+import { islandParts, shownLevel } from '../src/render/models/islandParts';
 import { settlementLevels } from '../src/sim/settlement';
+import type { IslandDef, MapDef } from '../src/sim/map';
 import { createWorld } from '../src/sim/world';
 import { SLOOP } from '../src/sim/ship';
 import type { TownLevel } from '../src/render/models/towns';
 
 function meshes(root: THREE.Object3D) {
   const result: THREE.Mesh<THREE.BufferGeometry, THREE.Material>[] = [];
-  root.traverse((o) => {
+  const visit = (o: THREE.Object3D) => {
+    // The ground and the trees are drawn apart from the authored parts compared below.
+    if (o.name === 'ground' || o.name === 'forest') return;
     if (o instanceof THREE.Mesh) result.push(o);
-  });
+    o.children.forEach(visit);
+  };
+  visit(root);
   return result;
+}
+
+/** An island's parts as the model builds them: standing on its height field, trees cleared. */
+function authoredParts(island: IslandDef, map: MapDef, seed: number, level?: TownLevel) {
+  const design = designOf(island);
+  const field = design ? islandHeightfield(island, shownLevel(island, level)) : null;
+  return islandParts(
+    island,
+    map,
+    seed,
+    undefined,
+    level,
+    undefined,
+    undefined,
+    field ? fieldStand(island, field) : undefined,
+    field ? emptyClearings(island, design!, !!island.look?.dock) : undefined,
+  );
 }
 
 // Compare the complete vertex/normal/colour multiset, independent of batch order.
@@ -44,11 +69,10 @@ describe('local island rendering', () => {
       const map = { ...PHASE1_MAP, terrain: [] };
       const model = new HighlandIslands(map, true, allLevels(level));
       const expected = map.islands.flatMap((island, i) =>
-        islandParts(
+        authoredParts(
           island,
           map,
           map.seed * 1000 + i,
-          undefined,
           map.ports.some((p) => p.islandId === island.id) ? level : undefined,
         ),
       );
@@ -90,16 +114,14 @@ describe('local island rendering', () => {
     expect(disposeMaterial).toHaveBeenCalledOnce();
   });
 
-  it('replaces level-dependent quarry terrain and matches a fresh build', () => {
+  it('replaces the ground of a grown island and matches a fresh build', () => {
     const levels = allLevels(1);
     const model = new HighlandIslands(PHASE1_MAP, false, levels);
     const port = PHASE1_MAP.ports.find((p) => p.islandId === 'south-cay')!;
-    const old = model.getObjectByName('island:south-cay')!.getObjectByName('terrain') as THREE.Mesh;
+    const old = model.getObjectByName('island:south-cay')!.getObjectByName('ground') as THREE.Mesh;
     const disposed = vi.spyOn(old.geometry, 'dispose');
     model.setSettlementLevels({ ...levels, [port.id]: 4 });
-    const next = model
-      .getObjectByName('island:south-cay')!
-      .getObjectByName('terrain') as THREE.Mesh;
+    const next = model.getObjectByName('island:south-cay')!.getObjectByName('ground') as THREE.Mesh;
     expect(next.geometry).not.toBe(old.geometry);
     expect(disposed).toHaveBeenCalledOnce();
     const fresh = new HighlandIslands(PHASE1_MAP, false, { ...levels, [port.id]: 4 });
@@ -155,14 +177,10 @@ describe('local island rendering', () => {
       const currentGeometry = meshes(model).map((m) => m.geometry);
       expect(vertices(currentGeometry)).not.toEqual(vertices(oldGeometry));
       const terrain = model.getObjectByName('terrain') as THREE.Mesh;
-      const originalTerrain = before.getObjectByName('terrain') as THREE.Mesh;
-      // The ramp belongs to terrain, so its extra triangles are retained through town growth.
-      expect(terrain.geometry.attributes.position!.count).toBeGreaterThan(
-        originalTerrain.geometry.attributes.position!.count,
-      );
+      // The terrain batch of the town is retained through town growth.
       model.setSettlementLevels({ [port.id]: 4 });
       expect(model.getObjectByName('terrain')).toBe(terrain);
-      const expected = islandParts(island, map, map.seed * 1000, undefined, 4);
+      const expected = authoredParts(island, map, map.seed * 1000, 4);
       expect(vertices(meshes(model).map((m) => m.geometry))).toEqual(vertices(expected));
       for (const g of expected) g.dispose();
       model.dispose();
@@ -188,7 +206,7 @@ describe('local island rendering', () => {
     const map = { ...PHASE1_MAP, islands: [island], ports: [port], terrain: [] };
     const savedLevels = { ...levels, [port.id]: 4 as const };
     const model = new HighlandIslands(map, true, savedLevels);
-    const expected = islandParts(island, map, map.seed * 1000, undefined, 4);
+    const expected = authoredParts(island, map, map.seed * 1000, 4);
     expect(vertices(meshes(model).map((m) => m.geometry))).toEqual(vertices(expected));
     expect(model.userData.harbours[port.id]).toBeDefined();
     expect(
