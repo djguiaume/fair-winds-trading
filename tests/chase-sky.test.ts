@@ -89,6 +89,36 @@ describe('chase camera light (issue #469)', () => {
     }
     expect(late.skyHeight).toBeGreaterThanOrEqual(0);
   });
+
+  it('keeps the moon and its glint where the time puts them under Ultra’s shadow sun (#526)', () => {
+    const { atmosphere, update } = setup();
+    const shadow = TUNING.graphics.ultra.shadows;
+    const ultraSun = {
+      height: shadow.sunHeight,
+      turn: (shadow.sunTurnDeg * Math.PI) / 180,
+      distance: 60,
+    };
+    const glint = new THREE.Vector3();
+    const ocean = {
+      setDaylight() {},
+      setColors() {},
+      setSkyReflection() {},
+      setSun: (d: THREE.Vector3) => glint.copy(d),
+    };
+    update(MIDNIGHT, 1);
+    const disc = atmosphere.drawnSky.disc.clone();
+    atmosphere.update(
+      1,
+      MIDNIGHT,
+      CLEAR,
+      ocean as unknown as Ocean,
+      new THREE.Vector3(),
+      undefined,
+      ultraSun,
+    );
+    expect(atmosphere.drawnSky.disc.distanceTo(disc)).toBeLessThan(1e-9);
+    expect(glint.distanceTo(disc)).toBeLessThan(1e-9);
+  });
 });
 
 describe('drawn sky (issue #470)', () => {
