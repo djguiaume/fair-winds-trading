@@ -1,5 +1,5 @@
 /*
- * The moments (decision 0274): the arrival banner, the race's countdown, the quest stamp, the
+ * The moments (decision 0274, arrival reshaped in #538): the arrival name, the race's countdown, the quest stamp, the
  * finish board and the trade ticks. Paper and ink from the theme tokens only; no CSS filters.
  * Motion comes from motion.ts (`data-enter`), so Reduced and Off hold everything still.
  */
@@ -32,6 +32,21 @@
   font-size: var(--fs-sub);
   font-style: italic;
 }
+/* The arrival name is halo text in the lower third, no plate, so the port stays in view. */
+.ui-panel.moment-banner--arrival {
+  position: fixed;
+  inset: auto 0 var(--moment-arrival-bottom, 24%);
+  min-width: 0;
+  border: 0;
+  border-image: none;
+  background: none;
+  padding: 0;
+  color: var(--ui-paper);
+  text-shadow: var(--hud-halo);
+}
+.moment-banner--arrival .moment-line {
+  color: var(--ui-paper);
+}
 .moment-banner--horn .moment-title {
   font-family: var(--ui-font-text);
   font-size: var(--fs-big);
@@ -41,7 +56,10 @@
 :root[data-layout='phone'] .moments {
   --moment-top: 54px;
 }
-:root[data-layout='phone'] .moment-banner {
+:root[data-layout='phone'] .moments {
+  --moment-arrival-bottom: 20%;
+}
+:root[data-layout='phone'] .moment-banner:not(.moment-banner--arrival) {
   min-width: min(260px, 60vw);
   padding: var(--ui-space-2) var(--ui-space-4);
 }
