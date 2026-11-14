@@ -65,6 +65,38 @@ export const REFLECTION_META: Readonly<Record<string, TuningMeta>> = {
     undefined,
     'How far the waves’ slopes push the reflection about; 0 is a flat mirror.',
   ),
+  'graphics.reflection.soften.across': num(
+    'Blur across',
+    0,
+    4,
+    0.25,
+    'texels',
+    'How far the reflection is softened sideways, against the stair steps of its smaller texture.',
+  ),
+  'graphics.reflection.soften.down': num(
+    'Stretch down',
+    0,
+    10,
+    0.5,
+    'texels',
+    'How far the reflection is drawn out up and down, as on real water; a lit window becomes a streak.',
+  ),
+  'graphics.reflection.soften.ripple': num(
+    'Ripple sway',
+    0,
+    0.02,
+    0.001,
+    undefined,
+    'How far small ripples sway the reflection, even on a calm quay; 0 lets flat water turn to glass.',
+  ),
+  'graphics.reflection.soften.dim': num(
+    'Reflected light',
+    0.3,
+    1,
+    0.05,
+    '×',
+    'How much of a reflected thing’s light the water sends back: below 1, a reflection is dimmer than what it shows.',
+  ),
   ...Object.fromEntries(
     LEVELS.flatMap((level) =>
       Object.entries(LEVEL_META).map(([key, meta]) => [

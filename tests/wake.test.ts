@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { createBoatModel } from '../src/render/models';
-import { Wake, WAKE_DETAIL } from '../src/render/wake';
+import { fadeAstern, Wake, WAKE_DETAIL } from '../src/render/wake';
 import type { QualityLevel } from '../src/render/quality';
 
 const hull = { length: 11, beam: 4.4 };
@@ -39,7 +39,8 @@ describe('tablet wake', () => {
   it('fades completely after stopping and clears discontinuous positions', () => {
     const wake = new Wake();
     sail(wake, 'high');
-    for (let i = 0; i < 240; i++) wake.update(1 / 60, 6 + i / 60, centre, 0, -1, 0, hull);
+    const frames = Math.ceil(WAKE_DETAIL.high.life * 60) + 30;
+    for (let i = 0; i < frames; i++) wake.update(1 / 60, 6 + i / 60, centre, 0, -1, 0, hull);
     expect(wake.mesh.visible).toBe(false);
     expect(wake.mesh.geometry.drawRange.count).toBe(72); // invisible bow geometry only
     sail(wake, 'high');
@@ -49,6 +50,18 @@ describe('tablet wake', () => {
     wake.reset();
     expect(wake.mesh.geometry.drawRange.count).toBe(0);
     wake.dispose();
+  });
+
+  it('melts the tail away with no hard end (issue #539)', () => {
+    expect(fadeAstern(0)).toBe(1);
+    expect(fadeAstern(1)).toBe(0);
+    let last = 1;
+    for (let t = 0.05; t <= 1; t += 0.05) {
+      expect(fadeAstern(t)).toBeLessThan(last);
+      last = fadeAstern(t);
+    }
+    // The last tenth of the trail holds under 3 % of the foam: it fades, it does not stop.
+    expect(fadeAstern(0.9)).toBeLessThan(0.03);
   });
 
   it('uses the actual model footprint for every ship, independent of upgrades', () => {
