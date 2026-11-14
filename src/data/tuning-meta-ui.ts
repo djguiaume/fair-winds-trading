@@ -18,7 +18,7 @@ export const UI_META: Readonly<Record<string, TuningMeta>> = {
     'units',
     'After the banner, the boat must sail this far from the port before it shows again.',
   ),
-  'ui.arrivalMs': num('Arrival banner time', 800, 6000, 100, 'ms', 'How long the banner stays.'),
+  'ui.arrivalMs': num('Arrival name time', 800, 6000, 100, 'ms', 'How long the port name stays.'),
   'ui.stampMs': num('Quest stamp time', 200, 1500, 50, 'ms', 'How long the ink stamp takes.'),
   'ui.tradeRollMs': num('Gold roll time', 100, 1500, 50, 'ms', 'A buy or sale rolls the gold.'),
   'ui.countdownFrom': num(
