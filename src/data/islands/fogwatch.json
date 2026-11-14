@@ -187,36 +187,53 @@
       "points": [
         [0.05, 0.53],
         [0.02, 0.46],
-        [0.08, 0.33],
-        [0.03, 0.2],
-        [0.09, 0.06],
-        [0.05, -0.08],
-        [0.06, -0.11]
+        [0.06, 0.36],
+        [0.02, 0.26],
+        [0.08, 0.14],
+        [0.04, 0.02],
+        [0.07, -0.1]
       ],
       "width": 0.024
     },
     {
       "points": [
-        [-0.47, 0.325],
-        [-0.33, 0.3],
-        [-0.15, 0.35],
-        [0.03, 0.31],
-        [0.2, 0.36],
-        [0.36, 0.31],
+        [0.03, 0.52],
+        [-0.1, 0.525],
+        [-0.22, 0.51],
+        [-0.33, 0.52],
+        [-0.37, 0.54]
+      ],
+      "width": 0.022
+    },
+    {
+      "points": [
+        [0.05, 0.52],
+        [0.15, 0.525],
+        [0.27, 0.5],
+        [0.4, 0.45],
         [0.47, 0.335]
       ],
       "width": 0.022
     },
     {
       "points": [
-        [-0.42, 0.018],
-        [-0.28, 0],
-        [-0.1, 0.05],
-        [0.06, 0],
-        [0.22, 0.04],
-        [0.4, -0.02]
+        [0.02, 0.26],
+        [-0.1, 0.24],
+        [-0.2, 0.28],
+        [-0.32, 0.22],
+        [-0.42, 0.1],
+        [-0.4, -0.04]
       ],
-      "width": 0.022
+      "width": 0.02
+    },
+    {
+      "points": [
+        [0.08, 0.14],
+        [0.19, 0.19],
+        [0.3, 0.16],
+        [0.38, 0.1]
+      ],
+      "width": 0.02
     },
     {
       "kind": "path",
@@ -231,7 +248,7 @@
       "kind": "stairs",
       "points": [
         [0.47, 0.335, 0.06],
-        [0.57, 0.4, 0.16],
+        [0.57, 0.4, 0.2],
         [0.645, 0.5, 0.2]
       ],
       "base": 0.06
@@ -281,144 +298,144 @@
   "props": [
     {
       "type": "turf-house",
-      "x": -0.426,
-      "z": 0.441,
-      "turn": 0,
+      "x": -0.09,
+      "z": 0.445,
+      "turn": 8,
       "size": 1.7,
       "variant": 0,
       "from": 1
     },
     {
       "type": "turf-house",
-      "x": -0.15,
+      "x": -0.41,
       "z": 0.43,
-      "turn": 3,
+      "turn": 15,
       "size": 1.7,
       "variant": 2,
       "from": 1
     },
     {
       "type": "turf-house",
-      "x": 0.204,
+      "x": 0.22,
       "z": 0.435,
-      "turn": 3,
+      "turn": 7,
       "size": 1.7,
       "variant": 3,
       "from": 1
     },
     {
       "type": "turf-house",
-      "x": 0.351,
-      "z": 0.441,
-      "turn": 3,
+      "x": 0.38,
+      "z": 0.31,
+      "turn": 69,
       "size": 1.7,
       "variant": 4,
       "from": 1
     },
     {
       "type": "turf-house",
-      "x": -0.417,
-      "z": 0.213,
-      "turn": 177,
+      "x": -0.08,
+      "z": 0.3,
+      "turn": 161,
       "size": 1.7,
       "variant": 5,
       "from": 1
     },
     {
       "type": "turf-house",
-      "x": -0.271,
-      "z": 0.22,
-      "turn": 174,
+      "x": 0.16,
+      "z": 0.31,
+      "turn": -60,
       "size": 1.7,
       "variant": 6,
       "from": 1
     },
     {
       "type": "turf-house",
-      "x": -0.136,
-      "z": 0.211,
-      "turn": 186,
+      "x": -0.3,
+      "z": 0.32,
+      "turn": 153,
       "size": 1.7,
       "variant": 7,
       "from": 1
     },
     {
       "type": "turf-house",
-      "x": 0.199,
-      "z": 0.226,
-      "turn": 180,
+      "x": 0.26,
+      "z": 0.085,
+      "turn": 25,
       "size": 1.7,
       "variant": 8,
       "from": 2
     },
     {
       "type": "turf-house",
-      "x": 0.349,
-      "z": 0.224,
-      "turn": 183,
+      "x": 0.42,
+      "z": 0.17,
+      "turn": -163,
       "size": 1.7,
       "variant": 9,
       "from": 2
     },
     {
       "type": "turf-house",
-      "x": -0.355,
-      "z": 0.108,
-      "turn": 3,
+      "x": -0.44,
+      "z": 0.3,
+      "turn": 130,
       "size": 1.7,
       "variant": 10,
       "from": 2
     },
     {
       "type": "turf-house",
-      "x": -0.195,
-      "z": 0.102,
-      "turn": -3,
+      "x": -0.2,
+      "z": 0.14,
+      "turn": -15,
       "size": 1.7,
       "variant": 11,
       "from": 2
     },
     {
       "type": "turf-house",
-      "x": 0.229,
-      "z": 0.092,
-      "turn": -3,
+      "x": 0.15,
+      "z": -0.03,
+      "turn": -104,
       "size": 1.7,
       "variant": 12,
       "from": 3
     },
     {
       "type": "turf-house",
-      "x": 0.37,
-      "z": 0.095,
-      "turn": 3,
+      "x": 0.74,
+      "z": 0.03,
+      "turn": -79,
       "size": 1.7,
       "variant": 13,
       "from": 3
     },
     {
       "type": "turf-house",
-      "x": -0.373,
-      "z": -0.103,
-      "turn": 183,
+      "x": -0.33,
+      "z": -0.08,
+      "turn": -60,
       "size": 1.7,
       "variant": 14,
       "from": 3
     },
     {
       "type": "turf-house",
-      "x": -0.22,
-      "z": -0.112,
-      "turn": 180,
+      "x": -0.14,
+      "z": -0.08,
+      "turn": 76,
       "size": 1.7,
       "variant": 15,
       "from": 4
     },
     {
       "type": "turf-house",
-      "x": 0.241,
-      "z": -0.112,
-      "turn": 177,
+      "x": 0.92,
+      "z": 0.25,
+      "turn": -110,
       "size": 1.7,
       "variant": 16,
       "from": 4
@@ -445,7 +462,7 @@
     { "type": "marram", "x": 0.75, "z": 0.05, "size": 1.6, "from": 1 },
     { "type": "marram", "x": 1, "z": -0.6, "size": 1.6, "from": 1 },
     { "type": "marram", "x": -1.05, "z": 0.4, "size": 1.6, "from": 1 },
-    { "type": "lamp-post", "x": -0.33, "z": 0.56, "from": 1 },
+    { "type": "lamp-post", "x": -0.3, "z": 0.59, "from": 1 },
     { "type": "lamp-post", "x": 0.4, "z": 0.52, "from": 1 },
     { "type": "dry-stone-wall", "x": 0.82, "z": 0.3, "turn": -80, "length": 0.28, "from": 1 },
     { "type": "sheep", "x": -0.55, "z": -0.5, "size": 1.3, "from": 1 },
@@ -465,17 +482,12 @@
     { "type": "sheep", "x": -0.785, "z": 0.5, "turn": 91, "size": 1.3, "from": 1 },
     { "type": "rowan", "x": -0.356, "z": 0.501, "variant": 0, "from": 1 },
     { "type": "rowan", "x": -0.08, "z": 0.49, "variant": 1, "from": 1 },
-    { "type": "rowan", "x": 0.421, "z": 0.501, "variant": 0, "from": 1 },
-    { "type": "rowan", "x": -0.201, "z": 0.16, "variant": 1, "from": 1 },
-    { "type": "rowan", "x": 0.269, "z": 0.166, "variant": 1, "from": 2 },
-    { "type": "rowan", "x": -0.285, "z": 0.048, "variant": 0, "from": 2 },
-    { "type": "rowan", "x": 0.299, "z": 0.032, "variant": 0, "from": 3 },
-    { "type": "rowan", "x": -0.303, "z": -0.163, "variant": 1, "from": 3 },
-    { "type": "rowan", "x": 0.311, "z": -0.172, "variant": 1, "from": 4 },
-    { "type": "kale-yard", "x": -0.29, "z": 0.364, "turn": 0, "from": 1 },
-    { "type": "kale-yard", "x": 0.331, "z": 0.366, "turn": 90, "from": 1 },
-    { "type": "kale-yard", "x": -0.156, "z": 0.136, "turn": 90, "from": 1 },
-    { "type": "kale-yard", "x": -0.375, "z": 0.033, "turn": 90, "from": 2 },
+    { "type": "rowan", "x": 0.44, "z": 0.52, "variant": 0, "from": 1 },
+    { "type": "rowan", "x": -0.27, "z": 0.13, "variant": 1, "from": 1 },
+    { "type": "kale-yard", "x": -0.19, "z": 0.38, "turn": 0, "from": 1 },
+    { "type": "kale-yard", "x": 0.31, "z": 0.37, "turn": 90, "from": 1 },
+    { "type": "kale-yard", "x": -0.07, "z": 0.15, "turn": 90, "from": 1 },
+    { "type": "kale-yard", "x": -0.3, "z": 0.02, "turn": 90, "from": 2 },
     { "type": "kale-yard", "x": 0.35, "z": 0.02, "turn": 0, "from": 3 },
     { "type": "kale-yard", "x": 0.221, "z": -0.187, "turn": 90, "from": 4 },
     { "type": "lamp-post", "x": 0.08, "z": 0.33, "from": 1 },
@@ -483,9 +495,9 @@
     { "type": "lamp-post", "x": 0.09, "z": 0.06, "from": 1 },
     { "type": "lamp-post", "x": 0.05, "z": -0.08, "from": 1 },
     { "type": "lamp-post", "x": -0.33, "z": 0.3, "from": 1 },
-    { "type": "lamp-post", "x": 0.2, "z": 0.36, "from": 1 },
+    { "type": "lamp-post", "x": 0.24, "z": 0.37, "from": 1 },
     { "type": "lamp-post", "x": -0.28, "z": 0, "from": 1 },
-    { "type": "lamp-post", "x": 0.22, "z": 0.04, "from": 1 },
+    { "type": "lamp-post", "x": 0.2, "z": 0.13, "from": 1 },
     { "type": "lamp-post", "x": 0.45, "z": 0.3, "from": 1 },
     { "type": "beached-boat", "x": -0.52, "z": 0.62, "turn": -22, "from": 1 },
     { "type": "beached-boat", "x": 0.62, "z": 0.52, "turn": -6, "from": 1 },
@@ -494,7 +506,7 @@
     { "type": "heather", "x": 0.98, "z": 0.15, "turn": -66, "size": 2.6, "from": 1 },
     { "type": "dry-stone-wall", "x": 0.92, "z": 0.05, "turn": 20, "length": 0.24, "from": 1 },
     { "type": "peat-cutting", "x": 0.82, "z": -0.15, "turn": 15, "length": 0.28, "from": 1 },
-    { "type": "peat-stack", "x": 0.78, "z": -0.08, "from": 1 },
+    { "type": "peat-stack", "x": 0.78, "z": -0.08, "size": 1.2, "from": 1 },
     { "type": "peat-stack", "x": 0.88, "z": -0.2, "from": 1 },
     { "type": "boulder", "x": 0.98, "z": 0.36, "size": 0.4, "from": 1 },
     {
@@ -552,7 +564,11 @@
       "tags": ["after:fogwatch-amber"],
       "from": 1
     },
-    { "type": "signpost", "x": 0.075, "z": -0.135, "size": 1.3, "from": 1 }
+    { "type": "signpost", "x": 0.075, "z": -0.135, "size": 1.3, "from": 1 },
+    { "type": "dry-stone-wall", "x": 0.8, "z": 0.14, "turn": 10, "length": 0.2, "from": 1 },
+    { "type": "dry-stone-wall", "x": -0.3, "z": 0.12, "turn": 30, "length": 0.2, "from": 1 },
+    { "type": "dry-stone-wall", "x": 0.34, "z": 0, "turn": -50, "length": 0.18, "from": 1 },
+    { "type": "dry-stone-wall", "x": 0.12, "z": 0.23, "turn": 80, "length": 0.14, "from": 1 }
   ],
   "woods": {
     "tree": "woodland-pine",

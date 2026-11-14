@@ -38,7 +38,10 @@ const ROOT = process.cwd();
 
 const HELP = `npm run island -- <id|file.json> [step] [options]   change an island file, check it, one line
 npm run island -- new <id> [options]                  a new island file (src/data/islands/<id>.json)
-npm run island -- audit [id] [--md|--json|--warnings|--chart dir [--as after]]  the town rules on every town
+npm run island -- audit [id] [--md|--json|--warnings|--chart dir [--as after] [--grid]]  the town rules on every town
+       (--grid rules the plan every 0.2 with file coordinates, prop indexes and rivers, to design from)
+       audit <id> --ground x0,x1,z0,z1 [--step 0.02]  a text map of the ground the checks read:
+       . flat, + warn slope, # steeper, ~ water, L lava or ash, H house, B building
 
 new:   --outline "x,z x,z …" or --blob r=1,points=14,rough=0.22,stretch=1,turn=0 (default)
        --name "Palm Key" --style <a palette.json style: timber, fish, ice…> --seed 7103 --low 0.06 --force

@@ -172,7 +172,10 @@
       "shape": 0.4,
       "from": 3
     },
-    { "type": "warehouse", "x": 0.9, "z": 0.48, "turn": 160, "size": 1, "from": 3 }
+    { "type": "warehouse", "x": 0.9, "z": 0.48, "turn": 160, "size": 1, "from": 3 },
+    { "type": "beached-boat", "x": -0.3, "z": 0.68, "turn": 20, "from": 1 },
+    { "type": "beached-boat", "x": 0.45, "z": 0.6, "turn": -35, "from": 2 },
+    { "type": "net-rack", "x": 0.3, "z": 0.46, "turn": 12, "size": 0.9, "from": 1 }
   ],
   "woods": {
     "tree": "woodland-jungle",
