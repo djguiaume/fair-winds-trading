@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import type { IslandDef } from '../sim/map';
 import { atLevel, type PropDef, questShown } from '../data/islands';
 import { PROP_RECIPES } from '../data/props';
+import { TUNING } from '../data/tuning';
+import { glowTexture } from './lampGlow';
 import { landmarkLamps } from './landmarkLamps';
 import type { TerrainLook } from './terrainLook';
 
@@ -11,24 +13,6 @@ const COLOR: Record<number, THREE.Color> = {
   2: new THREE.Color('#ff3a24'),
   3: new THREE.Color('#3cff7a'),
 };
-
-/** A soft round glow, drawn once into a small canvas texture. */
-function glowTexture(): THREE.Texture {
-  const size = 64;
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = size;
-  const g = canvas.getContext('2d');
-  if (g) {
-    const r = size / 2;
-    const grad = g.createRadialGradient(r, r, 0, r, r, r);
-    grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    grad.addColorStop(0.25, 'rgba(255, 255, 255, 0.55)');
-    grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    g.fillStyle = grad;
-    g.fillRect(0, 0, size, size);
-  }
-  return new THREE.CanvasTexture(canvas);
-}
 
 /**
  * Is beacon `index` lit at `time`? A group of 1-3 short flashes per period, so neighbouring
@@ -83,7 +67,7 @@ export class BeaconLights {
       new THREE.BufferAttribute(this.colors, 3).setUsage(THREE.DynamicDrawUsage),
     );
     this.material = new THREE.PointsMaterial({
-      size: 30,
+      size: TUNING.graphics.lamps.beaconSize,
       map: this.texture,
       vertexColors: true,
       transparent: true,
@@ -121,10 +105,11 @@ export class BeaconLights {
     this.done = new Set(done);
     this.setLevels(this.levels);
   }
-  /** `glow` 0..1: night, a little in storms. */
-  update(time: number, glow: number) {
+  /** `glow` 0..1: night, a little in storms; `size` scales the glow (smaller on Ultra, #543). */
+  update(time: number, glow: number, size = 1) {
     this.points.visible = glow > 0.02 && this.lamps.length > 0;
     if (!this.points.visible) return;
+    this.material.size = TUNING.graphics.lamps.beaconSize * size;
     this.lamps.forEach(({ color }, i) => {
       const b = this.standing[i] && beaconFlash(i, time) ? Math.min(1, glow) : 0;
       this.colors.set([color.r * b, color.g * b, color.b * b], i * 3);
