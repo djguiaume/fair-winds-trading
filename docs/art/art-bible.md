@@ -181,12 +181,13 @@ v1.9 turned numbers for "believable" into rows (same-row angle, even gaps, lanes
 - **Piers.** Start at the shore and run out square (±30°) on the sheltered side [`piers.*`].
 - **Fields and woods.** Fields under 8°, never between house and water or on a lane; woods on steep or back ground, 2W from houses, never hiding the town from the sailing camera [`fields.*`, `woods.*`].
 - **Harbour as centre.** Centre of mass within 6W of the berth, at least 60% of houses within 8W [`harbour.*`]. Outliers (crofts, farm, lighthouse) allowed.
+- **Not a grid** (decision [0306](../decisions/0306-organic-village-town-rules-replace-the-row-rule.md)). In a village of 8 houses or more: the fronts spread 30° or more, folded to one square grid (under 20° fails); no straight row of 4 alike houses at even gaps (6 fails); 3 lanes reach the centre from different sides; no lane straight for over 8W, no two lanes side by side [`village.*`, `lanes.straight`, `lanes.parallel*`]. Only the spread and rows fail; the rest warns, and the sheets judge it.
 
 **Dropped from v1.9:** same-row angle (`houses.rowTurn`), even gaps (`row within`, the 1.5W maximum), "every house within 2W of a lane" as a fail (`styles.*.laneReach`), lanes held at a fixed 1W to 3W from the water (`lanes.shore`), and the facing check as a pass/fail on ±25° (facing stays a warning on being turned away from the lane). Keep the idea; lose the numbers.
 
 **Style notes.** Ice: sheltered side, snow-pine woods, no fields. Fog: lone crofts allowed far out, fells on the north side. Fire: see hard rules. Tropic: stilts, tea terraces count as gardens.
 
-**How a village gets approved.** Before and after sheets, one image per row, full size, each town at the sailing camera and at `--look town --zoom 1.4`, next to a real reference (see `docs/art/village-references/`). Judge it as a drawing, not against a table.
+**How a village gets approved.** Before and after sheets, one image per row, full size, each town at the sailing camera, at `--look town --zoom 1.4` and from the follow cam (the pose `npm run island -- audit <id>` prints), next to a real reference (see `docs/art/village-references/`). Judge it as a drawing, not against a table.
 
 **Each village feels different (Guillaume, 2026-11-14: "each island/biome must give off a different feeling depending on its biome and industry").** All use the §12 rules above; shape, density, materials and work-clutter change. A town that could swap places with another one after a recolour is a must fix. Reference in brackets (`docs/art/village-references/`).
 

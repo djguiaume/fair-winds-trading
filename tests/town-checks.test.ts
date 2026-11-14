@@ -5,8 +5,20 @@ import { PROP_TYPES } from '../src/render/models/props';
 import { islandCheckKit } from '../src/render/models/islandCheckKit';
 import type { IslandIssue } from '../src/sim/islandChecks';
 import { checkTown } from '../src/sim/townChecks';
-import { angleBetween, hullGap, lineAngle, nearestOn } from '../src/sim/townPlan';
+import { islandPoint } from '../src/sim/islandLayout';
+import { ISLAND_SCALE } from '../src/sim/islandUnits';
+import { bearingTo } from '../src/sim/math';
+import {
+  type House,
+  angleBetween,
+  hullGap,
+  lineAngle,
+  nearestOn,
+  townPlan,
+} from '../src/sim/townPlan';
+import { followPose } from '../src/sim/townPose';
 import { TOWN_RULES, styleRules, townRulesProblems } from '../src/sim/townRules';
+import { frontSpread, longestStraight, villageCentre } from '../src/sim/townVillageChecks';
 
 /** Calda as the ring places it (radius 16.4 reference units, with a harbour). */
 const R = 16.4;
@@ -78,21 +90,25 @@ describe('town geometry', () => {
 });
 
 describe('town checks (issue #513)', () => {
-  it('grades each finding: a fail is an error with the shipped rules, a warn a warning', () => {
+  it('grades each finding: a fail counts as the shipped rules say, a warn a warning', () => {
     expect(cabin).toBeGreaterThanOrEqual(0);
-    // The ring's towns pass since #514: an untidy Calda, a cabin turned across its lane.
-    const untidy = town((d) => (d.props[cabin]!.turn = (d.props[cabin]!.turn ?? 0) + 60));
+    // An untidy Calda, a cabin turned across its lane (and v1.9's grid, until #528 redoes it).
+    const untidy = town((d) => (d.props[cabin]!.turn = (d.props[cabin]!.turn ?? 0) + 90));
     expect(untidy.length).toBeGreaterThan(0);
     for (const i of untidy) {
-      expect(i.severity).toBe(i.grade === 'fail' ? 'error' : 'warning');
+      const counts =
+        i.check === 'town-grid' ? TOWN_RULES.grading.village : TOWN_RULES.grading.fails;
+      const error = i.grade === 'fail' && counts === 'error';
+      expect(i.severity).toBe(error ? 'error' : 'warning');
       expect(i.check).toMatch(/^town-/);
       expect(['warn', 'fail']).toContain(i.grade);
     }
   }, 20000);
 
-  it('flags a house turned across its lane', () => {
-    const turned = town((d) => (d.props[cabin]!.turn = (d.props[cabin]!.turn ?? 0) + 60));
-    expect(about(turned, cabin)).toContain('town-facing');
+  it('flags a house turned across its lane, as a warning only', () => {
+    const turned = town((d) => (d.props[cabin]!.turn = (d.props[cabin]!.turn ?? 0) + 90));
+    const facing = turned.filter((i) => i.prop === cabin && i.check === 'town-facing');
+    expect(facing.map((i) => i.grade)).toEqual(['warn']);
   }, 20000);
 
   it('flags a house at the waterline as a fail', () => {
@@ -109,6 +125,7 @@ describe('town checks (issue #513)', () => {
   it('counts a fail as an error once the rules say so', () => {
     const strict = structuredClone(TOWN_RULES);
     strict.grading.fails = 'error';
+    strict.grading.village = 'error';
     // A cabin with half its footprint in the sea, as in the waterline test.
     const p = calda.props[cabin]!;
     const [x, z] = calda.coasts[0]!.reduce((a, b) =>
@@ -139,4 +156,121 @@ describe('town checks (issue #513)', () => {
         .join(),
     ).toMatch(/no fields on ice islands/);
   }, 40000);
+});
+
+/** A house of the plan's kind for the geometry tests: only its place and front matter. */
+const fake = (index: number, at: [number, number], deg: number): House => {
+  const t = (deg * Math.PI) / 180;
+  return {
+    index,
+    prop: calda.props[0]!,
+    at,
+    hull: [],
+    fit: 0,
+    front: [Math.sin(t), Math.cos(t)],
+    width: 1,
+  };
+};
+
+describe('village, not grid (issue #528)', () => {
+  it('folds fronts to one square grid: a right angle is no spread', () => {
+    const grid = [0, 90, 180, 270, 0, 90].map((deg, i) => fake(i, [i, 0], deg + 2));
+    expect(frontSpread(grid)).toBeLessThan(1);
+    const village = [-30, -12, 4, 17, 28, 40, -22, 9].map((deg, i) => fake(i, [i, 0], deg));
+    expect(frontSpread(village)).toBeGreaterThan(30);
+  });
+
+  it("measures a lane's longest straight run", () => {
+    const straight: [number, number][] = [
+      [0, 0],
+      [1, 0],
+      [2, 0.01],
+      [3, 0],
+    ];
+    expect(longestStraight(straight, 0.05)).toBeCloseTo(3);
+    const bent: [number, number][] = [
+      [0, 0],
+      [1, 0],
+      [2, 0.5],
+      [3, 1.5],
+    ];
+    expect(longestStraight(bent, 0.05)).toBeLessThan(1.6);
+  });
+
+  it('fails v1.9 Calda for its grid and passes it with houses at their own angles', () => {
+    const grid = (issues: IslandIssue[]) =>
+      issues.filter((i) => i.check === 'town-grid' && !i.prop);
+    expect(grid(shipped).map((i) => i.grade)).toEqual(['fail']);
+    // Each home turned its own way (a fixed spread, not random): the town spreads.
+    const turned = town((d) =>
+      d.props.forEach((p, i) => {
+        if (p.type === 'cabin' || p.type === 'cottage')
+          p.turn = (p.turn ?? 0) + ((i * 37) % 80) - 40;
+      }),
+    );
+    expect(grid(turned)).toEqual([]);
+  }, 20000);
+
+  it('fails a long straight row of alike houses at even gaps', () => {
+    const plan = townPlan(calda, islandCheckKit(calda, R, true), TOWN_RULES, [])!;
+    const cabins = plan.houses.slice(0, 6).map((h) => h.index);
+    const step = plan.W * 1.8;
+    const issues = town((d) =>
+      cabins.forEach((k, n) =>
+        Object.assign(d.props[k]!, { x: -0.3 + n * step, z: -0.1, turn: 0 }),
+      ),
+    );
+    const row = issues.find(
+      (i) => i.check === 'town-grid' && /6 houses in a straight row/.test(i.message),
+    );
+    expect(row?.grade).toBe('fail');
+    // A grid fail counts as `grading.village` says; a hard rule's as `grading.fails`.
+    expect(row?.severity).toBe(TOWN_RULES.grading.village === 'error' ? 'error' : 'warning');
+  }, 20000);
+
+  it('warns of parallel lanes and of a centre few lanes reach', () => {
+    const plan = townPlan(calda, islandCheckKit(calda, R, true), TOWN_RULES, [])!;
+    const issues = town((d) => {
+      d.lanes = [
+        {
+          points: [
+            [-0.4, -0.2],
+            [0.0, -0.2],
+            [0.4, -0.2],
+          ],
+        },
+        {
+          points: [
+            [-0.4, -0.2 + plan.W * 2],
+            [0.4, -0.2 + plan.W * 2],
+          ],
+        },
+      ];
+    });
+    const messages = issues.map((i) => `${i.check}: ${i.message}`).join('\n');
+    expect(messages).toMatch(/town-lanes: Lanes 0 and 1 run side by side/);
+    expect(messages).toMatch(/town-centre: 0 lanes reach the centre/);
+  }, 20000);
+});
+
+describe('follow-cam pose (issue #544)', () => {
+  it('lies out at sea, bow on to the village centre', () => {
+    const kit = islandCheckKit(calda, R, true);
+    const plan = townPlan(calda, kit, TOWN_RULES, [])!;
+    const island = {
+      id: 'calda',
+      x: 100,
+      y: -50,
+      radius: R * ISLAND_SCALE,
+      look: { harbourBearing: 1 },
+    };
+    const pose = followPose(plan, island);
+    const [cx, cz] = villageCentre(plan);
+    const centre = islandPoint(island, cx, cz);
+    const boat = { x: pose.at[0], y: pose.at[1] };
+    expect(Math.abs(pose.heading - (bearingTo(boat, centre) * 180) / Math.PI)).toBeLessThan(1);
+    // Past the berth, which lies on the shore.
+    const berth = Math.hypot(...plan.harbour!) * island.radius;
+    expect(Math.hypot(boat.x - island.x, boat.y - island.y)).toBeGreaterThan(berth);
+  }, 20000);
 });
