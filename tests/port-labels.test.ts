@@ -48,13 +48,12 @@ describe('bounded port label queries', () => {
     expect(marker.querySelector('.port-marker-dock-text')!.textContent).toBe('Trade');
   });
 
-  for (const [mode, kidMode, range] of [
-    ['approach', false, 100],
-    ['objective', false, 100],
-    ['all', false, 160],
-    ['all', true, 100],
+  for (const [mode, range] of [
+    ['approach', 100],
+    ['objective', 100],
+    ['all', 160],
   ] as const) {
-    it(`preserves the ${range}-unit visibility boundary for ${mode}, kid mode ${kidMode}`, () => {
+    it(`preserves the ${range}-unit visibility boundary for ${mode}`, () => {
       const world = createWorld(PHASE1_MAP, SLOOP);
       const port = world.map.ports[0]!;
       world.trade.dockedAt = null;
@@ -62,7 +61,6 @@ describe('bounded port label queries', () => {
       const layer = document.createElement('div');
       const labels = new PortLabels(layer, world);
       labels.mode = mode as PortMarkerMode;
-      labels.isKidMode = kidMode;
       const query = vi.spyOn(trade, 'distanceToPort');
       const marker = layer.querySelector<HTMLElement>(`[data-port-id="${port.id}"]`)!;
       for (const gap of [range, range + 0.001]) {

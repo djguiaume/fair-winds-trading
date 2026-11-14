@@ -145,8 +145,6 @@ it('GameView quality changes reuse its cache and refresh edited map contents', (
   // Exercise the real quality rebuild method without requiring a WebGL context.
   const view: GameView = Object.assign(Object.create(GameView.prototype), {
     shores: cache,
-    // The new look's water (issue #274): its seabed bake follows the same edits.
-    look: 'v2',
     levels: {},
     seabeds: new SeabedTextureCache(),
     qualityEffects: new QualityEffectsCache(),

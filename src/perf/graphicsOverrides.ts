@@ -1,5 +1,4 @@
 import switches from '../data/graphics-switches.json';
-import { terrainLook } from '../render/terrainLook';
 import { QUALITY_LEVELS, type QualityLevel } from '../render/quality';
 import type { Settings } from '../ui/settings';
 
@@ -39,11 +38,10 @@ export function applyGraphicsOverrides(
   return quality !== null || off.length > 0;
 }
 
-/** The words for a pasted report: the look, the forced level and the switches that were off. */
+/** The words for a pasted report: the forced level and the switches that were off. */
 export function describeOverrides(search: string): string {
   const { quality, off } = parse(search);
   return [
-    `look ${terrainLook(search)}`,
     quality ? `quality forced ${quality}` : '',
     off.length ? `off ${off.join(',')}` : 'all effects on',
   ]

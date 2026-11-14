@@ -46,7 +46,6 @@ export class PortLabels {
   private sinceContent = 1;
 
   mode: PortMarkerMode = 'approach';
-  isKidMode = false;
   onPortClick: (portId: string) => void = () => {};
 
   constructor(
@@ -154,10 +153,9 @@ export class PortLabels {
 
     const { map, boat, trade } = this.world;
     const currentWp = navigationTarget(this.world);
-    const effectiveMode = this.isKidMode ? 'objective' : this.mode;
     // Beyond this gap, visibility and every docking cue treat the port as distant.
     // Objective and docked signs can still show when the bounded query returns Infinity.
-    const maxGap = effectiveMode === 'all' ? 160 : 100;
+    const maxGap = this.mode === 'all' ? 160 : 100;
 
     for (const port of map.ports) {
       const entry = this.portElements.get(port.id);
@@ -180,13 +178,13 @@ export class PortLabels {
 
       let shouldShow = false;
 
-      if (effectiveMode === 'approach') {
+      if (this.mode === 'approach') {
         // Show the pier early enough to plan the approach.
         shouldShow = distToShore <= 100 || isDocked;
-      } else if (effectiveMode === 'objective') {
+      } else if (this.mode === 'objective') {
         // The selected destination and nearby harbours remain identifiable.
         shouldShow = isObjective || isDocked || distToShore <= 100;
-      } else if (effectiveMode === 'all') {
+      } else if (this.mode === 'all') {
         shouldShow = distToShore <= 160 || isDocked;
       }
 

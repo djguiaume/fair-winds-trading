@@ -43,7 +43,6 @@ jobs:
           curl --retry 15 --retry-connrefused --retry-delay 2 -sf http://127.0.0.1:5180/ >/dev/null \
             || { cat preview.log; exit 1; }
           PERF_SCENARIOS=sailing,docking,townGrowth PERF_TIMEOUT_MS=120000 npm run perf -- http://127.0.0.1:5180/ output/performance/ci.json
-          npm run perf -- 'http://127.0.0.1:5180/?look=v1' output/performance/ci-v1.json
           # Ultra's graphics memory on a 4K TV screen (decision 0246: the Xbox crashed past its share);
           # its frames take seconds in the software renderer, more with the waves (0250).
           PERF_QUALITY=ultra PERF_SCREEN=1920x1080@2 PERF_SCENARIOS=sailing PERF_TIMEOUT_MS=180000 PERF_DURATION_MS=12000 \
@@ -51,5 +50,4 @@ jobs:
       - name: Check the budget
         run: |
           node tools/performance/budget.mjs output/performance/ci.json
-          node tools/performance/budget.mjs output/performance/ci-v1.json
           node tools/performance/budget.mjs output/performance/ci-ultra.json

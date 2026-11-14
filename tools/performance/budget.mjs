@@ -36,15 +36,13 @@ export function overBudget(report, budget) {
 }
 
 /**
- * The new look (the default; `?look=v1` is the classic one) has its own count limits, set at
- * High, like the frame work limits on both looks; a report at another level is held to its
+ * The count limits are set at High, like the frame work limits; a report at another level is held to its
  * graphics memory limit only.
  */
 export function budgetFor(report, budgets) {
-  const look = new URL(report.url).searchParams.get('look') === 'v1' ? budgets : budgets.newLook;
   const quality = report.config.settings.quality;
   return {
-    scenarios: quality === 'high' ? look.scenarios : {},
+    scenarios: quality === 'high' ? budgets.scenarios : {},
     frameWorkMs: quality === 'high' ? budgets.frameWork.limitsMs : {},
     gpuMemoryMB: budgets.gpuMemory.limitsMB[quality],
   };

@@ -49,8 +49,8 @@ describe('?quality and ?off device-test switches (issue #377)', () => {
 
   it('says in the report what ran', () => {
     expect(describeOverrides('?off=ao,msaa&quality=ultra')).toBe(
-      'look v2 · quality forced ultra · off ao,msaa',
+      'quality forced ultra · off ao,msaa',
     );
-    expect(describeOverrides('?look=v1')).toBe('look v1 · all effects on');
+    expect(describeOverrides('?bench')).toBe('all effects on');
   });
 });

@@ -808,8 +808,6 @@ chart.quests = {
     autosave();
   },
 };
-tradePanel.uiMode = settings.uiMode;
-hud.portLabels.isKidMode = hud.isKidMode = settings.uiMode === 'kids';
 const monitor = new FrameMonitor();
 /** The `?perf` readout, once its chunk has loaded (decision 0148). */
 let perf: PerfReadout | null = null;

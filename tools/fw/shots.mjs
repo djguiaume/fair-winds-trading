@@ -7,7 +7,7 @@ import { readFileSync, mkdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { ROOT, chromiumPath, startVite } from './lib.mjs';
 import { padSteps } from './padSteps.mjs';
-import { defaultName, keyHold, list, lookOption, pair, readAll } from './shotOptions.mjs';
+import { defaultName, keyHold, list, pair, readAll } from './shotOptions.mjs';
 import { applyTune, nightTime, tuneChanges } from './shotOptions.mjs';
 import { prepareBoot, shootBoot } from './shotsBoot.mjs';
 import { HELP } from './shotsHelp.mjs';
@@ -67,7 +67,7 @@ export function normalise(opts) {
     turn: (o.yaw ?? o.tilt) !== undefined ? [o.yaw ?? 0, o.tilt] : null,
     chase: !!o.chase,
     tune: o.tune ? tuneChanges(o.tune) : null,
-    ...lookOption(o.look),
+    look: o.look === undefined ? null : pair(o.look),
     menu: !!o.menu,
     boot: o.splash ? 'splash' : o['portrait-gate'] ? 'gate' : null,
     progress: Number(o.progress ?? 0.55),
@@ -136,14 +136,13 @@ export function planShots(args) {
 
 /** The game's address for a shot: the sea, `?debug`, and a quest test's own parameters. */
 export function shotPath(shot) {
-  const look = shot.ground === 'v1' ? '&look=v1' : ''; // the classic ground; v2 is the default (#350)
-  if (shot.editor) return `/editor.html?debug${shot.editor === 'ring' ? '&sea=ring' : ''}${look}`;
+  if (shot.editor) return `/editor.html?debug${shot.editor === 'ring' ? '&sea=ring' : ''}`;
   if (shot.url) {
     const u = new URL(shot.url, 'http://x/');
     u.searchParams.set('debug', '');
     return `/${u.search}`;
   }
-  const q = new URLSearchParams(`debug${look}`);
+  const q = new URLSearchParams('debug');
   const map = shot.seaFile || shot.islands.length ? 'edited' : SEAS[shot.sea];
   if (map) q.set('map', map);
   // Island files tried on the Phase 4 sea: the edited map falls back to the grown sea (0161).

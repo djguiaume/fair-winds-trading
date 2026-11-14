@@ -21,8 +21,6 @@ export interface Shot {
   /** Tuning changes by path, applied first (`--tune`). */
   tune: Record<string, unknown> | null;
   look: [number, number] | null;
-  /** `--look v1`: the classic ground; null: the game's default, the new look (decision 0222). */
-  ground: 'v1' | 'v2' | null;
   chart: boolean;
   charted: boolean;
   towns: [string, number][];
