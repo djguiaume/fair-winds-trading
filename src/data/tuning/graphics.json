@@ -273,6 +273,13 @@
       }
     }
   },
+  "lamps": {
+    "core": 0.08,
+    "falloff": 0.24,
+    "peak": 0.8,
+    "lanternSize": 16,
+    "beaconSize": 20
+  },
   "houses": {
     "richWithin": 140,
     "hysteresis": 0.1

@@ -8,7 +8,7 @@ import { DEG, clamp, wrapAngle } from '../sim/math';
 import { noGoAngle } from '../sim/ship';
 import type { TrafficBoat, TrafficKind, TrafficState } from '../sim/traffic';
 import { windTo } from '../sim/wind';
-import { glowTexture } from './lanterns';
+import { glowTexture } from './lampGlow';
 import { TrafficWakes } from './trafficWake';
 import { BoatRide, type RideConditions } from './boatRide';
 import type { WakeHull } from './wake';
