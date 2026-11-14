@@ -182,9 +182,8 @@ describe('Windward Ring trading map', () => {
     const mesh = buildHighlandIslands(PHASE1_MAP, { shadows: false });
     // Decision 0073: preserve the complete land + window triangle budget despite local batches.
     // The phones' levels draw the plain homes; the rich homes add about 1,000 (#500). The ring's
-    // believable towns (#514, decision 0303) raised the first by 500: lanes for the two hamlets that had
-    // none and the trees that grow back round tighter towns, after lane pieces went by length.
-    // The villages (#528, decision 0307) raised it by 200 more: Calda's terrace, longer lanes.
+    // believable towns (#514, 0303) raised the first by 500 (hamlet lanes, trees round tighter
+    // towns), the villages (#528, 0307) by 200 more (Calda's terrace, longer lanes).
     expect(drawnTriangles(mesh, 'far')).toBeLessThan(21700);
     expect(drawnTriangles(mesh, 'near')).toBeLessThan(23000);
     mesh.dispose();
