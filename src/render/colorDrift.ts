@@ -80,3 +80,33 @@ export function viewDrift(top: ViewColors, follow: ViewColors): Partial<Record<S
 
 export const hexOf = ([r, g, b]: readonly [number, number, number]) =>
   `#${[r, g, b].map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+
+/** The limits of one atmosphere (`graphics.json` › `sky.check`, agreed with the art director). */
+export interface DriftLimits {
+  sea: number;
+  seaIntoSun: number;
+  fog: number;
+}
+
+/**
+ * Whether two views share one atmosphere: the same fog, and the sea within its limit (a looser one
+ * when the follow cam looks into the sun). Land is left out: the views see other faces of it.
+ */
+export function driftProblems(
+  drift: Partial<Record<Surface, number>>,
+  fogDrift: number,
+  intoSun: boolean,
+  limits: DriftLimits,
+): string[] {
+  const problems: string[] = [];
+  const sea = intoSun ? limits.seaIntoSun : limits.sea;
+  if (drift.sea !== undefined && drift.sea > sea)
+    problems.push(`sea ΔE ${drift.sea.toFixed(1)} > ${sea}`);
+  if (fogDrift > limits.fog) problems.push(`fog ΔE ${fogDrift.toFixed(1)} > ${limits.fog}`);
+  return problems;
+}
+
+export const rgbOf = (hex: string): [number, number, number] => {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};

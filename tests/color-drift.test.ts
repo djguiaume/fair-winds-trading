@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { averageColors, deltaE, hexOf, toLab, viewDrift } from '../src/render/colorDrift';
+import { TUNING } from '../src/data/tuning';
+import {
+  averageColors,
+  deltaE,
+  driftProblems,
+  hexOf,
+  rgbOf,
+  toLab,
+  viewDrift,
+} from '../src/render/colorDrift';
 
 describe('colour check of the two views (issue #573)', () => {
   it('averages each surface and skips the others', () => {
@@ -35,5 +44,14 @@ describe('colour check of the two views (issue #573)', () => {
     expect(Object.keys(drift)).toEqual(['sea']);
     expect(drift.sea).toBeGreaterThan(5);
     expect(hexOf([18, 52, 86])).toBe('#123456');
+  });
+
+  it('passes one atmosphere within the agreed limits, looser into the sun', () => {
+    const limits = TUNING.graphics.sky.check;
+    expect(driftProblems({ sea: 4, land: 30 }, 0, false, limits)).toEqual([]);
+    expect(driftProblems({ sea: 8 }, 0, false, limits)).toHaveLength(1);
+    expect(driftProblems({ sea: 8 }, 0, true, limits)).toEqual([]);
+    expect(driftProblems({ sea: 1 }, 5, false, limits)[0]).toMatch(/fog/);
+    expect(rgbOf('#7fc0e6')).toEqual([127, 192, 230]);
   });
 });

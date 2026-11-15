@@ -227,6 +227,12 @@
       }
     },
     "air": 1,
+    "check": {
+      "sea": 5,
+      "seaIntoSun": 10,
+      "fog": 2,
+      "intoSunDeg": 60
+    },
     "hazeLineDeg": 1.5,
     "gradientDeg": 24,
     "gradientCurve": 0.6,

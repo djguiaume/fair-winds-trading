@@ -43,7 +43,21 @@ async function measureInPage({ png, width, height }) {
   const ctx = canvas.getContext('2d');
   ctx.drawImage(image, 0, 0, width, height);
   const colors = averageColors(ctx.getImageData(0, 0, width, height).data, ids);
-  return { colors, fog: `#${view.scene.fog.color.getHexString()}` };
+  // Into the sun: the camera's bearing near the sun's (or moon's), from the drawn sky's disc.
+  const m = view.camera.matrixWorld.elements;
+  const sun = view.atmosphere.drawnSky.disc;
+  const bearing = (x, z) => Math.atan2(x, z);
+  const apart = Math.abs(
+    Math.atan2(
+      Math.sin(bearing(-m[8], -m[10]) - bearing(sun.x, sun.z)),
+      Math.cos(bearing(-m[8], -m[10]) - bearing(sun.x, sun.z)),
+    ),
+  );
+  return {
+    colors,
+    fog: `#${view.scene.fog.color.getHexString()}`,
+    sunApartDeg: (apart * 180) / Math.PI,
+  };
 }
 
 /** The colours of the shot just taken (`png`, a Buffer of the screenshot). */
@@ -54,7 +68,10 @@ export async function measureColors(page, png) {
 
 /** One line per pair: each surface's colour from above and behind, and their distance (ΔE). */
 export async function driftReport(server, measured) {
-  const { viewDrift, hexOf, SURFACES } = await server.ssrLoadModule('/src/render/colorDrift.ts');
+  const drift = await server.ssrLoadModule('/src/render/colorDrift.ts');
+  const { viewDrift, hexOf, SURFACES, driftProblems, deltaE, rgbOf } = drift;
+  const { TUNING } = await server.ssrLoadModule('/src/data/tuning.ts');
+  const limits = TUNING.graphics.sky.check;
   const pairs = new Map();
   for (const m of measured) {
     const pair = pairs.get(m.pair) ?? {};
@@ -72,8 +89,26 @@ export async function driftReport(server, measured) {
       const d = drift[s] === undefined ? '  —' : drift[s].toFixed(1).padStart(4);
       return `${s} ${shown(a)} ${shown(b)} ΔE ${d}`;
     });
-    rows.push({ name, drift, top: top.colors, follow: follow.colors, fog: [top.fog, follow.fog] });
-    console.log(`${name.padEnd(18)} ${cells.join('   ')}   fog ${top.fog} ${follow.fog}`);
+    const fogDrift = deltaE(rgbOf(top.fog), rgbOf(follow.fog));
+    const intoSun = follow.sunApartDeg < limits.intoSunDeg;
+    const problems = driftProblems(drift, fogDrift, intoSun, limits);
+    rows.push({
+      name,
+      drift,
+      fogDrift,
+      sunApartDeg: follow.sunApartDeg,
+      intoSun,
+      problems,
+      top: top.colors,
+      follow: follow.colors,
+    });
+    const verdict = problems.length ? `FAIL (${problems.join(', ')})` : 'pass';
+    const sun = intoSun ? ' into the sun' : '';
+    console.log(
+      `${name.padEnd(18)} ${cells.join('   ')}   fog ΔE ${fogDrift.toFixed(1)}${sun}  ${verdict}`,
+    );
   }
+  const failed = rows.filter((r) => r.problems.length).length;
+  console.log(`one atmosphere (graphics.sky.check): ${rows.length - failed} pass, ${failed} fail`);
   return rows;
 }

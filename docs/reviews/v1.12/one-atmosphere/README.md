@@ -21,7 +21,7 @@ v1.12 part 2. Goal: switching view changes the camera, not the weather. Referenc
 |---|---|---|---|
 | A sea air | 0, haze line 1.5° | as shipped | the top view's grey-teal haze, a grey band on the horizon |
 | B sky air | 1 | as shipped (`#a6d6ee` / `#5aa0d4`) | seamless pale horizon |
-| **C blue air** (recommended, shipped in the PR) | 1 | `#7fc0e6` / `#3f8ed6` | seamless, bluer horizon and sky |
+| **C blue air** (picked by the art director, shipped) | 1 | `#7fc0e6` / `#3f8ed6` | seamless, bluer horizon and sky |
 
 Sheets (3 places x 4 hours, High, desktop): [saltmere.jpg](saltmere.jpg), [sea.jpg](sea.jpg), [sunreach.jpg](sunreach.jpg).
 
@@ -39,6 +39,22 @@ Sheets (3 places x 4 hours, High, desktop): [saltmere.jpg](saltmere.jpg), [sea.j
 - Land differs by ΔE 13 to 38 in every option, before too: from above the camera sees sunlit tops, from behind the shaded sides and cliffs. It is printed but not a goal.
 - The fog colour is the same in both views in A, B and C (before: two colours).
 
-Proposed limit for "one atmosphere" (to agree with the art director): same fog colour in both views; sea ΔE ≤ 5 at every place and hour looking across or away from the sun, ≤ 10 looking into it.
+## Limit (agreed with the art director, 2026-11-15)
+
+One atmosphere = the same fog colour in both views (ΔE ≤ 2, the two shots are taken a few seconds apart) and the sea ΔE ≤ 5 across or away from the sun, ≤ 10 looking into it (the follow cam's bearing within 60° of the sun's or moon's). Land is information only. The numbers live in `graphics.json` › `sky.check`; `npm run shots -- --both` prints pass or FAIL per pair and a total.
+
+Storms and dusk use the sky look's horizon in both views; a storm must read heavier than an overcast day, with the sea darker than the sky and no white-out (art director). The storm fog `#56666e` is the ceiling.
+
+## Final check, option C (High, desktop)
+
+Sheets with top view | follow cam at morning, noon, golden, dusk, night and storm: [final-saltmere.jpg](final-saltmere.jpg), [final-sea.jpg](final-sea.jpg), [final-sunreach.jpg](final-sunreach.jpg); numbers in [colors.json](colors.json). Storm rows use [src/storm.js](src/storm.js) (a storm's core held at the boat).
+
+| Place | morning | noon | golden | dusk | night | storm |
+|---|---|---|---|---|---|---|
+| Saltmere | 2.0 ✓ | 2.7 ✓ | 1.7 ✓ | 1.3 ✓ | 1.0 ✓ | 2.0 ✓ |
+| Open sea | 6.3 ✓ sun | 7.6 ✓ sun | **7.2 ✗** | 5.0 ✓ sun | 3.6 ✓ | 6.6 ✓ sun |
+| Sunreach | 1.7 ✓ | 1.2 ✓ | 7.3 ✓ sun | 1.2 ✓ | 1.7 ✓ | 1.4 ✓ |
+
+Sea ΔE, top vs follow; "sun" = looking into the sun or moon (≤ 10). 17 of 18 pass. The open sea at golden hour fails at 7.2: the low sun is 64° off the bow, just past the 60° line, and its wide glitter lightens the follow cam's sea. Left for #550 (light) and #551 (water). The storm reads heavy in both views (sea darker than sky, no white-out).
 
 Run it: `npm run shots -- --at 285,-60 --heading 180 --time 175 --both --sizes desktop` (prints the table, writes `colors.json`).
