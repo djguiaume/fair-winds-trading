@@ -35,3 +35,4 @@ worth remembering.
 | [v1.8.402](v1.8.402.md) | merge of the 1.8 PR | 1.8 A richer look: sea gusts, ground detail, richer houses, bloom on Ultra, lower Ultra memory |
 | [v1.9.411](v1.9.411.md) | merge of the 1.9 PR | 1.9 Believable towns: town rules and check, 16 towns rebuilt, smooth frames, look fixes |
 | [v1.10.74](v1.10.74.md) | merge of the 1.10 PR | 1.10 Villages: organic village rules, 16 towns redone, night and follow-cam fixes, classic look and Kids mode retired |
+| [v1.11.440](v1.11.440.md) | merge of the 1.11 PR | 1.11 Welcome aboard: one click to sailing, six-step first voyage, same HUD in both views, follow-cam framing and look-around, compact phone HUD |
