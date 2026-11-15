@@ -30,6 +30,11 @@ export class RigPose {
     time: 0,
   };
 
+  /** Her heel last frame (radians, as `BoatPose.heel`): the follow cam slides to her high side. */
+  get lean(): number {
+    return this.heel.angle;
+  }
+
   /** How readily the ship being sailed leans (decision 0044). */
   setShip(id: string) {
     this.input.factor = heelFactor(id);

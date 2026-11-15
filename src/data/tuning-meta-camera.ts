@@ -1,4 +1,66 @@
-import { num, type TuningMeta } from './tuning-meta-types';
+import camera from './tuning/camera.json';
+import { num, text, type TuningMeta } from './tuning-meta-types';
+
+/** One follow-cam framing's numbers (decision 0312); every entry of `chase.framings` gets them. */
+const FRAMING_FIELDS: Readonly<Record<string, TuningMeta>> = {
+  fovDeg: num(
+    'Follow cam view',
+    30,
+    80,
+    1,
+    '°',
+    'Vertical field of view in the follow cam (the sea camera keeps 40°). Wider shows more round the boat.',
+  ),
+  boatY: num(
+    'Boat on screen',
+    0.5,
+    0.8,
+    0.01,
+    'of height',
+    "How far down the screen the boat's centre sits (art bible §13: 0.62 to 0.68).",
+  ),
+  horizonY: num(
+    'Horizon at rest',
+    0.2,
+    0.55,
+    0.01,
+    'of height',
+    'How far down the screen the horizon sits when she is slow (art bible §13: 0.35 to 0.42).',
+  ),
+  horizonYFast: num(
+    'Horizon at speed',
+    0.2,
+    0.55,
+    0.01,
+    'of height',
+    'The horizon at full speed: a little higher up the screen as the camera climbs.',
+  ),
+  distance: num(
+    'Chase distance',
+    10,
+    100,
+    1,
+    'units',
+    "How far from the boat's centre the follow cam stands at rest, at zoom 1.",
+  ),
+  pullAtSpeed: num(
+    'Pull back at speed',
+    0,
+    0.5,
+    0.01,
+    '× distance',
+    'How much farther back the camera stands at full speed (art bible §13: at most 0.3).',
+  ),
+};
+
+const FRAMING_META: Record<string, TuningMeta> = Object.fromEntries(
+  Object.keys(camera.chase.framings).flatMap((id) =>
+    Object.entries(FRAMING_FIELDS).map(([field, meta]) => [
+      `camera.chase.framings.${id}.${field}`,
+      { ...meta, label: `${meta.label} (${id.toUpperCase()})` },
+    ]),
+  ),
+);
 
 /** `camera.json`: the sea camera and the player turning it (decision 0223). */
 export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
@@ -124,21 +186,74 @@ export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
     's',
     'With "Camera comes back by itself" on: seconds without camera input before it eases back.',
   ),
-  'camera.chase.pitchDeg': num(
-    'Chase tilt',
-    5,
-    45,
-    1,
-    '°',
-    'The close chase view looks down this steeply; flatter shows more horizon and the boat from behind.',
+  ...FRAMING_META,
+  'camera.chase.cycle': text(
+    'Camera button cycle',
+    'The views the camera button steps through, in order: framing ids from chase.framings and "top" for the sea camera.',
   ),
-  'camera.chase.distance': num(
-    'Chase distance',
-    10,
-    80,
-    1,
+  'camera.chase.aimHeight': num(
+    'Boat centre height',
+    0,
+    12,
+    0.5,
     'units',
-    'How far behind the boat the close chase camera stands, at zoom 1.',
+    "How high above the water the point the camera frames as the boat's centre is.",
+  ),
+  'camera.chase.fullSpeedKn': num(
+    'Full speed',
+    4,
+    30,
+    0.5,
+    'kn',
+    'The speed at which the follow cam is all the way up and back.',
+  ),
+  'camera.chase.speedEaseSec': num(
+    'Speed ease',
+    0.5,
+    8,
+    0.1,
+    's',
+    'How slowly the camera follows a change of speed or heel, so it never pumps (at least 1.5 s).',
+  ),
+  'camera.chase.leeShiftPerDeg': num(
+    'Slide when heeled',
+    -1,
+    1,
+    0.01,
+    'units/°',
+    'The camera slides to her high side this much per degree of heel, so the sail leans away from the way ahead.',
+  ),
+  'camera.chase.leeShiftMax': num(
+    'Most slide',
+    0,
+    12,
+    0.5,
+    'units',
+    'The camera slides no farther to the side than this.',
+  ),
+  'camera.chase.orbitPitchMinDeg': num(
+    'Look round: flattest',
+    0,
+    30,
+    0.5,
+    '°',
+    'Looking round the boat, the camera goes no lower over her than this.',
+  ),
+  'camera.chase.orbitPitchMaxDeg': num(
+    'Look round: steepest',
+    10,
+    60,
+    0.5,
+    '°',
+    'Looking round the boat, the camera goes no higher over her than this.',
+  ),
+  'camera.chase.returnAfterSeconds': num(
+    'Look round: comes back after',
+    0.5,
+    20,
+    0.5,
+    's',
+    'Seconds after the last drag or stick before the follow cam eases back behind the boat.',
   ),
   'camera.chase.sightDistance': num(
     'Chase sight distance',
