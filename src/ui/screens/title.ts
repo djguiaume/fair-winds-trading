@@ -1,3 +1,4 @@
+import { TUNING } from '../../data/tuning';
 import { LANGUAGES, language, t } from '../../i18n';
 import type { CameraStage } from '../cameraStage';
 import { icon } from '../icons';
@@ -99,9 +100,11 @@ export class TitleScreen implements MenuRows {
    * art while the live title is switched off (`graphics.title.live`), a still of the live view
    * where the quality cannot run the scene. The camera stages the live one clear of the page.
    */
-  stage(camera: CameraStage, live: boolean, painted: boolean) {
+  stage(camera: CameraStage, atTitle: boolean, levelRunsIt: boolean) {
+    const switchedOn = TUNING.graphics.title.live;
+    const live = switchedOn && atTitle && levelRunsIt;
     this.screen.root.classList.toggle('title--live', live);
-    this.screen.root.classList.toggle('title--painted', painted);
+    this.screen.root.classList.toggle('title--painted', !switchedOn);
     camera.title(live, live ? this.columnShare() : 0);
   }
 
