@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: 22
       - name: Tests of the CI tools
-        run: node --test tools/ci/rules.test.mjs tools/performance/budget.test.mjs
+        run: node --test tools/ci/rules.test.mjs tools/ci/closing.test.mjs tools/performance/budget.test.mjs
       - name: Rule checks
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
