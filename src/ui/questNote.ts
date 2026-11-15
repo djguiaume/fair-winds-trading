@@ -63,12 +63,14 @@ export class QuestNote {
     const step =
       c.kind === 'finished'
         ? t('journal.done')
-        : t('journal.step', { n: c.stepNo, total: c.steps });
+        : c.lesson
+          ? ''
+          : t('journal.step', { n: c.stepNo, total: c.steps });
     this.el.innerHTML = `${
       c.giver
         ? `<span class="quest-note-face">${portraitSvg(c.giver, { size: 52, mood: c.mood })}</span>`
         : ''
-    }<span class="quest-note-text"><b>${esc(`${who} · ${step}`)}</b>${
+    }<span class="quest-note-text"><b>${esc(step ? `${who} · ${step}` : who)}</b>${
       (c.news ?? c.ask) ? `<span>${esc(c.news ?? c.ask!)}</span>` : ''
     }<small>${esc(t('quest.noteHint'))}</small></span>`;
     this.place();

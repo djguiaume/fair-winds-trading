@@ -71,7 +71,7 @@ Look
   --cards                       keep quest cards and dialogs open (default: closed, kept in a quest test)
   --wait ms                     settle time before the shot (default 1500)
   --click selector              click this before the shot (after the wait), e.g. a card's button,
-                                then wait 800 ms; several in turn with ; (e.g. "#menu-btn;#menu-help")
+                                then wait 800 ms; several in turn with ; (e.g. "#menu-btn;#pause-settings")
                                 (--pad and --click also work on --menu)
   --focus selector              this control focused as by the controller (decision 0163): the page
                                 set to controller input, so the focus ring and button hints show

@@ -4,7 +4,7 @@ import { button, setDisabled } from '../../components';
 import type { RowHost, SettingsContext } from './context';
 import { type SettingRow, actionRow, choiceRow, switchRow, text } from './rows';
 
-/** Settings › Game: the voyage's level and wind, the lessons, the hazards, the new game. */
+/** Settings › Game: the voyage's level and wind, How to play, the lessons, Move your voyage, the new game. */
 export function gameTab(ctx: SettingsContext, host: RowHost) {
   const { settings } = ctx;
   const voyage: SettingRow[] = [
@@ -66,7 +66,16 @@ export function gameTab(ctx: SettingsContext, host: RowHost) {
     },
   );
   const actions: SettingRow[] = [
+    actionRow({
+      key: 'settings.help',
+      control: button({ label: t('settings.open'), icon: 'book', onPress: ctx.help }),
+    }),
     lessonsRow,
+    actionRow({
+      key: 'settings.transfer',
+      hidden: () => ctx.free,
+      control: button({ label: t('settings.open'), icon: 'sail', onPress: ctx.transfer }),
+    }),
     actionRow({
       key: 'settings.resetBoat',
       control: button({ label: t('settings.resetBoat'), icon: 'anchor', onPress: ctx.backToStart }),

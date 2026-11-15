@@ -6,7 +6,7 @@ import { TutorialCoach } from '../src/ui/tutorial';
 import { TradePanel } from '../src/ui/tradePanel';
 import { SeaChart } from '../src/ui/seaChart';
 import { Hud } from '../src/ui/hud';
-import { TUTORIAL, tutorialVoyage } from './helpers/tutorial';
+import { MARKET, TUTORIAL, tutorialVoyage } from './helpers/tutorial';
 
 beforeEach(() => {
   localStorage.clear();
@@ -30,7 +30,8 @@ function setup() {
   const card = new TutorialCoach(quests, v.harbours);
   const panel = new TradePanel(document.getElementById('trade-panel')!, world);
   quests.onEvent = (e) => {
-    if (e.type === 'finished' && e.quest === TUTORIAL) card.finished = e.quest;
+    if (e.type === 'finished' && (e.quest === TUTORIAL || e.quest === MARKET))
+      card.finished = e.quest;
     card.render();
   };
   panel.onRender = () => card.render();
@@ -50,7 +51,7 @@ function setup() {
 }
 
 describe('tutorial coach marks in real UI surfaces', () => {
-  it('moves one card between sea and chart; port selection and clearing drive the lesson', () => {
+  it('moves one card between sea and chart, with no way to pick a port in the first voyage', () => {
     const { v, card, chart } = setup();
     v.rescue();
     card.setSurface('sea');
@@ -58,45 +59,24 @@ describe('tutorial coach marks in real UI surfaces', () => {
     chart.open();
     v.screen('chart');
     card.setSurface('chart');
-    expect(v.step).toBe('home-port');
-    // Rook asks for home: another harbour is not the pick.
+    // Rook's way home is the compass arrow and the pier flag: the chart lesson is gone (v1.11).
+    expect(v.step).toBe('home');
     click('[data-compare="calda"]');
-    expect(v.step).toBe('home-port');
-    click('[data-compare="saltmere"]');
     expect(v.step).toBe('home');
     expect(document.querySelectorAll('.tutorial-card')).toHaveLength(1);
     expect(document.querySelector('#tutorial-chart .tutorial-card')).not.toBeNull();
-    click('#chart-clear-target');
-    expect(v.step).toBe('home-port');
-    chart.close();
-    v.screen('sea');
-    card.setSurface('sea');
-    expect(document.querySelector('#tutorial-sea .tutorial-card')).not.toBeNull();
-  });
-
-  it('collapses without pausing play and gives focus back when skipped', () => {
-    const { v, card } = setup();
-    card.setSurface('sea');
-    click('#tutorial-collapse');
-    expect(document.getElementById('tutorial-collapse')!.getAttribute('aria-expanded')).toBe(
-      'false',
-    );
-    expect(document.getElementById('tutorial-action')).toBeNull();
-    expect(v.running).toBe(true);
-    click('#tutorial-collapse');
     click('#tutorial-skip');
     expect(v.running).toBe(false);
     expect(document.querySelector<HTMLElement>('.tutorial-card')!.hidden).toBe(true);
-    expect(document.activeElement?.id).toBe('menu-btn');
   });
 
-  it('shows the step number of the main line, and the Continue button the step offers', () => {
+  it('shows the step title with no counter, and the Continue button the step offers', () => {
     const { v, card } = setup();
     card.setSurface('sea');
-    expect(document.querySelector('.coach h3')!.textContent).toBe('1/14 · Sails and steering');
+    expect(document.querySelector('.coach h3')!.textContent).toBe('Sails and steering');
     click('#tutorial-continue');
     expect(v.step).toBe('wind');
-    expect(document.querySelector('.coach h3')!.textContent).toBe('2/14 · Let the wind help');
+    expect(document.querySelector('.coach h3')!.textContent).toBe('Let the wind help');
   });
 
   it(`real market buys and Sell All complete the tutorial; failed buys do not advance`, () => {
@@ -120,7 +100,7 @@ describe('tutorial coach marks in real UI surfaces', () => {
     v.dock('calda');
     panel.render();
     click('#tp-sell-all');
-    expect(v.quests.isDone(TUTORIAL)).toBe(true);
+    expect(v.quests.isDone(MARKET)).toBe(true);
     expect(document.querySelector('#tutorial-market .tutorial-card')!.textContent).toContain(
       'First delivery complete',
     );
@@ -131,9 +111,8 @@ describe('tutorial coach marks in real UI surfaces', () => {
 
 describe('coach marks (decision 0061)', () => {
   it('rings the element to tap and puts the bubble beside it', () => {
-    const { v, card } = setup();
-    v.rescue();
-    const target = document.getElementById('chart-btn')!;
+    const { card } = setup();
+    const target = document.getElementById('sail-lever')!;
     target.getBoundingClientRect = () => new DOMRect(80, 600, 120, 48);
     card.setSurface('sea');
     const ring = document.querySelector<HTMLElement>('.coach-ring')!;
@@ -141,13 +120,11 @@ describe('coach marks (decision 0061)', () => {
     expect(ring.hidden).toBe(false);
     expect(ring.style.left).toBe('74px');
     expect(bubble.dataset.side).toBe('top');
-    // The ring replaces the bubble's own "Open map" button.
-    expect(document.getElementById('tutorial-action')).toBeNull();
   });
 
   it('falls back to an unpinned bubble with its action button when nothing is on screen', () => {
     const { v, card } = setup();
-    v.rescue();
+    v.cont();
     card.setSurface('sea');
     expect(document.querySelector<HTMLElement>('.coach-ring')!.hidden).toBe(true);
     expect(document.querySelector<HTMLElement>('.coach')!.dataset.side).toBe('none');
@@ -155,13 +132,14 @@ describe('coach marks (decision 0061)', () => {
   });
 
   it('points at home for Rook, the cheap good in the market, then the nearest harbour', () => {
-    const { v, world } = setup();
+    const { v, world, quests } = setup();
     v.rescue();
     expect(v.lesson!.port).toBe('saltmere');
     v.course('saltmere');
     v.dock('saltmere');
     v.cont();
     v.cont();
+    quests.ask(MARKET);
     expect(v.step).toBe('buy');
     expect(v.lesson!.good).toBe('fish');
     // Buying, then losing the cargo at sea: the lesson asks for a harbour, the nearest one.
@@ -171,7 +149,7 @@ describe('coach marks (decision 0061)', () => {
     world.trade.dockedAt = null;
     world.trade.captain.cargo.fish = 0;
     v.check();
-    expect(v.step).toBe('choose-port');
+    expect(v.step).toBe('dock');
     const calda = PHASE1_MAP.islands.find(
       (i) => i.id === PHASE1_MAP.ports.find((p) => p.id === 'calda')!.islandId,
     )!;

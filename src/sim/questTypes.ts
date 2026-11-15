@@ -163,6 +163,11 @@ export interface QuestDef {
    * cards; while it runs it is the tracked quest and the other quests' cards wait.
    */
   lesson?: boolean;
+  /**
+   * Steps taken out of this file: a voyage saved at one carries on at the step named, or, with
+   * null, finds the quest done (v1.11 shortened the first voyage).
+   */
+  retired?: Record<string, string | null>;
   /** `false`: no storm forms while the quest runs (the tutorial, decision 0072). */
   storms?: false;
   /**

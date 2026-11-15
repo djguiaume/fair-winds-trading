@@ -16,10 +16,12 @@ export interface QuestLine {
 export function trackedQuestLine(book: QuestBook, map: MapDef): QuestLine | null {
   const tracked = journal(book, map).find((e) => e.state === 'tracked');
   if (!tracked) return null;
-  const step = t('journal.step', { n: tracked.stepNo, total: tracked.steps });
+  const who = tracked.giver?.name ?? tracked.arc;
   return {
     title: tracked.lines.find((l) => l.state === 'now')?.title ?? tracked.arc,
-    detail: `${tracked.giver?.name ?? tracked.arc}, ${step}`,
+    detail: tracked.lesson
+      ? who
+      : `${who}, ${t('journal.step', { n: tracked.stepNo, total: tracked.steps })}`,
   };
 }
 

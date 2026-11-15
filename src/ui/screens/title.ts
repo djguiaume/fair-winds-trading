@@ -16,9 +16,8 @@ export interface TitleHost {
   /** The Free Sailing row: a reload into its session; null inside a session. */
   freeSailing: (() => void) | null;
   settings(): void;
-  help(): void;
-  lessons(): void;
-  transfer(): void;
+  /** The level line: open the level cards before a voyage starts. */
+  chooseLevel(): void;
   setLanguage(id: string): void;
 }
 
@@ -30,21 +29,23 @@ export interface TitleState {
   saveLine: string | null;
   /** New voyage as a second row, over a saved voyage. */
   offerNew: boolean;
-  lessons: { label: string; note: string; disabled: boolean };
+  /** The level a new voyage starts on ("Captain"), or null once a voyage is under way. */
+  level: string | null;
 }
 
 /**
  * The title (decision 0268, title 6 of the v1.5 kit): a full-height torn logbook page on the left
  * with the stacked logo, the tagline and the menu; the key art on the right, a golden-hour grade
- * of the cover. Continue is the one sage row; the rest are plain rows of the same size, and a
- * small line under them holds How to play, the lessons, Move your voyage and the language.
+ * of the cover. Continue is the one sage row; the rest are plain rows of the same size: three
+ * rows in all (decision 0311), with the level line under New voyage and a small line holding the
+ * language. How to play, the lessons and Move your voyage live in Settings.
  */
 export class TitleScreen implements MenuRows {
   readonly screen: Screen;
   private readonly list = el('nav', 'title-menu');
   private readonly play: HTMLElement;
   private readonly fresh: HTMLElement;
-  private readonly lessons: HTMLButtonElement;
+  private readonly level: HTMLButtonElement;
   private readonly settingsRow: HTMLElement;
 
   constructor(host: TitleHost) {
@@ -56,17 +57,12 @@ export class TitleScreen implements MenuRows {
     if (host.freeSailing)
       this.row('menu-free', t('menu.free'), host.freeSailing, t('menu.freeNote'));
     this.settingsRow = this.row('menu-settings', t('menu.settings'), host.settings);
-    this.lessons = this.link('menu-tutorial', host.lessons);
+    this.level = this.link('menu-level', host.chooseLevel);
+    this.level.classList.add('title-level');
     const small = el('div', 'title-small');
-    small.append(
-      this.link('menu-help', host.help, t('menu.help')),
-      this.lessons,
-      this.link('menu-transfer', host.transfer, t('menu.transfer')),
-      this.fullscreen(),
-      this.languages(host.setLanguage),
-    );
+    small.append(this.fullscreen(), this.languages(host.setLanguage));
     const page = el('section', `${panelClasses('torn', 'day')} title-page`);
-    page.append(this.brand(), this.list, small, this.hint(), this.version());
+    page.append(this.brand(), this.list, this.level, small, this.hint(), this.version());
     const art = el('img', 'title-art');
     art.src = keyArt;
     art.alt = '';
@@ -83,9 +79,11 @@ export class TitleScreen implements MenuRows {
     this.play.querySelector('.ui-row-label')!.textContent = state.primary;
     this.play.querySelector('.ui-row-value')!.textContent = state.saveLine ?? '';
     this.fresh.hidden = !state.offerNew;
-    this.lessons.querySelector('.title-link-label')!.textContent = state.lessons.label;
-    this.lessons.title = state.lessons.note;
-    this.lessons.disabled = state.lessons.disabled;
+    this.level.hidden = state.level === null;
+    if (state.level !== null)
+      this.level.querySelector('.title-link-label')!.textContent = t('menu.level', {
+        level: state.level,
+      });
   }
 
   /** A row before Settings (Free Sailing's setup and way out). */

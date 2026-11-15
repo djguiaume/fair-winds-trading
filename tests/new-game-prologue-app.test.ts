@@ -76,19 +76,11 @@ it.each(DIFFICULTIES)(
       window as unknown as { fwt: { world: World; input: Input; quests: QuestBook } }
     ).fwt;
     expect(localStorage.getItem(`fwt.tutorial.v1.${world.map.name}`)).toContain('skipped');
-    // The offer's dialog joins the page when it asks.
-    const offer = {
-      get open() {
-        return (
-          (document.getElementById('tutorial-offer') as HTMLDialogElement | null)?.open ?? false
-        );
-      },
-    };
-    document.querySelector<HTMLButtonElement>('#menu-play')!.click();
+    // "Level: Captain, change" on the title opens the level cards (v1.11).
+    document.querySelector<HTMLButtonElement>('#menu-level')!.click();
     document.querySelector<HTMLButtonElement>(`.level-card[data-level="${level}"]`)!.click();
     document.querySelector<HTMLButtonElement>('#set-sail')!.click();
     expect(world.trade.difficulty).toBe(level);
-    expect(offer.open).toBe(false);
     // Not beside Saltmere in free play: alone at sea at the prologue's spot, sails down.
     const start = world.map.prologue!.start;
     expect([world.boat.x, world.boat.y]).toEqual([start.x, start.y]);

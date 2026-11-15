@@ -207,17 +207,17 @@ describe('step data for lessons (decision 0151)', () => {
   it('carries the vars in the save code', () => {
     const world = createWorld(PHASE1_MAP, SLOOP);
     const book = new QuestBook(world, QUESTS);
-    book.ask('first-voyage');
-    expect(book.restore('first-voyage', 'deliver')).toBe(false);
-    world.trade.quests.byId['first-voyage'] = {
+    book.ask('first-market');
+    expect(book.restore('first-market', 'deliver')).toBe(false);
+    world.trade.quests.byId['first-market'] = {
       step: 'deliver',
       counts: [],
-      chose: { sails: 'continue' },
+      chose: { buy: 'continue' },
       vars: { origin: 'saltmere', delivery: 'calda', cargo: 'fish' },
     };
     const save = serializeWorld(world);
     const read = unpackSave(packSave(save, PHASE1_MAP), PHASE1_MAP, save.version);
     expect(read.ok && read.raw.quests).toEqual(save.quests);
-    expect(questsFor(PHASE1_MAP).map((q) => q.id)).toContain('first-voyage');
+    expect(questsFor(PHASE1_MAP).map((q) => q.id)).toContain('first-market');
   });
 });

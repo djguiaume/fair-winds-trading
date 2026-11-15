@@ -17,11 +17,30 @@ export function mainLine(quest: QuestDef): string[] {
   return out;
 }
 
-/** A step's number on the main line; a step off it counts as the step that leads there. */
+/**
+ * The steps a quest counts: its main line. A lesson counts only its hints, the steps that point
+ * at something on the sea; a person's card between them is not one more (v1.11).
+ */
+export function countedLine(quest: QuestDef): string[] {
+  const line = mainLine(quest);
+  return quest.lesson
+    ? line.filter((id) => quest.steps.find((s) => s.id === id)?.coach?.sea)
+    : line;
+}
+
+/**
+ * A step's number among the counted steps: the ones passed so far, itself included. A step off
+ * the main line counts as the step that leads there.
+ */
 export function lineNumber(quest: QuestDef, id: string): number {
   const line = mainLine(quest);
-  return (
-    line.indexOf(id) + 1 ||
-    line.findIndex((l) => quest.steps.find((s) => s.id === l)?.unless?.some((w) => w.to === id)) + 1
-  );
+  const at =
+    line.indexOf(id) >= 0
+      ? line.indexOf(id)
+      : line.findIndex((l) =>
+          quest.steps.find((s) => s.id === l)?.unless?.some((w) => w.to === id),
+        );
+  if (at < 0) return 0;
+  const counted = countedLine(quest);
+  return counted.filter((c) => line.indexOf(c) <= at).length;
 }

@@ -5,7 +5,7 @@ import { deref, type StepNews } from '../sim/questLibrary';
 import { QUEST_DONE, type QuestBook, type QuestDef, lastRoundStep, roundStep } from '../sim/quests';
 import { quoteHandOver } from '../sim/trade';
 import { type Character, type Mood, MOODS, character } from './portraits';
-import { lineNumber, mainLine } from './questLine';
+import { countedLine, lineNumber } from './questLine';
 import { type RaceCardInfo, raceInfo } from './regattaView';
 import {
   goodOf,
@@ -55,6 +55,8 @@ export interface QuestCardModel {
   arc: string;
   stepNo: number;
   steps: number;
+  /** A lesson's steps show as dots, never as "step n of m" (v1.11). */
+  lesson: boolean;
   speech?: string;
   ask?: string;
   /** "4 / 12" while goods are handed over. */
@@ -117,7 +119,7 @@ export function cardFor(
   const key = `${quest.text}.${step?.id ?? QUEST_DONE}`;
   // A card counts the steps along the quest's main line, as a lesson's bubble does (decision
   // 0185); a step off it (Rook's offer to a stranger, 0190) counts as the step that leads there.
-  const line = mainLine(quest);
+  const line = countedLine(quest);
   const card: QuestCardModel = {
     quest: quest.id,
     kind,
@@ -128,6 +130,7 @@ export function cardFor(
     arc: arcName(quest),
     stepNo: step ? lineNumber(quest, step.id) : line.length,
     steps: line.length,
+    lesson: !!quest.lesson,
     speech: last
       ? tOptional(`${quest.text}.${last.id}.thanks`)
       : tOptional(`${key}.copy`, stepParams(book, step, quest)),

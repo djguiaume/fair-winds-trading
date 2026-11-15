@@ -19,12 +19,9 @@ const host = {
   newVoyage: noop,
   freeSailing: noop,
   settings: noop,
-  help: noop,
-  lessons: noop,
-  transfer: noop,
+  chooseLevel: noop,
   setLanguage: noop,
 };
-const lessons = { label: 'Learn to sail & trade', note: '9 short steps', disabled: false };
 const text = (root: HTMLElement, selector: string) => root.querySelector(selector)!.textContent;
 
 describe('title', () => {
@@ -35,7 +32,7 @@ describe('title', () => {
       primary: 'Continue',
       saveLine: 'Saltmere, day 12, 150 gold',
       offerNew: true,
-      lessons,
+      level: null,
     };
     title.update(state);
     const root = title.screen.root;
@@ -46,6 +43,32 @@ describe('title', () => {
     title.update({ ...state, primary: 'New voyage', saveLine: null, offerNew: false });
     expect(text(root, '#menu-play .ui-row-label')).toBe('New voyage');
     expect(root.querySelector<HTMLElement>('#menu-new')!.hidden).toBe(true);
+  });
+
+  it('keeps three rows, and a level line under them only before a voyage starts', () => {
+    const chooseLevel = vi.fn();
+    const title = new TitleScreen({ ...host, chooseLevel });
+    const state: TitleState = {
+      primary: 'New voyage',
+      saveLine: null,
+      offerNew: false,
+      level: 'Captain',
+    };
+    title.update(state);
+    const root = title.screen.root;
+    const rows = [...root.querySelectorAll('.title-menu > *')].filter(
+      (r) => !(r as HTMLElement).hidden,
+    );
+    expect(rows.map((r) => r.id)).toEqual(['menu-play', 'menu-free', 'menu-settings']);
+    const level = root.querySelector<HTMLButtonElement>('#menu-level')!;
+    expect(level.hidden).toBe(false);
+    expect(level.textContent).toBe('Level: Captain, change');
+    level.click();
+    expect(chooseLevel).toHaveBeenCalledOnce();
+    title.update({ ...state, primary: 'Continue', level: null });
+    expect(level.hidden).toBe(true);
+    for (const gone of ['#menu-help', '#menu-tutorial', '#menu-transfer'])
+      expect(root.querySelector(gone)).toBeNull();
   });
 
   it('leaves Free Sailing out inside a session and takes a row before Settings', () => {

@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import { SLOOP } from '../src/sim/ship';
 import { createWorld, holdStorms } from '../src/sim/world';
-import { buy, sell, sellAll } from '../src/sim/trade';
+import { buy, sell, sellAll, startVoyage } from '../src/sim/trade';
+import { DIFFICULTIES } from '../src/sim/difficulty';
+import { readQuests } from '../src/sim/quests';
 import { saveGame, loadGame, SAVE_KEY, serializeWorld } from '../src/sim/save';
 import { TutorialChoice } from '../src/ui/tutorial';
-import { TUTORIAL, tutorialVoyage } from './helpers/tutorial';
+import { MARKET, TUTORIAL, tutorialVoyage } from './helpers/tutorial';
 
 // Decision 0151: the tutorial is an ordinary quest, run by the quest book and saved with the voyage.
 
@@ -68,7 +70,7 @@ describe('optional tutorial and save compatibility', () => {
     const again = tutorialVoyage(PHASE1_MAP, undefined, restored);
     expect(again.step).toBe('buy');
     expect(again.vars).toEqual({ origin: 'saltmere' });
-    expect(again.quests.tracked).toBe(TUTORIAL);
+    expect(again.quests.tracked).toBe(MARKET);
     expect(storage.getItem(SAVE_KEY)).toBeTruthy();
   });
 
@@ -94,12 +96,14 @@ describe('optional tutorial and save compatibility', () => {
     v.world.trade.captain.cargo.fish = 1;
     v.world.trade.dockedAt = null;
     v.course('calda');
-    expect(v.quests.restore(TUTORIAL, legacy!.step, legacy!.vars)).toBe(true);
+    // The trading steps live in the first market's quest (v1.11).
+    expect(v.quests.restore(TUTORIAL, legacy!.step, legacy!.vars)).toBe(false);
+    expect(v.quests.restore(MARKET, legacy!.step, legacy!.vars)).toBe(true);
     expect(v.step).toBe('deliver');
     v.dock('calda');
     expect(v.step).toBe('sell');
     // Only once: a quest with progress is left alone.
-    expect(v.quests.restore(TUTORIAL, 'sails')).toBe(false);
+    expect(v.quests.restore(MARKET, 'deliver')).toBe(false);
   });
 
   it('keeps a personal course when skipping', () => {
@@ -121,6 +125,27 @@ describe('optional tutorial and save compatibility', () => {
     expect(v.world.stormHolds).toContain('quest');
     v.skip();
     expect(v.quests.holdsStorms).toBe(false);
+  });
+});
+
+describe('saves from before the shorter first voyage (v1.11)', () => {
+  const saved = (step: string, vars = { origin: 'saltmere' }) => ({
+    byId: { [TUTORIAL]: { step, counts: [], chose: { sails: 'continue' }, vars } },
+    tracked: TUTORIAL,
+  });
+
+  it('carries on at the way home from the removed chart lessons', () => {
+    for (const step of ['chart', 'home-port']) {
+      const read = readQuests(saved(step), PHASE1_MAP).byId[TUTORIAL]!;
+      expect(read.step).toBe('home');
+      expect(read.vars).toEqual({ origin: 'saltmere' });
+    }
+  });
+
+  it('finds the first voyage done when it stood at a trading step', () => {
+    const read = readQuests(saved('deliver'), PHASE1_MAP);
+    expect(read.byId[TUTORIAL]!.step).toBe('done');
+    expect(read.tracked).toBeUndefined();
   });
 });
 
@@ -147,7 +172,7 @@ describe('real actions drive lessons', () => {
     v.check();
     expect(v.step).toBe('choose-delivery');
     expect(v.vars.cargo).toBe('fish');
-    expect(v.lesson!.copy).toContain('Port Calda');
+    expect(v.lesson!.port).toBe('calda');
     // A course back to the harbour she bought at is not a delivery.
     v.course('saltmere');
     expect(v.step).toBe('choose-delivery');
@@ -162,8 +187,8 @@ describe('real actions drive lessons', () => {
     const sale = sell(v.world.trade, 'fish', 1);
     expect(sale.ok).toBe(true);
     const events = v.check();
-    expect(events).toContainEqual({ type: 'finished', quest: TUTORIAL });
-    expect(v.quests.isDone(TUTORIAL)).toBe(true);
+    expect(events).toContainEqual({ type: 'finished', quest: MARKET });
+    expect(v.quests.isDone(MARKET)).toBe(true);
     if (purchase.ok && sale.ok)
       expect(v.world.trade.captain.gold).toBe(before - purchase.gold + sale.gold);
     // Replaying starts it over, without touching the voyage.
@@ -187,7 +212,7 @@ describe('real actions drive lessons', () => {
     expect(v.step).toBe('sell');
     expect(sellAll(v.world.trade).ok).toBe(true);
     v.check();
-    expect(v.quests.isDone(TUTORIAL)).toBe(true);
+    expect(v.quests.isDone(MARKET)).toBe(true);
   });
 
   it('offers "use my cargo" only with cargo aboard', () => {
@@ -210,18 +235,35 @@ describe('real actions drive lessons', () => {
     expect(v.running).toBe(true);
   });
 
-  it('only Rook’s harbour counts while he is aboard; clearing the course asks again', () => {
+  it('only Rook’s harbour counts while he is aboard, with or without a course', () => {
     const v = tutorialVoyage();
     v.rescue();
-    expect(v.step).toBe('chart');
-    v.screen('chart');
-    expect(v.step).toBe('home-port');
+    expect(v.step).toBe('home');
     v.course('calda');
-    expect(v.step).toBe('home-port');
-    v.course('saltmere');
+    v.dock('calda');
     expect(v.step).toBe('home');
     v.course(null);
-    expect(v.step).toBe('home-port');
+    v.dock('saltmere');
+    expect(v.step).toBe('thanks');
+  });
+});
+
+describe('the first voyage on every level (v1.11)', () => {
+  it.each(DIFFICULTIES)('finishes the rescue, the first market and the sale on %s', (level) => {
+    const world = createWorld(PHASE1_MAP, SLOOP);
+    startVoyage(world.trade, level);
+    const v = tutorialVoyage(PHASE1_MAP, undefined, world);
+    v.reachMarket();
+    expect(v.quests.isDone(TUTORIAL)).toBe(true);
+    expect(v.step).toBe('buy');
+    expect(buy(world.trade, 'fish', 1).ok).toBe(true);
+    v.check();
+    v.course('calda');
+    world.trade.dockedAt = null;
+    v.dock('calda');
+    expect(sell(world.trade, 'fish', 1).ok).toBe(true);
+    v.check();
+    expect(v.quests.isDone(MARKET)).toBe(true);
   });
 });
 
@@ -237,12 +279,10 @@ describe('tutorial recovery', () => {
     v.world.trade.captain.cargo.fish = 0;
     v.course(null);
     v.check();
-    expect(v.step).toBe('choose-port');
-    // Any port then: it becomes the harbour to buy at.
-    v.course('westholm');
     expect(v.step).toBe('dock');
-    expect(v.vars.origin).toBe('westholm');
+    // Any port then: it becomes the harbour to buy at.
     v.dock('westholm');
+    expect(v.vars.origin).toBe('westholm');
     expect(v.step).toBe('buy');
   });
 

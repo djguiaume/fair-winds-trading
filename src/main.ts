@@ -77,7 +77,13 @@ import {
 } from './ui/questView';
 import { gateMid } from './sim/regatta';
 import { flownPennant, raceBookCards, raceHud } from './ui/regattaView';
-import { LESSONS_QUEST, TUTORIAL_QUEST, TutorialChoice, TutorialCoach } from './ui/tutorial';
+import {
+  LESSONS_QUEST,
+  MARKET_QUEST,
+  TUTORIAL_QUEST,
+  TutorialChoice,
+  TutorialCoach,
+} from './ui/tutorial';
 import {
   type WorldEvent,
   createWorld,
@@ -155,12 +161,12 @@ import { type TitleState, TitleScreen } from './ui/screens/title';
 import { PauseScreen } from './ui/screens/pause';
 import { awayFromGame } from './ui/screens/portraitGate';
 import { NewVoyageScreen } from './ui/screens/newVoyage';
+import { levelName } from './ui/levelCards';
 import { SettingsScreen } from './ui/screens/settings';
 import { SettingsApplier } from './ui/screens/settings/apply';
 import { askConfirm, askDanger } from './ui/screens/confirm';
 import { HelpScreen } from './ui/screens/help';
 import { showUnsupported } from './ui/screens/unsupported';
-import { tutorialOfferDialog } from './ui/screens/tutorialOffer';
 import { WayOfPlaying, firstWay } from './input/wayOfPlaying';
 
 declare const __APP_VERSION__: string;
@@ -421,10 +427,12 @@ boatLooksIn($('trade-panel'), { world, quests, settings, autosave, unlocked }, (
 const tutorialChoice = new TutorialChoice(world.map.name, storage);
 // A lesson under way in the browser's storage before 0151 moves into the voyage once.
 const legacyLesson = resumedVoyage ? tutorialChoice.legacy() : null;
-if (legacyLesson) quests.restore(TUTORIAL_QUEST, legacyLesson.step, legacyLesson.vars);
+if (legacyLesson)
+  // The trading steps moved to their own quest (v1.11); whichever holds the step takes it.
+  for (const id of [TUTORIAL_QUEST, MARKET_QUEST])
+    if (quests.restore(id, legacyLesson.step, legacyLesson.vars)) break;
 const tutorialRunning = () => quests.isRunning(TUTORIAL_QUEST);
 const coach = new TutorialCoach(quests, view.harbours);
-const tutorialOffer = tutorialOfferDialog();
 // People's cards and the journal (decision 0124). `questSeen` holds the cards already shown this
 // session (`<quest>:<step>`, `<quest>:offer`); `questThanks` the finished quests still to thank for.
 const questCard = new QuestCard($<HTMLDialogElement>('quest-card'));
@@ -455,7 +463,7 @@ function dueMainCard() {
  */
 function showDueCard(): boolean {
   // The benchmark sails on through every card (decision 0154).
-  if (bench || questCard.isOpen || tutorialOffer.root.open || tradePanel.isOpen) return false;
+  if (bench || questCard.isOpen || tradePanel.isOpen) return false;
   const due = dueMainCard();
   const card = due && cardFor(quests, world.map, due.quest, due.kind);
   if (!due || !card) return showStopCard();
@@ -637,6 +645,11 @@ quests.onEvent = (e) => {
     if (e.type === 'finished' && quests.isCoached(e.quest)) {
       coach.finished = e.quest;
       if (e.quest === TUTORIAL_QUEST) tutorialChoice.set('completed');
+      // The trading hints come once, at the first market, after the first voyage (v1.11).
+      if (e.quest === TUTORIAL_QUEST && !quests.progress(MARKET_QUEST)) {
+        coach.finished = null;
+        quests.ask(MARKET_QUEST);
+      }
     }
     coach.render();
     refreshMenuTutorial();
@@ -880,10 +893,9 @@ function refreshPause() {
     homePanel.isOpen ||
     windHelp.open ||
     chart.isOpen ||
-    tutorialOffer.root.open ||
     questCard.isOpen;
   coach.setSurface(
-    mode === 'menu' || screens.depth > 0 || windHelp.open || tutorialOffer.root.open
+    mode === 'menu' || screens.depth > 0 || windHelp.open
       ? null
       : chart.isOpen
         ? 'chart'
@@ -909,34 +921,32 @@ function saveLine(): string {
   });
 }
 
-function titleState(): TitleState {
+/** The lessons line of Settings: carry on with the lesson, or start one. */
+function lessonsState() {
   const lesson = lessonFor(quests, view.harbours);
   const unseen = tutorialChoice.status === 'unseen';
   // The first voyage's story running without its coach (0160) keeps the sea to itself.
   const disabled = !lesson && quests.lesson !== undefined;
   return {
+    disabled,
+    label:
+      lesson?.quest === TUTORIAL_QUEST
+        ? t('menu.tutorialContinue')
+        : lesson?.quest === LESSONS_QUEST
+          ? t('menu.lessonsContinue')
+          : unseen
+            ? t('menu.tutorial')
+            : t('menu.lessons'),
+    note: unseen && !lesson ? t('menu.tutorialNote') : '',
+  };
+}
+
+function titleState(): TitleState {
+  return {
     primary: freeSailing ? t('menu.play') : levelPicked ? t('menu.continue') : t('menu.newVoyage'),
     saveLine: levelPicked && !freeSailing ? saveLine() : null,
     offerNew: levelPicked && !freeSailing,
-    lessons: {
-      disabled,
-      label:
-        lesson?.quest === TUTORIAL_QUEST
-          ? t('menu.tutorialContinue')
-          : lesson?.quest === LESSONS_QUEST
-            ? t('menu.lessonsContinue')
-            : unseen
-              ? t('menu.tutorial')
-              : t('menu.lessons'),
-      note: lesson
-        ? t('menu.tutorialStep', {
-            step: String(Math.max(1, lesson.stepNo)),
-            total: String(lesson.steps),
-          })
-        : unseen
-          ? t('menu.tutorialNote')
-          : '',
-    },
+    level: levelPicked || freeSailing ? null : levelName(world.trade.difficulty),
   };
 }
 
@@ -945,12 +955,7 @@ const title = new TitleScreen({
   newVoyage: () => void startOver(),
   freeSailing: freeSailing ? null : enterFreeSailing,
   settings: () => screens.push(settingsScreen.screen),
-  help: openHelp,
-  lessons: () => openLessons(),
-  transfer: () => {
-    transfer.open('send');
-    screens.push(transferScreen);
-  },
+  chooseLevel: openNewVoyage,
   setLanguage: (id) => switchLanguage(id),
 });
 const pause = new PauseScreen({
@@ -1050,16 +1055,14 @@ function setSail(chosen: Difficulty) {
 
 function play() {
   if (freeSetup && !freeSetup.sailed) return freeSetup.open();
-  if (!levelPicked) {
-    openNewVoyage();
-    return;
-  }
+  // One click from the title to sailing: a fresh voyage starts on the level it holds (Captain).
+  if (!levelPicked) return setSail(world.trade.difficulty);
   mode = 'play';
   started = true;
   document.body.classList.remove('in-menu', 'at-title');
   screens.reset();
   if (!freeSailing && tutorialChoice.shouldOffer(resumedVoyage) && !tutorialRunning())
-    offerTutorial();
+    startFirstVoyage();
   refreshPause();
 }
 
@@ -1106,14 +1109,11 @@ coach.onMarket = () => {
   refreshPause();
 };
 coach.onTips = () => $('wind-help-trigger').click();
-/** The first voyage's offer; Esc and B skip the lessons. */
-function offerTutorial() {
-  void tutorialOffer.ask().then((answer) => {
-    if (answer === 'start') startTutorial();
-    else declineTutorial();
-    refreshPause();
-    $('menu-btn').focus({ preventScroll: true });
-  });
+/** The first voyage begins at once: the harbour's line, then the hints (decision 0127, v1.11). */
+function startFirstVoyage() {
+  startTutorial();
+  hud.showToast(t('tutorial.welcome'), 7);
+  refreshMenuTutorial();
 }
 function startTutorial() {
   // A fresh voyage taking the tutorial begins alone at sea (decision 0127).
@@ -1123,17 +1123,6 @@ function startTutorial() {
   }
   coach.finished = null;
   quests.ask(TUTORIAL_QUEST);
-}
-/**
- * "Skip the lessons" (was "Free sailing", renamed by decision 0160): no lessons. A fresh voyage still plays the prologue's story without the coach
- * (decision 0160): alone at sea, sails down, the foghorn, the rescue, Rook's ride home. Otherwise
- * the tutorial stops, if it was running.
- */
-function declineTutorial() {
-  if (!startUncoachedPrologue()) quests.drop(TUTORIAL_QUEST);
-  tutorialChoice.set('skipped');
-  coach.render();
-  refreshMenuTutorial();
 }
 /**
  * A fresh voyage's prologue without the coach (decision 0160): alone at sea at the map's
@@ -1164,7 +1153,7 @@ function openLessons() {
   screens.reset();
   if (tutorialRunning() || quests.isRunning(LESSONS_QUEST)) {
     // Carry on with the lesson under way.
-  } else if (tutorialChoice.status === 'unseen') offerTutorial();
+  } else if (tutorialChoice.status === 'unseen') startTutorial();
   else {
     // Seen the tutorial: Rook's sailing lessons, from wherever the boat is (decision 0164).
     coach.finished = null;
@@ -1201,7 +1190,7 @@ window.addEventListener('keydown', (e) => {
     else chart.open();
     return;
   }
-  if (e.code !== 'Escape' || windHelp.open || chart.isOpen || tutorialOffer.root.open) return;
+  if (e.code !== 'Escape' || windHelp.open || chart.isOpen) return;
   goBack();
 });
 /** Esc, and B on a controller (decision 0163): close the screen on top, or pause at sea. */
@@ -1335,7 +1324,7 @@ pad.onConnect = (connected) => {
 /** Where pad presses go: the boat, the open chart, or a menu, dialog or card on top. */
 function padContext(): PadContext {
   // The chart's map tab plays the cross; its pages (journal, prices, legend) are menus (0196).
-  if (chart.isOpen && !questCard.isOpen && !tutorialOffer.root.open && !windHelp.open)
+  if (chart.isOpen && !questCard.isOpen && !windHelp.open)
     return chart.currentTab === 'map' ? 'chart' : 'menu';
   return paused ? 'menu' : 'sea';
 }
@@ -1484,10 +1473,15 @@ const settingsScreen = new SettingsScreen(
       },
     },
     lessons: {
-      label: () => titleState().lessons.label,
-      note: () => titleState().lessons.note,
-      disabled: () => titleState().lessons.disabled,
+      label: () => lessonsState().label,
+      note: () => lessonsState().note,
+      disabled: () => lessonsState().disabled,
       open: () => openLessons(),
+    },
+    help: openHelp,
+    transfer: () => {
+      transfer.open('send');
+      screens.push(transferScreen);
     },
     setLanguage: switchLanguage,
     free: freeSailing,
@@ -1738,7 +1732,7 @@ function tick(now: number) {
     if (steps === 6) accumulator = 0;
   }
 
-  if (!chart.isOpen && !tutorialOffer.root.open) view.render(dt);
+  if (!chart.isOpen) view.render(dt);
   if (!paused) seaListener.update(world, dt);
   // Pause menus and translucent sheets leave sea instruments visible. Only the title's
   // CSS rule and the opaque, full-screen chart cover the entire HUD.
@@ -1981,6 +1975,8 @@ if (new URLSearchParams(location.search).has('debug')) {
   const freePlay = () => {
     if (!quests.isRunning(TUTORIAL_QUEST)) return;
     quests.drop(TUTORIAL_QUEST);
+    hud.toasts.hide();
+    coach.render();
     resetBoat(world);
     sailStep = world.boat.sailStep;
   };

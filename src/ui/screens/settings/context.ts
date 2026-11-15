@@ -19,6 +19,9 @@ export interface SettingsContext {
   difficulty: { current(): Difficulty; choose(level: Difficulty): void };
   /** The lessons line: Learn to sail, Continue the lessons, Sailing lessons. */
   lessons: { label(): string; note(): string; disabled(): boolean; open(): void };
+  /** How to play and Move your voyage, moved here from the title (v1.11). */
+  help(): void;
+  transfer(): void;
   setLanguage(id: string): void;
   /** A Free Sailing session: nothing in it saves or sends a voyage (decision 0266). */
   free: boolean;

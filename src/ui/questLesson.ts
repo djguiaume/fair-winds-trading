@@ -4,7 +4,7 @@ import { deref } from '../sim/questLibrary';
 import { type CoachTarget, QUEST_DONE, type QuestBook } from '../sim/quests';
 import { isDiscovered } from '../sim/shipyards';
 import { findPort } from '../sim/trade';
-import { mainLine } from './questLine';
+import { countedLine } from './questLine';
 import { goodOf, arcName, stepParams, buyerOf } from './questWords';
 
 /* A lesson's coach bubble, read from the running lesson (decision 0151). */
@@ -62,7 +62,7 @@ export function lessonFor(
   const coach = step.coach ?? {};
   const params = stepParams(book, step, quest);
   const key = `${quest.text}.${step.id}`;
-  const line = mainLine(quest);
+  const line = countedLine(quest);
   const portRef = coach.port ?? step.port;
   let port: string | null;
   if (portRef === 'nearest') port = nearestPort(book, harbours);

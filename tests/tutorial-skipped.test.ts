@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PHASE1_MAP } from '../src/data/maps';
 import { QUESTS, checkQuests, readQuests, type QuestDef } from '../src/sim/quests';
-import { TUTORIAL, tutorialVoyage } from './helpers/tutorial';
+import { MARKET, TUTORIAL, tutorialVoyage } from './helpers/tutorial';
 
 // Skipping the tutorial skips its lessons, not its story (decision 0160).
 describe('the tutorial without its coach', () => {
@@ -45,15 +45,15 @@ describe('the tutorial without its coach', () => {
 
     const after = tutorialVoyage();
     after.rescue();
-    expect(after.step).toBe('chart');
+    expect(after.step).toBe('home');
     after.quests.coachOff(TUTORIAL);
     expect(after.step).toBe('home');
 
     const trading = tutorialVoyage();
     trading.reachMarket();
     expect(trading.step).toBe('buy');
-    trading.quests.coachOff(TUTORIAL);
-    expect(trading.quests.isDone(TUTORIAL)).toBe(true);
+    trading.quests.coachOff(MARKET);
+    expect(trading.step).toBe('sell');
   });
 
   it('asked again, the tutorial speaks from its first lesson', () => {
@@ -89,6 +89,12 @@ describe('the tutorial without its coach', () => {
       'home',
       'thanks',
     ]);
+    // The market hints keep the sale itself as their story step.
+    expect(
+      QUESTS.find((q) => q.id === MARKET)!
+        .steps.filter((s) => !s.teach)
+        .map((s) => s.id),
+    ).toEqual(['sell']);
     const errand: QuestDef = {
       id: 'errand',
       name: 'Errand',

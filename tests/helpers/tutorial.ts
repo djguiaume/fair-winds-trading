@@ -8,6 +8,8 @@ import { lessonFor } from '../../src/ui/questView';
 
 /** The tutorial's quest (decision 0151). */
 export const TUTORIAL = 'first-voyage';
+/** The trading hints that follow the first voyage at the first market. */
+export const MARKET = 'first-market';
 
 /** A pier off each port's island, like the game's harbours. */
 export function harboursOf(map: MapDef = PHASE1_MAP) {
@@ -35,14 +37,18 @@ export function tutorialVoyage(
     world,
     harbours,
     quests: book,
+    /** The lesson in view: the first voyage, then the first market's hints. */
+    get current() {
+      return book.lesson?.quest.id ?? (book.progress(MARKET) ? MARKET : TUTORIAL);
+    },
     get step() {
-      return book.progress(TUTORIAL)?.step;
+      return book.progress(v.current)?.step;
     },
     get vars() {
-      return book.progress(TUTORIAL)?.vars ?? {};
+      return book.progress(v.current)?.vars ?? {};
     },
     get running() {
-      return book.isRunning(TUTORIAL);
+      return book.isRunning(v.current);
     },
     get wreck() {
       return pointOf(map, 'wreck');
@@ -52,7 +58,7 @@ export function tutorialVoyage(
     },
     start: () => book.ask(TUTORIAL),
     skip: () => book.drop(TUTORIAL),
-    cont: (option = 'continue') => book.choose(TUTORIAL, option),
+    cont: (option = 'continue') => book.choose(v.current, option),
     check: (dt = 0) => book.check(dt),
     screen(next: Screen) {
       screen = next;
@@ -92,7 +98,7 @@ export function tutorialVoyage(
       // Rook's card at the rescue (decision 0185): "Welcome aboard".
       if (v.step === 'aboard') v.cont('welcome');
     },
-    /** Rook home to Saltmere, the island, and alongside for the first trade. */
+    /** Rook home to Saltmere, his thanks and the island, then the first market's hints begin. */
     reachMarket() {
       v.rescue();
       v.course('saltmere');
@@ -100,6 +106,8 @@ export function tutorialVoyage(
       // Rook's thanks on the quay (decision 0190), then the island.
       if (v.step === 'thanks') v.cont();
       v.cont();
+      // The game asks for the trading hints when the first voyage is done (v1.11).
+      book.ask(MARKET);
     },
   };
   return v;

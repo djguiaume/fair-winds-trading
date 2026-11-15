@@ -6,8 +6,10 @@ import { padGlyph } from './padGlyphs';
 type Surface = 'sea' | 'chart' | 'market' | null;
 type Side = 'top' | 'bottom' | 'left' | 'right' | 'none';
 
-/** The tutorial: the quest the title menu and the first-voyage offer start (decision 0151). */
+/** The tutorial: the quest a new voyage and the Settings lessons row start (decision 0151). */
 export const TUTORIAL_QUEST = 'first-voyage';
+/** The trading hints, at the first market once the first voyage is done (v1.11). */
+export const MARKET_QUEST = 'first-market';
 /** The sailing lessons: Rook's course, replayable from the title menu (decision 0164). */
 export const LESSONS_QUEST = 'sailing-lessons';
 
@@ -245,11 +247,7 @@ export class TutorialCoach {
     }
     const title = document.createElement('h3');
     title.setAttribute('role', 'status');
-    title.textContent = done
-      ? done.title
-      : step >= 0
-        ? `${step + 1}/${steps} · ${lesson!.title}`
-        : lesson!.title;
+    title.textContent = done ? done.title : lesson!.title;
     head.append(dots, title);
     this.card.append(head);
     if (!finished)
