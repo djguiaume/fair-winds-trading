@@ -10,9 +10,10 @@ Threads: do not repeat these by hand. Tools live in `tools/ci/`, limits in data 
 | `Screenshot sheet` (`sheet`) | Guillaume's PRs touching the game | one JPG comment: the sea day, night, Saltmere market and chart, each at desktop and phone landscape. Views: `tools/ci/sheet.json`. Look at it once; take your own shots only for something it does not show |
 | `CI summary` | after the three above | a comment with only the failing lines, updated in place, "green" when fixed. Read it instead of the log |
 | `Auto-merge` (`arm`) | label `automerge`, or Guillaume's approval | arms GitHub auto-merge. Only for branches in this repo whose PR author is djguiaume; never forks. A PR labelled `visual` also needs the `visual-ok` label or his approval: **never add `visual-ok` yourself**, only after Guillaume has seen the shots |
+| `Close issues` | a PR merged into main | closes every issue the PR body names after Fixes/Closes/Resolves, also the 2nd and 3rd of "Fixes #1, #2" (GitHub closes only the first). "Refs #N" never closes |
 | `Issue triage` | new issues | "bug:" / "idea:" titles get the label; bug/idea issues without a milestone get the next one (`.github/triage.json`) |
 | `Prepare release` | run by hand | PR setting `package.json` to the release number (the menu shows `<major>.<minor>.<merges>`) |
-| `GitHub release` | run by hand or tag | uses `docs/releases/<tag>.md`, or drafts notes from the closed issues of the `milestone` input |
+| `GitHub release` | run by hand or tag | uses `docs/releases/<tag>.md`, or drafts notes from the closed issues of the `milestone` input; with a milestone it also lists the issues still open in it (warning and step summary) |
 | `Graphify` | push to main | rebuilds the graph as an artifact (checks it still builds); still run `graphify update .` yourself |
 
 ## Setup only Guillaume can do

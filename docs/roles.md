@@ -8,6 +8,7 @@ Who decides what in a release, and how threads talk to each other. Guillaume set
 - Runs at most 3 to 5 build threads at a time, one per issue, never two on the same files.
 - New bugs and ideas from playtests become short issues (label `bug` or `idea`) for the next release, unless Guillaume says fix now.
 - Keeps the release moving: when a part merges or closes, starts the next unblocked one at once, and whenever it is waiting posts Guillaume one line saying what is left and who it waits on. Never sits idle.
+- Checks the open list at release: runs `GitHub release` with the milestone, closes or moves every issue it lists as still open. The `Close issues` workflow closes merged PRs' issues, but only the lead makes sure the list is true.
 - Does the release itself (version, `docs/releases/`, decision) and resolves the role threads when it ships.
 
 ## Build threads
