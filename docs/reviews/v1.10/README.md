@@ -5,7 +5,7 @@ One pass over everything the release changes. Each sheet shows before and after;
 | Part | Look at | Notes |
 |---|---|---|
 | Ring towns (#528, #544) | [contact sheet](towns-ring-contact.jpg), single sheets in [towns/](towns/ring.md) | Calda, Saltmere, Westholm, Stonehaven reworked after the art director's review; Skerry kept (quest plots) |
-| Far-sea towns (#528, #544) | [contact sheet](towns-far-contact.jpg), single sheets in [towns/](towns/far-seas.md) | Sunreach still follows its crescent (narrow ledges); Organ Pipes and Spark Rock have no houses |
+| Far-sea towns (#528, #544) | [contact sheet](towns-far-contact.jpg), single sheets in [towns/](towns/far-seas.md) | Sunreach follows its crescent on purpose (Guillaume); Organ Pipes and Spark Rock have no houses |
 | Village rules and check (0306) | [rules/](rules/README.md) | No picture to judge, the town check now rejects grids |
 | Night (#525, #526, #543) | [night-lights/](night-lights/README.md) | Lit windows, the Ultra moon, warm lamp halos |
 | Follow-cam look (#539 to #542) | [follow-cam/](follow-cam/README.md) | Wake, wind streaks, lighthouse beam, Ultra mirror |

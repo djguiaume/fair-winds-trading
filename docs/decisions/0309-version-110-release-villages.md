@@ -1,6 +1,6 @@
 # 0309. Version 1.10 release, Villages
 
-**Status:** Proposed (2026-11-14). Becomes Accepted when Guillaume validates the combined sheets.
+**Status:** Accepted (2026-11-15). Guillaume validated the combined sheets ("Go for the release"; Sunreach follows its crescent, as intended).
 
 ## Context
 
@@ -14,5 +14,5 @@ Every part of the [v1.10 brief](../v1.10/brief.md) is merged on `main`: the orga
 
 ## Consequences
 
-- Open for later: a phone and tablet `?bench` for the follow-cam and night changes (#377), Westholm's millpond, a light spill under lit windows seen from above, Sunreach's crescent layout.
+- Open for later: a phone and tablet `?bench` for the follow-cam and night changes (#377), Westholm's millpond, a light spill under lit windows seen from above.
 - Next is v1.11 "Welcome aboard" (#531 to #537, #560), then v1.12 "Light and water" and v1.13 "Soft and rich" ([review order, #568](../reviews/whole-game-v1.9/README.md)).
