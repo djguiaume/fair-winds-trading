@@ -30,6 +30,10 @@ A 40° variant would keep the calls flat but sits flatter than §13 allows.
 | --- | --- | --- | --- |
 | 1 (2026-11-15) | A, B, C | B: A puts the sail over the island and harbour at the pier, C shrinks the boat too much on a phone and at 8 kn; wider view OK | |
 
+## Before and after
+
+[before-after.jpg](before-after.jpg): main's follow cam against framing B at Saltmere's pier, desktop and phone.
+
 ## After the review
 
 Guillaume (2026-11-15): keep all three. The camera button (C, the pad's right-stick press, the
