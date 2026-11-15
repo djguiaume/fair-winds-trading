@@ -44,11 +44,11 @@ export class CameraControls {
     // In the follow cam the same drags look round the boat (issue #536).
     input.onCameraTurn = (dx, dy, device) => dragTurn(chase.active ? chase : orbit, dx, dy, device);
     input.onCameraReset = () => this.resetView();
-    input.onCameraChase = () => chase.toggle();
+    input.onCameraChase = () => chase.cycle();
     this.compass = new CompassCamera(
       document.getElementById('wind-compass')!,
       () => this.resetView(),
-      () => chase.toggle(),
+      () => chase.cycle(),
     );
     this.sync();
   }
@@ -63,11 +63,11 @@ export class CameraControls {
 
   /**
    * The pad's one camera button (right stick in): back to rest when the camera is turned,
-   * otherwise it switches the close chase view.
+   * otherwise on to the next view of the cycle (decision 0312).
    */
   private pressCameraButton() {
     if (this.turned) this.resetView();
-    else this.chase.toggle();
+    else this.chase.cycle();
   }
 
   /** The view in use is turned away from where it rests. */

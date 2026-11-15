@@ -1,4 +1,4 @@
-import { num, type TuningMeta } from './tuning-meta-types';
+import { num, text, type TuningMeta } from './tuning-meta-types';
 
 /** `camera.json`: the sea camera and the player turning it (decision 0223). */
 export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
@@ -124,7 +124,11 @@ export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
     's',
     'With "Camera comes back by itself" on: seconds without camera input before it eases back.',
   ),
-  'camera.chase.fovDeg': num(
+  'camera.chase.cycle': text(
+    'Camera button cycle',
+    'The views the camera button steps through, in order: framing ids from chase.framings and "top" for the sea camera.',
+  ),
+  'camera.chase.framings.*.fovDeg': num(
     'Follow cam view',
     30,
     80,
@@ -132,7 +136,7 @@ export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
     '°',
     'Vertical field of view in the follow cam (the sea camera keeps 40°). Wider shows more round the boat.',
   ),
-  'camera.chase.boatY': num(
+  'camera.chase.framings.*.boatY': num(
     'Boat on screen',
     0.5,
     0.8,
@@ -140,7 +144,7 @@ export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
     'of height',
     "How far down the screen the boat's centre sits (art bible §13: 0.62 to 0.68).",
   ),
-  'camera.chase.horizonY': num(
+  'camera.chase.framings.*.horizonY': num(
     'Horizon at rest',
     0.2,
     0.55,
@@ -148,7 +152,7 @@ export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
     'of height',
     'How far down the screen the horizon sits when she is slow (art bible §13: 0.35 to 0.42).',
   ),
-  'camera.chase.horizonYFast': num(
+  'camera.chase.framings.*.horizonYFast': num(
     'Horizon at speed',
     0.2,
     0.55,
@@ -164,7 +168,7 @@ export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
     'units',
     "How high above the water the point the camera frames as the boat's centre is.",
   ),
-  'camera.chase.distance': num(
+  'camera.chase.framings.*.distance': num(
     'Chase distance',
     10,
     100,
@@ -172,7 +176,7 @@ export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
     'units',
     "How far from the boat's centre the follow cam stands at rest, at zoom 1.",
   ),
-  'camera.chase.pullAtSpeed': num(
+  'camera.chase.framings.*.pullAtSpeed': num(
     'Pull back at speed',
     0,
     0.5,

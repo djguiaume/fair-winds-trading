@@ -11,7 +11,7 @@ to her high side so the sail leans away from the way ahead).
 | B Mid | 56° | 27 units (+25%) | 65% | 40% / 36% | 17° / 20° |
 | C High and wide | 58° | 36 units (+30%) | 66% | 40% / 37% | 19° / 22° |
 
-How it works: the framing is set in screen terms in `camera.json` › `chase` (`boatY`, `horizonY`,
+How it works: each framing is set in screen terms in `camera.json` › `chase.framings` (`boatY`, `horizonY`,
 `horizonYFast`, `fovDeg`); the camera's height over the boat and its tilt follow from those, so the
 boat and the horizon land where §13 says at any distance. The horizon is the edge of the sea in
 the fog, not the true horizon. Speed eases in over 2 s, so the camera never pumps; no roll.
@@ -30,9 +30,15 @@ A 40° variant would keep the calls flat but sits flatter than §13 allows.
 | --- | --- | --- | --- |
 | 1 (2026-11-15) | A, B, C | B: A puts the sail over the island and harbour at the pier, C shrinks the boat too much on a phone and at 8 kn; wider view OK | |
 
+## After the review
+
+Guillaume (2026-11-15): keep all three. The camera button (C, the pad's right-stick press, the
+button under the compass) steps B, C, top view, A (`camera.json` › `chase.cycle`); each framing is
+its own entry in `chase.framings`.
+
 ## Re-create
 
 ```
-npm run shots -- --at 173,-70 --heading 120 --speed 5 --chase --quality high --wait 8000 --tune docs/reviews/v1.11/follow-cam-framing/src/b.json
-npm run shots -- --at 0,-330 --heading 180 --speed 9 --chase --quality high --wait 8000 --tune docs/reviews/v1.11/follow-cam-framing/src/b.json
+npm run shots -- --at 173,-70 --heading 120 --speed 5 --chase --quality high --wait 8000 --script docs/reviews/v1.11/follow-cam-framing/src/framing-b.js
+npm run shots -- --at 0,-330 --heading 180 --speed 9 --chase --quality high --wait 8000 --script docs/reviews/v1.11/follow-cam-framing/src/framing-b.js
 ```

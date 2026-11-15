@@ -5,8 +5,12 @@ import { DEG, clamp, lerp } from '../sim/math';
  * The follow cam's framing (art bible §13, issue #537), set in screen terms: the boat's centre
  * `boatY` and the horizon `horizonY` down the screen (0 top, 1 bottom) with a vertical field of
  * view `fovDeg`. Those three fix both angles; the distance only sets how big the boat is.
- * Numbers: `camera.json` › `chase`. No three.js here, so tests drive it.
+ * Numbers: `camera.json` › `chase` › `framings` (decision 0312). No three.js here, so tests drive it.
  */
+export type Framing =
+  (typeof TUNING.camera.chase.framings)[keyof typeof TUNING.camera.chase.framings];
+
+/** Where the camera stands this frame. */
 export interface ChaseFrame {
   /** The elevation with no player tilt (radians), where a look round comes back to. */
   rest: number;
@@ -26,12 +30,13 @@ function belowMiddle(y: number, fov: number): number {
 }
 
 /**
- * The frame at `pace` (0 at rest .. 1 at full speed: the camera climbs, so the horizon moves a
+ * The frame for framing `f` at `pace` (0 at rest .. 1 at full speed: the camera climbs, so the horizon moves a
  * little up the screen, and pulls back), turned `tilt` steeper by the player within the orbit
  * limits, at `zoom`. The sea ends `sight` away in the fog, a little below the true horizon, so
  * the frame places that edge. Written into `out`, so a frame allocates nothing.
  */
 export function chaseFrame(
+  f: Framing,
   pace: number,
   tilt: number,
   zoom: number,
@@ -39,11 +44,11 @@ export function chaseFrame(
   out: ChaseFrame,
 ): ChaseFrame {
   const c = TUNING.camera.chase;
-  const fov = c.fovDeg * DEG;
-  const boat = belowMiddle(c.boatY, fov);
+  const fov = f.fovDeg * DEG;
+  const boat = belowMiddle(f.boatY, fov);
   // The horizon lies straight out, so it sits as far above the middle as the camera looks down.
-  const lookDown = -belowMiddle(lerp(c.horizonY, c.horizonYFast, pace), fov);
-  const distance = c.distance * zoom * (1 + c.pullAtSpeed * pace);
+  const lookDown = -belowMiddle(lerp(f.horizonY, f.horizonYFast, pace), fov);
+  const distance = f.distance * zoom * (1 + f.pullAtSpeed * pace);
   let rest = lookDown + boat;
   // The sea's edge dips below the horizon by the camera's height over the sight distance, and the
   // height depends on the elevation: two rounds settle it well under a pixel.

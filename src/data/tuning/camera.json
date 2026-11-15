@@ -17,13 +17,34 @@
   "resetRate": 4,
   "returnAfterSeconds": 5,
   "chase": {
-    "fovDeg": 56,
-    "boatY": 0.65,
-    "horizonY": 0.4,
-    "horizonYFast": 0.36,
+    "cycle": "b, c, top, a",
+    "framings": {
+      "a": {
+        "fovDeg": 54,
+        "boatY": 0.66,
+        "horizonY": 0.41,
+        "horizonYFast": 0.37,
+        "distance": 20,
+        "pullAtSpeed": 0.2
+      },
+      "b": {
+        "fovDeg": 56,
+        "boatY": 0.65,
+        "horizonY": 0.4,
+        "horizonYFast": 0.36,
+        "distance": 27,
+        "pullAtSpeed": 0.25
+      },
+      "c": {
+        "fovDeg": 58,
+        "boatY": 0.66,
+        "horizonY": 0.4,
+        "horizonYFast": 0.37,
+        "distance": 36,
+        "pullAtSpeed": 0.3
+      }
+    },
     "aimHeight": 1.5,
-    "distance": 27,
-    "pullAtSpeed": 0.25,
     "fullSpeedKn": 12,
     "speedEaseSec": 2,
     "leeShiftPerDeg": 0.4,

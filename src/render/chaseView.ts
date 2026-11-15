@@ -1,19 +1,34 @@
 import { TUNING } from '../data/tuning';
 import { DEG, approach, clamp, wrapAngle } from '../sim/math';
-import { type ChaseFrame, chaseFrame } from './chaseFrame';
+import { type ChaseFrame, type Framing, chaseFrame } from './chaseFrame';
 
 /** Below this the follow cam counts as back behind the boat: the reset button hides. */
 const HOME_EPSILON = 0.5 * DEG;
+
+/** The camera button's stop for the sea camera above the boat, in `chase.cycle`. */
+export const TOP_VIEW = 'top';
+
+/** The views the camera button steps through, in order (`camera.json` › `chase.cycle`). */
+export function cameraCycle(): string[] {
+  return TUNING.camera.chase.cycle.split(',').map((id) => id.trim());
+}
+
+type FramingId = keyof typeof TUNING.camera.chase.framings;
 
 /**
  * The optional close chase view: the camera sits behind and just above the boat and turns with it.
  * This holds only its state (on or off, how far the switch has eased, the smoothed heading, the
  * player's zoom and look round the boat, how fast she goes and how far she heels); `CameraRig`
- * places the camera from it. Numbers: `camera.json` › `chase`.
+ * places the camera from it. The camera button steps through the follow cam's framings and the
+ * sea camera (decision 0312). Numbers: `camera.json` › `chase`.
  */
 export class ChaseView {
   /** The player switched the view on. */
   active = false;
+  /** The follow cam's framing in use (`chase.framings`). */
+  framing: FramingId = firstFraming();
+  /** The framing on screen, eased toward `framing` so a step of the camera button glides. */
+  private readonly shown: Framing = { ...TUNING.camera.chase.framings[this.framing] };
   /** 0 = the sea camera, 1 = the chase camera; eases between the two. */
   blend = 0;
   /** The compass bearing the chase camera looks toward, trailing the boat's heading. */
@@ -40,6 +55,19 @@ export class ChaseView {
     this.overshoot = 0;
   }
 
+  /** The camera button: on to the next view of the cycle, the sea camera or a framing. */
+  cycle() {
+    const views = cameraCycle();
+    const now = views.indexOf(this.active ? this.framing : TOP_VIEW);
+    const next = views[(now + 1) % views.length] ?? TOP_VIEW;
+    if (next === TOP_VIEW) {
+      if (this.active) this.toggle();
+      return;
+    }
+    this.framing = next as FramingId;
+    if (!this.active) this.toggle();
+  }
+
   /**
    * `wanted` is false while another view (the home island focus) needs the sea camera; `heel` is
    * her heel in radians, as `BoatPose.heel`.
@@ -52,6 +80,7 @@ export class ChaseView {
     // Off, the heading rests on the boat so the view starts straight behind it.
     if (this.blend === 0) this.heading = boatHeading;
     else this.heading += wrapAngle(boatHeading - this.heading) * (1 - Math.exp(-c.turnRate * dt));
+    this.easeFraming(this.blend === 0 ? 0 : dt);
     this.pace = approach(this.pace, paceAt(speedKn), 1 / c.speedEaseSec, dt);
     this.side = approach(this.side, sideAt(heel), 1 / c.speedEaseSec, dt);
     this.idle += dt;
@@ -63,6 +92,7 @@ export class ChaseView {
     this.heading = boatHeading;
     this.pace = paceAt(speedKn);
     this.side = sideAt(heel);
+    this.easeFraming(0);
   }
 
   /** The switch as a smooth 0..1 curve, so the move starts and ends gently. */
@@ -77,7 +107,7 @@ export class ChaseView {
 
   /** The camera's angles and distance this frame, the sea ending `sight` away, into `out`. */
   frame(sight: number, out: ChaseFrame): ChaseFrame {
-    chaseFrame(this.pace, this.tilt, this.zoom, sight, out);
+    chaseFrame(this.shown, this.pace, this.tilt, this.zoom, sight, out);
     this.rest = out.rest;
     return out;
   }
@@ -130,6 +160,15 @@ export class ChaseView {
     return true;
   }
 
+  /** The framing on screen glides to the chosen one over `dt`; a `dt` of 0 lands on it at once. */
+  private easeFraming(dt: number) {
+    const target = TUNING.camera.chase.framings[this.framing];
+    const shown = this.shown;
+    const rate = TUNING.camera.chase.blendRate;
+    for (const key of FRAMING_KEYS)
+      shown[key] = dt > 0 ? approach(shown[key], target[key], rate, dt) : target[key];
+  }
+
   /** The look round eases back behind the boat, at the sea camera's reset rate. */
   private ease(dt: number) {
     const rate = TUNING.camera.resetRate;
@@ -139,6 +178,15 @@ export class ChaseView {
     if (this.turned) return;
     this.yaw = this.tilt = 0;
   }
+}
+
+const FRAMING_KEYS = Object.keys(TUNING.camera.chase.framings.b) as (keyof Framing)[];
+
+/** The first follow-cam framing of the cycle, where `?perf&chase=1` and the shots start. */
+function firstFraming(): FramingId {
+  const framings = TUNING.camera.chase.framings;
+  const id = cameraCycle().find((v) => v in framings) ?? 'b';
+  return id as FramingId;
 }
 
 /** Her speed as a share of the follow cam's full speed, 0..1. */

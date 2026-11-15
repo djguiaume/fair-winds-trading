@@ -4,7 +4,7 @@ import { TUNING, resetTuning } from '../src/data/tuning';
 import { type ChaseFrame, chaseFrame } from '../src/render/chaseFrame';
 import { CameraRig } from '../src/render/cameraRig';
 import { dragTurn } from '../src/render/cameraOrbit';
-import { ChaseView } from '../src/render/chaseView';
+import { ChaseView, TOP_VIEW, cameraCycle } from '../src/render/chaseView';
 import { DEG } from '../src/sim/math';
 
 const c = TUNING.camera.chase;
@@ -45,8 +45,8 @@ describe('the follow cam framing (art bible §13, issue #537)', () => {
   });
 
   it('rests 12-20° over the boat, climbs to at most 30° and pulls back at most 30%', () => {
-    const rest = chaseFrame(0, 0, 1, SIGHT, frame());
-    const fast = chaseFrame(1, 0, 1, SIGHT, frame());
+    const rest = chaseFrame(c.framings.b, 0, 0, 1, SIGHT, frame());
+    const fast = chaseFrame(c.framings.b, 1, 0, 1, SIGHT, frame());
     expect(rest.elevation / DEG).toBeGreaterThanOrEqual(12);
     expect(rest.elevation / DEG).toBeLessThanOrEqual(20);
     expect(fast.elevation).toBeGreaterThan(rest.elevation);
@@ -122,5 +122,39 @@ describe('looking round the boat in the follow cam (issue #536)', () => {
     view.reset();
     for (let t = 0; t < 5; t += 0.05) view.update(0.05, 0, true, 5);
     expect(view.turned).toBe(false);
+  });
+});
+
+describe('the camera button cycle (decision 0312)', () => {
+  afterEach(resetTuning);
+
+  it('names only framings and the top view', () => {
+    for (const id of cameraCycle()) expect(id === TOP_VIEW || id in c.framings, id).toBe(true);
+  });
+
+  it('steps B, C, top, A and round again', () => {
+    TUNING.camera.chase.cycle = 'b, c, top, a';
+    const view = new ChaseView();
+    const seen: string[] = [];
+    for (let i = 0; i < 5; i++) {
+      view.cycle();
+      seen.push(view.active ? view.framing : TOP_VIEW);
+    }
+    expect(seen).toEqual(['a', 'b', 'c', 'top', 'a']);
+  });
+
+  it('glides from one framing to the next, landing on it', () => {
+    const view = new ChaseView();
+    view.cycle();
+    for (let t = 0; t < 3; t += 0.05) view.update(0.05, 0, true);
+    const from = view.frame(SIGHT, frame()).distance;
+    view.framing = 'c';
+    view.update(0.05, 0, true);
+    const between = view.frame(SIGHT, frame()).distance;
+    for (let t = 0; t < 5; t += 0.05) view.update(0.05, 0, true);
+    const to = view.frame(SIGHT, frame()).distance;
+    expect(between).toBeGreaterThan(from);
+    expect(between).toBeLessThan(to);
+    expect(to).toBeCloseTo(c.framings.c.distance);
   });
 });
