@@ -20,6 +20,8 @@ test('a scenario missing from the report is a problem', () => {
 });
 const budgets = {
   scenarios: { a: 2 },
+  levels: { low: { sailing: { calls: 17, triangles: 41000 } } },
+  firstLoad: { limits: { requests: 24, bytes: 3120000 } },
   frameWork: { limitsMs: { sailing: 100 } },
   gpuMemory: { limitsMB: { ultra: 470 } },
 };
@@ -28,12 +30,25 @@ test('a report at High is held to the scenario counts', () => {
   assert.deepEqual(budgetFor(reportAt('http://x/?debug=', 'high'), budgets), {
     scenarios: budgets.scenarios,
     frameWorkMs: budgets.frameWork.limitsMs,
+    firstLoad: budgets.firstLoad.limits,
     gpuMemoryMB: undefined,
   });
 });
+test('Low and Medium are held to their own counts, not those of High (issue #558)', () => {
+  const low = budgetFor(reportAt('http://x/?debug=', 'low'), budgets);
+  assert.deepEqual(low.scenarios, budgets.levels.low);
+  assert.deepEqual(low.firstLoad, {});
+  assert.deepEqual(budgetFor(reportAt('http://x/?debug=', 'medium'), budgets).scenarios, {});
+});
+test('a first load past the budget is a problem (issue #557)', () => {
+  const held = { scenarios: {}, firstLoad: { requests: 24, bytes: 3120000 } };
+  const load = (requests, bytes) => ({ scenario: 'firstLoad', firstLoad: { requests, bytes } });
+  assert.deepEqual(overBudget({ runs: [load(22, 2837000)] }, held), []);
+  assert.equal(overBudget({ runs: [load(30, 4000000)] }, held).length, 2);
+});
 test('Ultra is held to its graphics memory, not to the counts set at High', () => {
   const ultra = budgetFor(reportAt('http://x/?debug=', 'ultra'), budgets);
-  assert.deepEqual(ultra, { scenarios: {}, frameWorkMs: {}, gpuMemoryMB: 470 });
+  assert.deepEqual(ultra, { scenarios: {}, frameWorkMs: {}, firstLoad: {}, gpuMemoryMB: 470 });
   assert.deepEqual(overBudget({ runs: [runOf(90, 400000, 430)] }, ultra), []);
   assert.equal(overBudget({ runs: [runOf(90, 400000, 711)] }, ultra).length, 1);
 });

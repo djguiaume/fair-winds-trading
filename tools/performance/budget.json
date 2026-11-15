@@ -1,15 +1,76 @@
 {
-  "note": "Draw calls and triangles per scenario at quality high in the headless run, set about 10% above the measurement (smooth ground, 2026-10-29, #278: about 150k triangles on screen, mostly the island ground; sailing and docking re-set after the town folk of #477 and the rich town houses of #500, which add one mesh per town in view). The classic look and its budget were retired with decision 0307 (#563). A rendering change that needs more raises it here with its reason in the PR. Not a replacement for ?bench on a real device.",
+  "note": "Draw calls and triangles per scenario at quality high in the headless run, set about 10% above the measurement (smooth ground, 2026-10-29, #278: about 150k triangles on screen, mostly the island ground; sailing and docking re-set after the town folk of #477 and the rich town houses of #500, which add one mesh per town in view). Chase scenarios are the same set-ups from the follow cam, other levels have their own counts under `levels` (issue #558; measured 2026-11-15, set about 10% above). The classic look and its budget were retired with decision 0307 (#563). A rendering change that needs more raises it here with its reason in the PR. Not a replacement for ?bench on a real device.",
   "scenarios": {
-    "sailing": { "calls": 38, "triangles": 177000 },
-    "docking": { "calls": 42, "triangles": 166000 }
+    "sailing": {
+      "calls": 38,
+      "triangles": 177000
+    },
+    "docking": {
+      "calls": 42,
+      "triangles": 166000
+    },
+    "sailingChase": {
+      "calls": 37,
+      "triangles": 158000
+    },
+    "dockingChase": {
+      "calls": 58,
+      "triangles": 230000
+    }
   },
   "frameWork": {
     "note": "Hitch budget (issue #516): the worst main-thread work in one frame (ms), every animation-frame callback timed from the scenario's action on (simulation, HUD, builds spread over frames, shader waits, the render call), at quality high. Unlike the frame interval it barely depends on the software renderer, so it carries over to a device: a hitch is a frame of 100 ms or more, and a town growing in play keeps every frame under twice the 60 fps frame (33.3 ms). Headless measurement 2026-11-12: sailing and docking about 30 ms, town growth about 23 ms. A raise needs its reason in the PR.",
-    "limitsMs": { "sailing": 100, "docking": 100, "townGrowth": 33.3 }
+    "limitsMs": {
+      "sailing": 100,
+      "docking": 100,
+      "townGrowth": 33.3,
+      "sailingChase": 100,
+      "dockingChase": 100
+    }
   },
   "gpuMemory": {
     "note": "Graphics memory (MB) a report may hold at a level (decision 0246), measured by CI at 1920x1080 scale 2, as on a 4K TV (PERF_SCREEN=1920x1080@2). Ultra went past the Xbox Edge's share at 711 MB and crashed its graphics; after the cut it held 428 MB, 349 MB after the lean shadow map (decision 0289), 321 MB once Ultra drew straight to a canvas without depth (decision 0297), and 330 MB with the bloom (decision 0299). Set about 10% above; a raise needs its reason in the PR and an Xbox re-test.",
-    "limitsMB": { "ultra": 355 }
+    "limitsMB": {
+      "ultra": 355
+    }
+  },
+  "levels": {
+    "low": {
+      "sailing": {
+        "calls": 17,
+        "triangles": 41000
+      },
+      "sailingChase": {
+        "calls": 23,
+        "triangles": 28000
+      }
+    },
+    "medium": {
+      "sailing": {
+        "calls": 22,
+        "triangles": 58000
+      },
+      "sailingChase": {
+        "calls": 26,
+        "triangles": 45500
+      }
+    },
+    "ultra": {
+      "sailing": {
+        "calls": 63,
+        "triangles": 308000
+      },
+      "sailingChase": {
+        "calls": 84,
+        "triangles": 313000
+      }
+    }
+  },
+  "firstLoad": {
+    "note": "What the page fetches before the title menu is usable (issue #557), from the production build in headless Chromium, bodies as served by vite preview (not compressed). Measured 2026-11-15: 22 requests, 2,837 kB, once the Ultra code (43 kB) and the QR reader stay out of the first load. Set about 10% above; a raise needs its reason in the PR.",
+    "limits": {
+      "requests": 24,
+      "bytes": 3120000
+    }
   }
 }

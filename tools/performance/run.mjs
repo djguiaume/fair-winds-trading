@@ -6,6 +6,8 @@ import { pathToFileURL } from 'node:url';
 import { summarize } from './stats.mjs';
 import { countGpuMemory, readGpuMemory } from './gpuMemory.mjs';
 import { timeFrameWork } from './frameWork.mjs';
+import { countFirstLoad } from './firstLoad.mjs';
+import { measureBeyondFog } from './beyondFog.mjs';
 
 const config = JSON.parse(await readFile(new URL('./scenarios.json', import.meta.url), 'utf8'));
 // CI runs a short list once (decision 0153: the workflow only calls the tools).
@@ -28,7 +30,18 @@ for (const key of ['repeats', 'warmupMs', 'durationMs', 'timeoutMs']) {
   if (!Number.isFinite(config[key]) || config[key] <= 0)
     throw new Error(`Invalid ${key} in scenarios.json`);
 }
-const supported = ['startup', 'sailing', 'storm', 'docking', 'townGrowth', 'qualityChange'];
+// The Chase scenarios are the same set-ups seen from the follow cam (issue #558).
+const supported = [
+  'firstLoad',
+  'startup',
+  'sailing',
+  'sailingChase',
+  'storm',
+  'docking',
+  'dockingChase',
+  'townGrowth',
+  'qualityChange',
+];
 if (!config.scenarios.length || config.scenarios.some((name) => !supported.includes(name)))
   throw new Error('Unknown or empty scenario list');
 const url = new URL(process.argv[2] || 'http://localhost:5180/');
@@ -67,8 +80,19 @@ try {
       page.setDefaultTimeout(config.timeoutMs);
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
+      const stopCounting = scenario === 'firstLoad' ? countFirstLoad(page) : null;
       await page.goto(url.href);
       await page.waitForFunction(() => !!window.fwt);
+      if (stopCounting) {
+        await page.locator('#menu-play').waitFor();
+        const firstLoad = await stopCounting();
+        report.runs.push({ scenario, repeat, firstLoad });
+        console.log(
+          `firstLoad ${repeat + 1}: ${firstLoad.requests} requests, ${(firstLoad.bytes / 1024).toFixed(0)} kB before the title menu`,
+        );
+        await context.close();
+        continue;
+      }
       const startupMs = await page.evaluate(() => performance.now());
       await page.locator('#menu-play').click();
       // Skip the hints as a player would; the prologue a skipped tutorial still plays is the scene
@@ -99,12 +123,14 @@ try {
         async ({ scenario, config }) => {
           const { world, input, trade } = window.fwt;
           const boat = world.boat;
+          const chase = scenario.endsWith('Chase');
+          const kind = chase ? scenario.slice(0, -'Chase'.length) : scenario;
           const frame = () => new Promise((r) => requestAnimationFrame(r));
           const start = performance.now();
           window.perfActionAt = start;
           let selectedPort = null;
           const changes = [];
-          if (scenario === 'qualityChange') {
+          if (kind === 'qualityChange') {
             for (const level of config.qualityChange.levels) {
               const before = performance.now();
               window.fwt.view.setQuality(level);
@@ -112,14 +138,14 @@ try {
               await frame();
             }
           }
-          if (scenario === 'sailing' || scenario === 'storm') {
+          if (kind === 'sailing' || kind === 'storm') {
             boat.x = world.map.boundsRadius * config.sailing.radiusShare;
             boat.y = 0;
             boat.heading = world.wind.from + (config.sailing.headingOffsetDeg * Math.PI) / 180;
             world.trade.dockedAt = null;
             input.setSail(config.sailing.sailStep);
           }
-          if (scenario === 'storm') {
+          if (kind === 'storm') {
             world.dynamicWeather = true;
             world.storms = true;
             world.steadyWind = false;
@@ -143,7 +169,7 @@ try {
             boat.y = found.y;
             await frame();
           }
-          if (scenario === 'docking') {
+          if (kind === 'docking') {
             input.setSail(0);
             boat.speedKn = 0;
             boat.sail = 0;
@@ -168,7 +194,7 @@ try {
             }
             if (!selectedPort) throw new Error('No docking pose found in configured search');
           }
-          if (scenario === 'townGrowth') {
+          if (kind === 'townGrowth') {
             const entry = Object.entries(world.trade.settlements.byPort).find(
               ([, town]) => town.level < config.townGrowth.targetLevel,
             );
@@ -191,9 +217,10 @@ try {
             while (window.fwt.view.building && performance.now() < until) await frame();
             changes.at(-1).builtMs = performance.now() - before;
           }
+          if (chase) window.fwt.view.rig.jump(true);
           await frame();
           await frame();
-          if (scenario === 'docking' && world.trade.dockedAt !== selectedPort)
+          if (kind === 'docking' && world.trade.dockedAt !== selectedPort)
             throw new Error('Discovered docking pose did not actually dock');
           return {
             setupAndFirstFramesMs: performance.now() - start,
@@ -224,6 +251,7 @@ try {
         };
       });
       const gpuMemory = await page.evaluate(readGpuMemory);
+      const beyondFog = await page.evaluate(measureBeyondFog);
       if (errors.length) throw new Error(errors.join('\n'));
       const steady = raw.samples.slice(Math.max(1, action.setupFrames));
       if (!steady.length) throw new Error('No steady frames collected');
@@ -250,12 +278,13 @@ try {
         environment: raw.environment,
         metrics,
         gpuMemory,
+        beyondFog,
         eventFrameMs,
         framesOverBudget: steady.filter((s) => s.frameMs > config.reportingBudgets.frameMs).length,
       };
       report.runs.push(run);
       console.log(
-        `${scenario} ${repeat + 1}: frame p95 ${metrics.frameMs.p95?.toFixed(2)}ms, max ${metrics.frameMs.max?.toFixed(2)}ms; worst frame work ${worstWorkMs.toFixed(1)}ms; calls ${metrics.calls.median}; triangles ${metrics.triangles.median}; graphics memory ${gpuMemory.totalMB} MB`,
+        `${scenario} ${repeat + 1}: frame p95 ${metrics.frameMs.p95?.toFixed(2)}ms, max ${metrics.frameMs.max?.toFixed(2)}ms; worst frame work ${worstWorkMs.toFixed(1)}ms; calls ${metrics.calls.median}; triangles ${metrics.triangles.median}; graphics memory ${gpuMemory.totalMB} MB; drawn past the fog ${beyondFog.meshes} meshes`,
       );
       await context.close();
     }

@@ -31,13 +31,15 @@ import {
 } from './input/gamepad';
 import { PadFocus, type PadScreen } from './ui/padFocus';
 import { Input } from './input/input';
+import { AutoQuality, type AutoStep } from './render/autoQuality';
 import {
-  FrameMonitor,
   QUALITY,
+  QUALITY_LEVELS,
   type QualityLevel,
   forceAntialias,
   guessQuality,
   lowerQuality,
+  raiseQuality,
 } from './render/quality';
 import { GameView } from './render/view';
 import { SAIL_STEPS, createBoat, knotToUnits } from './sim/boat';
@@ -821,7 +823,9 @@ chart.quests = {
     autosave();
   },
 };
-const monitor = new FrameMonitor();
+const autoQuality = new AutoQuality();
+/** Auto never climbs above the level it started on. */
+const autoCeiling = level;
 /** The `?perf` readout, once its chunk has loaded (decision 0148). */
 let perf: PerfReadout | null = null;
 let sailStep = world.boat.sailStep;
@@ -1521,6 +1525,19 @@ async function newGame() {
   }
 }
 
+/** Auto's resolution inside the level (issue #549); a `?perf&scale=` aid multiplies it. */
+function applyAutoScale() {
+  view.renderScale = aids.perfScale * (settings.quality === 'auto' ? autoQuality.scale : 1);
+  resize();
+}
+
+function applyAutoStep(step: AutoStep) {
+  if (typeof step === 'object') return applyAutoScale();
+  view.renderScale = aids.perfScale * autoQuality.scale;
+  setLevel(step === 'lower' ? lowerQuality(level) : raiseQuality(level));
+  resize();
+}
+
 function setLevel(next: QualityLevel) {
   if (next === level) return;
   level = next;
@@ -1754,14 +1771,19 @@ function tick(now: number) {
   if (++coachTick % 6 === 0) coach.place();
 
   // The benchmark keeps one level throughout so its passes compare (decision 0154).
-  if (monitor.sample(dt) && !benchMode && settings.quality === 'auto')
-    setLevel(lowerQuality(level));
-  hud.setFps(settings.showFps ? monitor.fps : null, hudVisible);
+  const autoStep = autoQuality.sample(
+    dt,
+    level !== QUALITY_LEVELS[0],
+    QUALITY_LEVELS.indexOf(level) < QUALITY_LEVELS.indexOf(autoCeiling),
+  );
+  if (autoStep && !benchMode && settings.quality === 'auto') applyAutoStep(autoStep);
+  hud.setFps(settings.showFps ? autoQuality.fps : null, hudVisible);
   perf?.frame({
     ms: rawMs,
     counting: mode === 'play' && !paused && hudVisible,
     level,
     qualitySetting: settings.quality,
+    autoScale: settings.quality === 'auto' ? autoQuality.scale : 1,
     renderer: view.renderer,
   });
 }
