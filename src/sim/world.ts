@@ -21,6 +21,7 @@ import {
 import { townLevels } from './founding';
 import { questsDone, questsRunning, settlementLevels } from './settlement';
 import { type LandState, hasQuestLand, landOut, landWith, syncLand } from './questLand';
+import { secondsAtHour } from './daylight';
 import { DIFFICULTIES, knobs, weatherFor } from './difficulty';
 import { type ZoneVisual, CLEAR, mapZones, zoneField, zoneVisualAt } from './windZones';
 import { type BeltNow, beltNow } from './stormBelt';
@@ -351,6 +352,8 @@ export function startAtPrologue(world: World): boolean {
   world.boat.sailStep = 0;
   world.destination = null;
   world.trade.dockedAt = null;
+  const opening = world.map.prologue?.opening;
+  if (opening) world.time = secondsAtHour(opening.hour);
   return true;
 }
 

@@ -1115,12 +1115,17 @@ function startFirstVoyage() {
   hud.showToast(t('tutorial.welcome'), 7);
   refreshMenuTutorial();
 }
+/** The prologue's place and morning hour, the camera behind her until the sails are up (#533). */
+function beginPrologue(): boolean {
+  if (!startAtPrologue(world)) return false;
+  sailStep = world.boat.sailStep;
+  const opening = world.map.prologue?.opening;
+  if (opening) camera.stage.open(opening.view);
+  return true;
+}
 function startTutorial() {
   // A fresh voyage taking the tutorial begins alone at sea (decision 0127).
-  if (!resumedVoyage && world.time < 60) {
-    startAtPrologue(world);
-    sailStep = world.boat.sailStep;
-  }
+  if (!resumedVoyage && world.time < 60) beginPrologue();
   coach.finished = null;
   quests.ask(TUTORIAL_QUEST);
 }
@@ -1134,10 +1139,9 @@ function startUncoachedPrologue(): boolean {
     world.time >= 60 ||
     quests.progress(TUTORIAL_QUEST) ||
     quests.isDone(TUTORIAL_QUEST) ||
-    !startAtPrologue(world)
+    !beginPrologue()
   )
     return false;
-  sailStep = world.boat.sailStep;
   quests.ask(TUTORIAL_QUEST);
   quests.coachOff(TUTORIAL_QUEST);
   coach.render();
@@ -1744,7 +1748,11 @@ function tick(now: number) {
   hud.goal = seaGoal();
   followQuestCourse();
   hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);
-  camera.update();
+  // The title's live scene stands where the quality can run it; its still stands in elsewhere.
+  const liveTitle = mode === 'menu' && !started && QUALITY[level].liveTitle;
+  title.setLive(liveTitle);
+  camera.stage.title(liveTitle, liveTitle ? title.columnShare() : 0);
+  camera.update(dt, world.boat.sailStep > 0);
   if (coachTick % 15 === 0) seaNews();
   showRunClock();
   questNote.update(dt, mode === 'play' && !paused && hudVisible, (key) => questSeen.has(key));
