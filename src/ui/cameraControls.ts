@@ -7,13 +7,13 @@ import type { CameraRig } from '../render/cameraRig';
 import type { SeaMotion } from '../render/seaMotion';
 import { CompassCamera } from './compassCamera';
 import type { Hud } from './hud';
-import type { Settings } from './settings';
+import { type Settings, saveSettings } from './settings';
 
 /**
  * The player's hold on the sea camera (decision 0223): zoom and turns from the mouse, touch and
  * controller, the Settings switches' effect on it ("Turn the camera", "Camera comes back by itself",
  * and the comfort ones of decision 0250: gentle sea motion, camera riding the waves) and the HUD
- * compass that turns with the camera. `start` holds a tilt to measure (degrees, `?perf&tilt=`) or
+ * compass that turns with the camera, and the remembered sailing view (issue #535). `start` holds a tilt to measure (degrees, `?perf&tilt=`) or
  * starts in the chase view (`?perf&chase=1`).
  */
 export class CameraControls {
@@ -23,6 +23,10 @@ export class CameraControls {
   private readonly motion: SeaMotion;
   private readonly chase: ChaseView;
   private quiet = false;
+  /** The view last written to the settings, so a switch from any input is saved once. */
+  private savedBehind: boolean;
+  /** A measuring run (`?perf&chase=1`) must not change the player's saved view. */
+  private readonly remember: boolean;
 
   constructor(
     view: { rig: CameraRig; motion: SeaMotion },
@@ -36,7 +40,11 @@ export class CameraControls {
     const orbit = (this.orbit = rig.orbit);
     if (start.tilt) orbit.set(0, start.tilt);
     const chase = (this.chase = rig.chase);
-    if (start.chase) chase.active = true;
+    this.savedBehind = settings.sailingView === 'behind';
+    chase.active = this.savedBehind || start.chase;
+    this.remember = !start.chase;
+    // Any key, touch or stick wakes the faded view and sea buttons (art bible section 13).
+    input.onActivity = () => hud.wakeControls();
     input.onZoom = (f) => (chase.active ? chase.zoomBy(f) : rig.setZoom(rig.zoom * f));
     input.onPinch = (f) => {
       if (!chase.pinch(f, rig.zoom <= TUNING.camera.zoomMin)) input.onZoom(f);
@@ -86,15 +94,30 @@ export class CameraControls {
     this.compass.update(this.turned);
     this.compass.setChase(this.chase.active);
     this.hud.portLabels.chase = this.chase.active;
-    // The close view shows the boat and the sea, so the HUD keeps to the wind compass and speed.
-    const quiet = this.settings.quietHud || this.chase.blend > 0.5;
+    this.keepView();
+    // One HUD in both views: only the player's Quiet HUD switch thins it.
+    const quiet = this.settings.quietHud;
     if (quiet === this.quiet) return;
     this.quiet = quiet;
     this.hud.quiet = quiet;
   }
 
+  /** The view switched from the key, the pad, a pinch or the button is the one Settings keeps. */
+  private keepView() {
+    const behind = this.chase.active;
+    if (!this.remember || behind === this.savedBehind) return;
+    this.savedBehind = behind;
+    this.settings.sailingView = behind ? 'behind' : 'above';
+    saveSettings(this.settings);
+  }
+
   /** Pushes the Settings switches to the camera and the sea motion. */
   sync() {
+    const behind = this.settings.sailingView === 'behind';
+    if (behind !== this.savedBehind) {
+      this.savedBehind = behind;
+      this.chase.active = behind;
+    }
     this.orbit.enabled = this.settings.turnCamera;
     this.orbit.autoReturn = this.settings.cameraReturns;
     this.motion.gentle = this.settings.gentleMotion;

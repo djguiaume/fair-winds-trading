@@ -233,31 +233,6 @@
   }
 }
 
-html[data-layout='phone'] .hud-wind {
-  gap: 8px;
-}
-html[data-layout='phone'] .hud-dial {
-  width: var(--ui-hud-compass-phone);
-  height: var(--ui-hud-compass-phone);
-}
-html[data-layout='phone'] .hud-wind-text {
-  max-width: 220px;
-  padding-top: 8px;
-}
-html[data-layout='phone'] .hud-pos {
-  font-size: var(--fs-head);
-}
-html[data-layout='phone'] .hud-breeze {
-  font-size: var(--fs-body);
-}
-html[data-layout='phone'] .hud-gust {
-  font-size: var(--fs-small);
-}
-html[data-layout='phone'] .hud-lines,
-html[data-layout='phone'] .hud-chip,
-html[data-layout='phone'] .hud-hint {
-  font-size: var(--fs-note);
-}
 /* The storm's line stays a step bigger than the rest (art director: 13 px or more). */
 html[data-layout='phone'] #weather-text[data-kind='storm'],
 html[data-layout='phone'] #wind-forecast[data-storm],

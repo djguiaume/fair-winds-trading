@@ -4,6 +4,7 @@ import { effectSwitches, qualityOptions } from '../../graphicsSettings';
 import type { QualitySetting } from '../../../render/quality';
 import { t } from '../../../i18n';
 import type { RowHost, SettingsContext } from './context';
+import { SAILING_VIEWS, type SailingView } from '../../settings';
 import { choiceRow, switchRow } from './rows';
 
 /** Settings › Display: the picture, the quiet HUD and the comfort switches. */
@@ -12,7 +13,7 @@ export function displayTab(ctx: SettingsContext, host: RowHost) {
   const flag = (
     id: string,
     key: string,
-    name: 'quietHud' | 'showFps' | 'gentleMotion' | 'cameraBob' | 'wakeStyles',
+    name: 'quietHud' | 'leftHanded' | 'showFps' | 'gentleMotion' | 'cameraBob' | 'wakeStyles',
   ) =>
     switchRow({
       id,
@@ -24,6 +25,19 @@ export function displayTab(ctx: SettingsContext, host: RowHost) {
       },
     });
   const picture = [
+    choiceRow({
+      id: 'sailing-view',
+      key: 'settings.sailingView',
+      options: SAILING_VIEWS.map((id) => ({
+        id,
+        label: t(`settings.sailingView.${id}` as MessageKey),
+      })),
+      get: () => settings.sailingView,
+      set: (id) => {
+        settings.sailingView = id as SailingView;
+        host.changed();
+      },
+    }),
     choiceRow({
       id: 'quality',
       key: 'settings.graphics',
@@ -41,6 +55,7 @@ export function displayTab(ctx: SettingsContext, host: RowHost) {
   ];
   const comfort = [
     flag('quiet-hud', 'settings.quietHud', 'quietHud'),
+    flag('left-handed', 'settings.leftHanded', 'leftHanded'),
     choiceRow({
       id: 'motion',
       key: 'settings.motion',
