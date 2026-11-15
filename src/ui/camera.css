@@ -20,9 +20,6 @@
 .camera-reset[hidden] {
   display: none;
 }
-html[data-layout='phone'] .camera-reset {
-  top: calc(var(--ui-hud-compass-phone) + 4px);
-}
 .camera-reset svg {
   width: 20px;
   height: 20px;
@@ -33,21 +30,10 @@ html[data-layout='phone'] .camera-reset {
   stroke-linejoin: round;
 }
 
-/* The chase view's switch sits first under the compass, on touch screens only (decision 0272);
-   the reset button moves one slot down. */
-#camera-chase {
-  display: none;
-}
-@media (pointer: coarse) {
-  #camera-chase {
-    display: grid;
-  }
-  #camera-chase ~ #camera-reset {
-    top: calc(var(--ui-hud-compass) + 52px);
-  }
-  html[data-layout='phone'] #camera-chase ~ #camera-reset {
-    top: calc(var(--ui-hud-compass-phone) + 50px);
-  }
+/* The view button sits first under the compass on every input (decision 0272, issue #535);
+   the reset button sits one slot down. */
+#camera-chase ~ #camera-reset {
+  top: calc(var(--ui-hud-compass) + 52px);
 }
 #camera-chase[aria-pressed='true'] {
   background: var(--hud-text);

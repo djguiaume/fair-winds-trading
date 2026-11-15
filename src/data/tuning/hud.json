@@ -1,11 +1,11 @@
 {
-  "idleFadeSec": 5,
-  "idleOpacity": 0.6,
-  "wakeTurnDeg": 20,
+  "idleFadeSec": 6,
+  "idleOpacity": 0.4,
   "backingInk": 0.4,
   "noGoInk": 0.55,
   "tapeSpanDeg": 70,
   "portSignSeaward": 10,
   "portSignChaseRange": 25,
-  "portSignChaseMinY": 0.3
+  "portSignChaseMinY": 0.3,
+  "breezeShowSec": 6
 }

@@ -41,6 +41,8 @@ export class SettingsApplier {
     hud.quiet = s.quietHud;
     hud.compassOff = !s.windCompass;
     setMotionMode(s.motion);
+    if (typeof document !== 'undefined')
+      document.documentElement.toggleAttribute('data-left-handed', s.leftHanded);
     applyGraphics(view, s);
     if (s.waves !== this.waves) view.setWaves((this.waves = s.waves));
     world.dynamicWeather = s.weather;

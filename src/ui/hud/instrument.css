@@ -83,32 +83,6 @@
   }
 }
 
-html[data-layout='phone'] .hud-instr {
-  min-width: 184px;
-  padding: 8px 12px 10px;
-  gap: 2px;
-}
-html[data-layout='phone'] .hud-speed-n {
-  font-size: var(--ui-hud-speed-phone);
-}
-html[data-layout='phone'] .hud-speed small {
-  font-size: var(--fs-sub);
-}
-html[data-layout='phone'] .hud-hdg {
-  font-size: var(--fs-body);
-}
-html[data-layout='phone'] .hud-sog {
-  font-size: var(--fs-note);
-}
-html[data-layout='phone'] .hud-sails {
-  margin-top: 4px;
-}
-html[data-layout='phone'] .hud-sail {
-  min-height: 40px;
-  padding: 0 6px;
-  font-size: var(--fs-body);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .hud-sails[data-press='2'] .hud-sail[aria-pressed='true'] {
     animation: none;

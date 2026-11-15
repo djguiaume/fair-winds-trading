@@ -1,3 +1,4 @@
+import { TUNING } from '../../data/tuning';
 import { t } from '../../i18n';
 import { el } from '../components/dom';
 import { WIND_FORCES, createWindGauge, updateWindGauge } from '../../sim/windStrength';
@@ -40,6 +41,9 @@ export class WindCompass {
   private readonly windLines: WindLines;
   private gauge = createWindGauge(0);
   private gaugeReady = false;
+  /** Seconds the breeze words stay up after they changed; the phone shows them only then (#560). */
+  private breezeFresh = 0;
+  private lastBreeze = '';
 
   constructor() {
     this.root.id = 'wind-compass';
@@ -120,7 +124,13 @@ export class WindCompass {
       kn: wind.speedKn.toFixed(0),
     });
     // Name the lee so a sudden drop in speed reads as the island, not a bug (decision 0027).
-    setText(this.breeze, lee ? `${breeze} · ${t('hud.lee')}` : breeze);
+    const words = lee ? `${breeze} · ${t('hud.lee')}` : breeze;
+    setText(this.breeze, words);
+    if (words !== this.lastBreeze) {
+      this.lastBreeze = words;
+      this.breezeFresh = TUNING.hud.breezeShowSec;
+    } else this.breezeFresh = Math.max(0, this.breezeFresh - dt);
+    this.root.toggleAttribute('data-breeze-new', this.breezeFresh > 0);
     this.windLines.show(world, dt);
   }
 }

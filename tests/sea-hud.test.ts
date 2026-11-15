@@ -71,13 +71,27 @@ describe('Sea HUD (decision 0049)', () => {
     expect($('wind-help-trigger').hidden).toBe(true);
   });
 
-  it('fades the status after a quiet spell and brings it back on a change', () => {
-    const { world, hud } = setup();
+  it('fades only the view button and the icons, and wakes them on any input', () => {
+    const { hud } = setup();
+    const idle = () => $('hud').hasAttribute('data-controls-idle');
     for (let i = 0; i < 50; i++) hud.update(0.15, project, size);
-    expect($('captain-stats').hasAttribute('data-idle')).toBe(true);
-    world.trade.captain.gold += 10;
-    hud.update(0.15, project, size);
+    expect(idle()).toBe(true);
     expect($('captain-stats').hasAttribute('data-idle')).toBe(false);
+    hud.wakeControls();
+    hud.update(0.15, project, size);
+    expect(idle()).toBe(false);
+  });
+
+  it('shows the breeze words for a while after they change (phone HUD, #560)', () => {
+    const { world, hud } = setup();
+    const fresh = () => $('wind-compass').hasAttribute('data-breeze-new');
+    hud.update(0.2, project, size);
+    expect(fresh()).toBe(true);
+    for (let i = 0; i < 60; i++) hud.update(0.2, project, size);
+    expect(fresh()).toBe(false);
+    world.wind.from += 1.2;
+    for (let i = 0; i < 3; i++) hud.update(0.2, project, size);
+    expect(fresh()).toBe(true);
   });
 
   it('sets the sails straight from a lever notch and mirrors the boat', () => {

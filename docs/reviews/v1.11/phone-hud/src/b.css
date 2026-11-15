@@ -1,0 +1,3 @@
+/* B: lever on the right edge, icons in a top strip left of the compass. */
+html[data-layout='phone'] .hud-instr { right: var(--m); }
+html[data-layout='phone'] .hud-actions { top: var(--m); right: calc(var(--m) + 96px); left: auto; bottom: auto; gap: 4px; }

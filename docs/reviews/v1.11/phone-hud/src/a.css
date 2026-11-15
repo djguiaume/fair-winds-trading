@@ -1,0 +1,3 @@
+/* A: lever on the right edge, icons bottom left. */
+html[data-layout='phone'] .hud-instr { right: var(--m); }
+html[data-layout='phone'] .hud-actions { left: var(--m); bottom: var(--m); }
