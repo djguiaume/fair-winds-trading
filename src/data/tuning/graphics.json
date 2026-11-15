@@ -1,4 +1,7 @@
 {
+  "title": {
+    "live": false
+  },
   "quality": {
     "ultralow": {
       "maxRenderPixels": 200000,

@@ -3,13 +3,13 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { formatJson } from '../../src/data/jsonFormat';
 import { SHIPPED_TUNING } from '../../src/data/tuning';
-import { tuningRows, valueProblem, withValue } from '../../src/tune/tuningDoc';
+import { parseValue, tuningRows, valueProblem, withValue } from '../../src/tune/tuningDoc';
 
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
 
 const HELP = `npm run tune -- <command>   (the ?tune panel edits the same numbers)
   list <file> [--json]           every value of src/data/tuning/<file>.json: path, value, range
-  set <file.path> <number>       one number, checked against its range, e.g. set hud.idleFadeSec 8
+  set <file.path> <value>        one number (checked against its range) or a toggle (true/false), e.g. set hud.idleFadeSec 8, set graphics.title.live true
 Add --dry to only print the check.`;
 
 const fileOf = (name: string) => `src/data/tuning/${name}.json`;
@@ -30,10 +30,11 @@ export function run(args: Args): number {
     return 0;
   }
   if (cmd === 'set' && a && b !== undefined) {
-    const problem = valueProblem(a, Number(b));
+    const value = parseValue(b);
+    const problem = valueProblem(a, value);
     if (problem) return fail(problem);
     const file = fileOf(a.split('.')[0]!);
-    const next = withValue(JSON.parse(readFileSync(file, 'utf8')), a, Number(b));
+    const next = withValue(JSON.parse(readFileSync(file, 'utf8')), a, value);
     if (!args.dry) writeFileSync(file, formatJson(next));
     console.log(`${a} = ${b}${args.dry ? ' (dry run)' : ` (${file} written)`}`);
     return 0;

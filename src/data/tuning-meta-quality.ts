@@ -77,6 +77,10 @@ export const QUALITY_META: Readonly<Record<string, TuningMeta>> = {
     'Rich town houses',
     'Footing, overhanging roof, ridge, chimney cap and door step on the homes near the camera (issue #500); the plain homes show far away.',
   ),
+  'graphics.title.live': toggle(
+    'Live title',
+    'On: the title shows the real sea behind the menu, where the quality level allows it (issue #531). Off: the painted title picture.',
+  ),
   'graphics.quality.*.liveTitle': toggle(
     'Live title',
     'The title shows the real sea behind the menu (issue #531); off keeps a still picture of the same view.',

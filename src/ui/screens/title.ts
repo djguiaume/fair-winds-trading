@@ -5,6 +5,7 @@ import { listRow, panelClasses } from '../components';
 import { el } from '../components/dom';
 import type { MenuRows } from './menuRows';
 import type { Screen } from './stack';
+import keyArt from './art/title-key.jpg';
 import stillDay from './art/title-still-day.jpg';
 import stillNight from './art/title-still-night.jpg';
 import './screens.css';
@@ -72,7 +73,12 @@ export class TitleScreen implements MenuRows {
     const root = el('div', 'title');
     root.id = 'menu';
     root.hidden = true;
-    root.append(this.still('day', stillDay), this.still('night', stillNight), this.page);
+    root.append(
+      this.still('key', keyArt),
+      this.still('day', stillDay),
+      this.still('night', stillNight),
+      this.page,
+    );
     this.screen = { id: 'menu', root, enter: 'fade', back: () => {} };
   }
 
@@ -89,11 +95,13 @@ export class TitleScreen implements MenuRows {
   }
 
   /**
-   * The scene behind the page is the live one while `live`, the still picture otherwise; the
-   * camera stages it clear of the page.
+   * The scene behind the page is the live one while `live`; otherwise a picture: the painted key
+   * art while the live title is switched off (`graphics.title.live`), a still of the live view
+   * where the quality cannot run the scene. The camera stages the live one clear of the page.
    */
-  stage(camera: CameraStage, live: boolean) {
+  stage(camera: CameraStage, live: boolean, painted: boolean) {
     this.screen.root.classList.toggle('title--live', live);
+    this.screen.root.classList.toggle('title--painted', painted);
     camera.title(live, live ? this.columnShare() : 0);
   }
 
@@ -113,7 +121,7 @@ export class TitleScreen implements MenuRows {
     this.settingsRow.before(this.row(id, label, press));
   }
 
-  private still(tone: 'day' | 'night', src: string) {
+  private still(tone: 'key' | 'day' | 'night', src: string) {
     const img = el('img', `title-art title-art--${tone}`);
     img.src = src;
     img.alt = '';
