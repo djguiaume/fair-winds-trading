@@ -1,6 +1,6 @@
 import { num, type TuningMeta } from './tuning-meta-types';
 
-/** `hud.json`: the sea HUD's backings, idle fade and tape span (issue #441, decision 0268);
+/** `hud.json`: the sea HUD's backings, the buttons' idle fade and tape span (issue #441, decision 0268);
  * its sizes are theme tokens (`theme.json` › `hud`). */
 export const HUD_META: Readonly<Record<string, TuningMeta>> = {
   'hud.idleFadeSec': num(
@@ -9,7 +9,7 @@ export const HUD_META: Readonly<Record<string, TuningMeta>> = {
     30,
     0.5,
     's',
-    'The status and the heading strip fade after this long without a change.',
+    'The view button and the Map, Cargo and Menu icons fade after this long without input.',
   ),
   'hud.idleOpacity': num(
     'Faded opacity',
@@ -17,15 +17,7 @@ export const HUD_META: Readonly<Record<string, TuningMeta>> = {
     1,
     0.05,
     '×',
-    'How visible the faded status and heading strip stay (1 = no fade).',
-  ),
-  'hud.wakeTurnDeg': num(
-    'Turn that wakes the strip',
-    5,
-    90,
-    1,
-    '°',
-    'A turn this big since the strip last woke brings it back to full ink.',
+    'How visible the faded buttons stay (1 = no fade; art bible section 13: 0.4).',
   ),
   'hud.backingInk': num(
     'Instrument backing',

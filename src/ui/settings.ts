@@ -3,6 +3,10 @@ import { applyGraphicsOverrides } from '../perf/graphicsOverrides';
 import type { QualitySetting } from '../render/quality';
 import { type MotionMode, isMotionMode } from './motionMode';
 
+/** The two sailing views (Settings › Display, issue #535): the chart-like view and the follow cam. */
+export const SAILING_VIEWS = ['above', 'behind'] as const;
+export type SailingView = (typeof SAILING_VIEWS)[number];
+
 /** Player settings, saved in localStorage (versioned key so the format can change later). */
 export interface Settings {
   quality: QualitySetting;
@@ -11,6 +15,8 @@ export interface Settings {
   seenWindHint: boolean;
   /** The one-time "ease the sails" message has been shown (decision 0078). */
   seenPressHint: boolean;
+  /** The view the game starts in and the player last used: from above or behind the boat (#535). */
+  sailingView: SailingView;
   /** Quiet HUD (issue #441): only the wind compass and the instrument at sea; off by default. */
   quietHud: boolean;
   /** The wind compass dial; it can be switched off on the hardest level only (Guillaume). */
@@ -84,6 +90,7 @@ const DEFAULTS: Settings = {
   seenHelp: false,
   seenWindHint: false,
   seenPressHint: false,
+  sailingView: 'above',
   quietHud: false,
   windCompass: true,
   language: null,
@@ -130,6 +137,7 @@ export function loadSettings(search = ''): Settings {
     // Until the player picks, gentle motion follows the device's "reduce motion" setting.
     if (typeof saved.gentleMotion !== 'boolean') settings.gentleMotion = prefersReducedMotion();
     if (!isMotionMode(saved.motion)) settings.motion = prefersReducedMotion() ? 'reduced' : 'full';
+    if (!SAILING_VIEWS.includes(settings.sailingView)) settings.sailingView = 'above';
     if (typeof settings.waves !== 'boolean') settings.waves = null;
     if (!isLanguage(settings.language)) settings.language = null;
     const volume = Number(settings.musicVolume);

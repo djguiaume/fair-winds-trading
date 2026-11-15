@@ -60,12 +60,14 @@
   z-index: 10;
   font-variant-numeric: lining-nums tabular-nums;
 }
-.hud-status,
-.hud-strip {
+/* The view button and the Map, Cargo and Menu icons step back after a while without input;
+   everything that carries information stays at full ink (art bible section 13). */
+#camera-chase,
+.hud-action {
   transition: opacity var(--hud-fade) var(--ui-ease-out);
 }
-.hud-status[data-idle],
-.hud-strip[data-idle] {
+#hud[data-controls-idle] #camera-chase,
+#hud[data-controls-idle] .hud-action {
   opacity: var(--hud-idle);
 }
 

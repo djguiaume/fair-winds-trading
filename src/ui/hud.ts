@@ -2,7 +2,7 @@ import { TUNING } from '../data/tuning';
 import { trueWindAngle } from '../sim/boat';
 import { DIFFICULTIES } from '../sim/difficulty';
 import { damageStage, hullCondition } from '../sim/hazards';
-import { DEG, bearingTo, distance, wrapAngle } from '../sim/math';
+import { bearingTo, distance } from '../sim/math';
 import type { QuestBook } from '../sim/quests';
 import { SHIP_CLASSES, noGoAngle, pointOfSail } from '../sim/ship';
 import { capacity, cargoUsed, findPort } from '../sim/trade';
@@ -45,8 +45,8 @@ const clock = (secs: number) => {
  * The sea HUD (issue #441, round 3 D): three clusters on the scene instead of nine plates. Top
  * left the status, top centre the heading strip, top right the wind compass; bottom right the
  * instrument and bottom left the actions. Text sits on the sea with a hard ink halo; only the
- * compass and the instrument have a faint ink backing. The quiet HUD keeps those two alone, and
- * the status and the strip fade back after a while without a change.
+ * compass and the instrument have a faint ink backing. The quiet HUD keeps those two alone. Only
+ * the view button and the Map, Cargo and Menu icons fade, after a while without input.
  */
 export class Hud {
   private readonly root = $('hud');
@@ -67,9 +67,7 @@ export class Hud {
   private readonly fps = $('fps');
   private readonly hullBar = $('hull-bar');
   readonly windHelp = windHelpDialog();
-  private readonly statusFade = new IdleFade();
-  private readonly stripFade = new IdleFade();
-  private wokeHeading = 0;
+  private readonly controlsFade = new IdleFade();
   /** A timed run's line when no course is set ("Run to Saltmere"), kept between text ticks. */
   private runName = '';
   /** Reused each text tick, so the status costs no new objects. */
@@ -179,6 +177,11 @@ export class Hud {
     this.root.toggleAttribute('data-quiet', on);
   }
 
+  /** Any key, touch or stick brings the faded view button and icons back (art bible section 13). */
+  wakeControls() {
+    this.controlsFade.wake();
+  }
+
   /** Settings › Wind compass off: the dial goes, but only on the hardest level (Guillaume). */
   compassOff = false;
 
@@ -242,6 +245,8 @@ export class Hud {
       this.windPreferences.markSeen();
     }
     this.hintSeconds = compass.cue.chip ? Math.max(0, this.hintSeconds - dt) : 0;
+    if (this.controlsFade.update(dt, '', TUNING.hud.idleFadeSec))
+      this.root.toggleAttribute('data-controls-idle', this.controlsFade.faded);
     const resumed = visible && !this.wasVisible;
     this.wasVisible = visible;
     if (!visible) return;
@@ -283,8 +288,8 @@ export class Hud {
     const point = boat.sailStep === 0 ? null : pointOfSail(ship, twa);
     compass.showText(world, point, world.shelter > 0.25, dt);
     this.seaLines.show(world);
-    this.showStrip(dt, wp);
-    this.showStatus(dt);
+    this.showStrip(wp);
+    this.showStatus();
     const hardest = trade.difficulty === DIFFICULTIES[DIFFICULTIES.length - 1];
     setHidden(compass.trigger, this.compassOff && hardest);
   }
@@ -299,8 +304,8 @@ export class Hud {
     );
   }
 
-  /** The distance, a race's or a run's clock, and the strip's idle fade. */
-  private showStrip(dt: number, wp: { x: number; y: number; label: string } | null) {
+  /** The distance and a race's or a run's clock. */
+  private showStrip(wp: { x: number; y: number; label: string } | null) {
     const { run, race, world } = this;
     const runTo = run && findPort(world.map, run.to)?.name;
     this.runName = runTo ? t('quest.run.clock', { to: runTo }) : '';
@@ -310,17 +315,9 @@ export class Hud {
       time = { text: `${clock(run.sec)} / ${clock(run.par)}`, close: run.par - run.sec < 20 };
     const dist = wp ? t('unit.metres', { n: Math.round(distance(world.boat, wp)) }) : '';
     this.strip.showDetail(dist, time);
-    // A big turn wakes the strip as a new course does.
-    if (Math.abs(wrapAngle(world.boat.heading - this.wokeHeading)) / DEG > TUNING.hud.wakeTurnDeg) {
-      this.wokeHeading = world.boat.heading;
-      this.stripFade.wake();
-    }
-    const shown = `${race?.label ?? wp?.label ?? this.runName}|${time ? 1 : 0}`;
-    if (this.stripFade.update(dt, shown, TUNING.hud.idleFadeSec))
-      this.strip.root.toggleAttribute('data-idle', this.stripFade.faded);
   }
 
-  private showStatus(dt: number) {
+  private showStatus() {
     const { trade } = this.world;
     const s = this.frame;
     s.gold = trade.captain.gold;
@@ -332,9 +329,6 @@ export class Hud {
     s.deck = trade.quests.hold ?? 0;
     s.deckRoom = SHIP_CLASSES[trade.captain.activeShip]!.deck;
     this.status.show(s);
-    const shown = `${s.gold}|${s.used}|${s.hull}|${s.deck}|${this.status.questText}`;
-    if (this.statusFade.update(dt, shown, TUNING.hud.idleFadeSec))
-      this.status.root.toggleAttribute('data-idle', this.statusFade.faded);
   }
 
   /** Things pinned to the scene: the hull bar, the port and boat signs, the edge arrow. */
