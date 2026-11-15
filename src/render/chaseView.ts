@@ -55,17 +55,26 @@ export class ChaseView {
     this.overshoot = 0;
   }
 
-  /** The camera button: on to the next view of the cycle, the sea camera or a framing. */
-  cycle() {
-    const views = cameraCycle();
-    const now = views.indexOf(this.active ? this.framing : TOP_VIEW);
-    const next = views[(now + 1) % views.length] ?? TOP_VIEW;
-    if (next === TOP_VIEW) {
+  /** The view on screen as a cycle id: a framing of `chase.framings`, or `TOP_VIEW`. */
+  get view(): string {
+    return this.active ? this.framing : TOP_VIEW;
+  }
+
+  /** Switch to a cycle id (the saved sailing view, the camera button); unknown ids are ignored. */
+  set view(id: string) {
+    if (id === TOP_VIEW) {
       if (this.active) this.toggle();
       return;
     }
-    this.framing = next as FramingId;
+    if (!(id in TUNING.camera.chase.framings)) return;
+    this.framing = id as FramingId;
     if (!this.active) this.toggle();
+  }
+
+  /** The camera button: on to the next view of the cycle, the sea camera or a framing. */
+  cycle() {
+    const views = cameraCycle();
+    this.view = views[(views.indexOf(this.view) + 1) % views.length] ?? TOP_VIEW;
   }
 
   /**

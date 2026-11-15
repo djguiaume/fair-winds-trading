@@ -24,7 +24,7 @@ export class CameraControls {
   private readonly chase: ChaseView;
   private quiet = false;
   /** The view last written to the settings, so a switch from any input is saved once. */
-  private savedBehind: boolean;
+  private savedView: string;
   /** A measuring run (`?perf&chase=1`) must not change the player's saved view. */
   private readonly remember: boolean;
 
@@ -40,8 +40,9 @@ export class CameraControls {
     const orbit = (this.orbit = rig.orbit);
     if (start.tilt) orbit.set(0, start.tilt);
     const chase = (this.chase = rig.chase);
-    this.savedBehind = settings.sailingView === 'behind';
-    chase.active = this.savedBehind || start.chase;
+    this.savedView = settings.sailingView;
+    chase.view = this.savedView;
+    if (start.chase) chase.active = true;
     this.remember = !start.chase;
     // Any key, touch or stick wakes the faded view and sea buttons (art bible section 13).
     input.onActivity = () => hud.wakeControls();
@@ -104,19 +105,18 @@ export class CameraControls {
 
   /** The view switched from the key, the pad, a pinch or the button is the one Settings keeps. */
   private keepView() {
-    const behind = this.chase.active;
-    if (!this.remember || behind === this.savedBehind) return;
-    this.savedBehind = behind;
-    this.settings.sailingView = behind ? 'behind' : 'above';
+    const view = this.chase.view;
+    if (!this.remember || view === this.savedView) return;
+    this.savedView = view;
+    this.settings.sailingView = view;
     saveSettings(this.settings);
   }
 
   /** Pushes the Settings switches to the camera and the sea motion. */
   sync() {
-    const behind = this.settings.sailingView === 'behind';
-    if (behind !== this.savedBehind) {
-      this.savedBehind = behind;
-      this.chase.active = behind;
+    if (this.settings.sailingView !== this.savedView) {
+      this.savedView = this.settings.sailingView;
+      this.chase.view = this.savedView;
     }
     this.orbit.enabled = this.settings.turnCamera;
     this.orbit.autoReturn = this.settings.cameraReturns;

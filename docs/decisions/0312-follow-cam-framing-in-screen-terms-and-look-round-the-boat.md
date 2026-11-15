@@ -45,5 +45,7 @@ with speed, eased over at least 1.5 s, no roll, an orbit that comes back 3 s aft
 - Framings are tuned by screen position, so a ?tune change cannot push the boat out of the lower
   third; `tests/chase-frame.test.ts` projects the rig's camera and checks §13 on every change.
 - The cycle and the framings are data, so a fourth framing is a `chase.framings` entry and an id in
-  `chase.cycle`. The saved view of #602 (`settings.sailingView`) grows to these ids.
+  `chase.cycle`. The saved sailing view (#602, `settings.sailingView`) holds a cycle id, so the game
+  starts in the framing last used and Settings › Display lists every view; old saves map `above` to
+  the top view and `behind` to the first framing.
 - Phone `?bench&chase=1` on a device joins #377 (the wider view draws a few more boats and islands).
