@@ -238,7 +238,7 @@
     }
   },
   "sight": {
-    "near": 1.3,
+    "near": 1.9,
     "far": 2.4,
     "gloomNear": 0.45,
     "gloomFar": 0.6,

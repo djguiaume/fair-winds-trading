@@ -86,8 +86,10 @@ export class SkyColors {
 
   /**
    * The sky the sea mirrors at `low` (0 = sea camera … 1 = chase camera), written into `out` from
-   * the sea camera's `skyLight`, and the reflection's strength against the shipped one. Night and
-   * storms keep their own reflection (issue #469): only a clear day turns bluer.
+   * the sea camera's `skyLight`, and the reflection's strength against the shipped one. By a clear
+   * day the low view mirrors the drawn sky; night and storms keep their own colour (issue #469).
+   * The strength drops in every light: seen this low the Fresnel mirror would bleach the sea that
+   * the sea camera shows deep and blue (issue #573).
    */
   reflection(out: THREE.Color, skyLight: THREE.Color, low: number, night: number, gloom: number) {
     const sky = TUNING.graphics.sky;
@@ -95,6 +97,6 @@ export class SkyColors {
     const { horizon, zenith } = this.look;
     out.copy(horizon).lerp(zenith, sky.reflectZenith);
     out.lerp(skyLight, 1 - k);
-    return 1 - (1 - sky.reflection) * k;
+    return 1 - (1 - sky.reflection) * low;
   }
 }

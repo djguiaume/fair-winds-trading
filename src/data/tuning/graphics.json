@@ -210,8 +210,8 @@
   "sky": {
     "looks": {
       "day": {
-        "horizon": "#a6d6ee",
-        "zenith": "#5aa0d4"
+        "horizon": "#7fc0e6",
+        "zenith": "#3f8ed6"
       },
       "golden": {
         "horizon": "#f0c49c",
@@ -226,10 +226,12 @@
         "zenith": "#323f46"
       }
     },
+    "air": 1,
+    "hazeLineDeg": 1.5,
     "gradientDeg": 24,
     "gradientCurve": 0.6,
     "bands": 0,
-    "reflection": 0.7,
+    "reflection": 0.25,
     "reflectZenith": 0.3,
     "sun": {
       "sizeDeg": 2.4,

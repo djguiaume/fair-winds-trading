@@ -29,17 +29,21 @@ export function tuningRows(tuning: Tree, prefix: string): TuningRow[] {
   return rows;
 }
 
-/** A number as typed, or `true` / `false` for a toggle; anything else stays text to be refused. */
-export function parseValue(raw: string): number | boolean {
+type Value = number | boolean | string;
+
+/** A number as typed, `true` / `false` for a toggle; anything else stays text (a `#rrggbb` colour). */
+export function parseValue(raw: string): Value {
   if (raw === 'true' || raw === 'false') return raw === 'true';
-  return Number(raw);
+  const n = Number(raw);
+  return raw.trim() !== '' && Number.isFinite(n) ? n : raw;
 }
 
 /** What is wrong with setting this value, or null when it is fine. */
-export function valueProblem(path: string, value: number | boolean): string | null {
+export function valueProblem(path: string, value: Value): string | null {
   const meta = TUNING_META[metaPath(path.split('.'))];
   if (!meta) return `no such tuning value: ${path}`;
   if (meta.kind === 'toggle') return typeof value === 'boolean' ? null : `${path} is true or false`;
+  if (meta.kind === 'text') return typeof value === 'string' ? null : `${path} is text`;
   if (meta.kind !== 'number' || typeof value !== 'number') return `${path} is not a number`;
   if (!Number.isFinite(value)) return `${path}: not a number`;
   if (value < meta.min || value > meta.max)
@@ -47,8 +51,8 @@ export function valueProblem(path: string, value: number | boolean): string | nu
   return null;
 }
 
-/** Sets the number or toggle at `path` (file first: `hud.idleFadeSec`) in a copy of the file's JSON. */
-export function withValue(file: Tree, path: string, value: number | boolean): Tree {
+/** Sets the value at `path` (file first: `hud.idleFadeSec`) in a copy of the file's JSON. */
+export function withValue(file: Tree, path: string, value: Value): Tree {
   const keys = path.split('.').slice(1);
   const copy = structuredClone(file);
   let node: Tree = copy;

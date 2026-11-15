@@ -70,6 +70,8 @@ export class SkyDome {
       fragmentShader: SKY_FRAGMENT,
       uniforms: {
         uHorizon: { value: new THREE.Color() },
+        uSkyline: { value: new THREE.Color() },
+        uHazeLine: { value: 1 },
         uZenith: { value: new THREE.Color() },
         uGradient: { value: new THREE.Vector4() },
         uSunDir: { value: new THREE.Vector3(0, 1, 0) },
@@ -103,7 +105,9 @@ export class SkyDome {
       (this.cloudTurn + data.clouds.driftDegPerKn * windKn * DEG * dt) % (Math.PI * 2);
     const u = this.mesh.material.uniforms;
     (u.uHorizon!.value as THREE.Color).copy(sky.horizon);
+    (u.uSkyline!.value as THREE.Color).copy(sky.skyline);
     (u.uZenith!.value as THREE.Color).copy(sky.zenith);
+    u.uHazeLine!.value = 1 / Math.sin(Math.max(data.hazeLineDeg, 0.05) * DEG);
     const show = sky.low * (1 - sky.haze);
     (u.uGradient!.value as THREE.Vector4).set(
       1 / Math.sin(data.gradientDeg * DEG),
@@ -138,8 +142,8 @@ export class SkyDome {
   private setClouds(sky: Readonly<SkyFrame>) {
     const clouds = TUNING.graphics.sky.clouds;
     const u = this.mesh.material.uniforms;
-    this.lit.copy(sky.horizon).lerp(sky.discColor, clouds.light * (1 - 0.6 * sky.gloom));
-    this.shade.copy(sky.horizon).lerp(sky.zenith, 0.3).multiplyScalar(clouds.shade);
+    this.lit.copy(sky.skyline).lerp(sky.discColor, clouds.light * (1 - 0.6 * sky.gloom));
+    this.shade.copy(sky.skyline).lerp(sky.zenith, 0.3).multiplyScalar(clouds.shade);
     (u.uCloudLit!.value as THREE.Color).copy(this.lit);
     (u.uCloudShade!.value as THREE.Color).copy(this.shade);
     (u.uCloud!.value as THREE.Vector2).set(clouds.cover, clouds.haze);

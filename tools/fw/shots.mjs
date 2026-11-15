@@ -3,14 +3,18 @@
 // script per review. It starts Vite itself, opens the game with `?debug`, gets past the menu, the
 // level card, the tutorial offer and the harbour, sets the scene through `window.fwt` (the boat's
 // `place`, `dock`, the view, the chart) and shoots each size.
-import { readFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { ROOT, chromiumPath, startVite } from './lib.mjs';
 import { padSteps } from './padSteps.mjs';
 import { defaultName, keyHold, list, pair, readAll } from './shotOptions.mjs';
 import { applyTune, nightTime, tuneChanges } from './shotOptions.mjs';
+import { seedStorage } from './shotStorage.mjs';
+
+export { seedStorage };
 import { prepareBoot, shootBoot } from './shotsBoot.mjs';
 import { HELP } from './shotsHelp.mjs';
+import { bothViews, driftReport, measureColors } from './viewColors.mjs';
 export { HELP };
 
 /**
@@ -66,6 +70,7 @@ export function normalise(opts) {
     zoom: o.zoom ?? null,
     turn: (o.yaw ?? o.tilt) !== undefined ? [o.yaw ?? 0, o.tilt] : null,
     chase: !!o.chase,
+    both: !!o.both,
     tune: o.tune ? tuneChanges(o.tune) : null,
     look: o.look === undefined ? null : pair(o.look),
     menu: !!o.menu,
@@ -128,10 +133,10 @@ export function planShots(args) {
   delete base.list;
   delete base.out;
   delete base.json;
-  if (!args.list) return [normalise(base)];
+  if (!args.list) return bothViews(normalise(base));
   const entries = JSON.parse(readFileSync(resolve(ROOT, args.list), 'utf8'));
   if (!Array.isArray(entries)) throw new Error(`${args.list}: not a JSON list`);
-  return entries.map((e, i) => normalise({ ...base, name: `shot-${i + 1}`, ...e }));
+  return entries.flatMap((e, i) => bothViews(normalise({ ...base, name: `shot-${i + 1}`, ...e })));
 }
 
 /** The game's address for a shot: the sea, `?debug`, and a quest test's own parameters. */
@@ -149,43 +154,6 @@ export function shotPath(shot) {
   if (map === 'edited' && !shot.seaFile && shot.sea === 'phase4') q.set('sea', 'phase4');
   for (const [k, v] of new URLSearchParams(shot.query ?? '')) q.set(k, v);
   return `/?${q}`;
-}
-
-/** What goes in the browser's storage before the game starts. */
-export function seedStorage(shot) {
-  const items = {
-    'fwt.settings.v1': JSON.stringify({
-      seenHelp: true,
-      seenWindHint: true,
-      seenPressHint: true,
-      seenCurrentHint: true,
-      musicVolume: 0,
-      voices: false,
-      language: shot.lang,
-      dayNight: shot.night || shot.time !== null,
-      weather: shot.weather,
-      storms: shot.storms,
-      windZones: shot.zones,
-      stormBelt: shot.belt ?? true,
-      ...(shot.quality ? { quality: shot.quality } : {}),
-      currents: shot.currents,
-      eruptions: shot.eruptions,
-    }),
-    ...shot.storage,
-  };
-  if (shot.seaFile) items['fwt.editor.map.v1'] = shot.seaMap ?? readFileSync(shot.seaFile, 'utf8');
-  if (shot.draft)
-    items[shot.editor === 'phase4' ? 'fwt.editor.seas.v1' : 'fwt.editor.map.v1'] = readFileSync(
-      shot.draft,
-      'utf8',
-    );
-  if (shot.islands.length) {
-    const designs = shot.islands.map((f) => JSON.parse(readFileSync(f, 'utf8')));
-    items['fwt.editor.islands.v1'] = JSON.stringify(
-      Object.fromEntries(designs.map((d) => [d.id, d])),
-    );
-  }
-  return items;
 }
 
 const visible = (page, sel) =>
@@ -290,6 +258,7 @@ async function shootOne(browser, base, shot, size, file) {
     ...(userAgent ? { userAgent } : {}),
   });
   const errors = [];
+  let measured = null;
   try {
     const page = await context.newPage();
     page.on('pageerror', (e) => errors.push(String(e)));
@@ -323,7 +292,8 @@ async function shootOne(browser, base, shot, size, file) {
     } else await shootScene(page, shot);
     // Editors too: a script can open the quest builder on a step (decision 0184).
     await dress(page, shot);
-    await page.screenshot({ path: file });
+    const png = await page.screenshot({ path: file });
+    if (shot.measure) measured = { ...(await measureColors(page, png)), ...shot };
     // The voyage as set for the shot, as a save link to play from (Menu › Move your voyage, 0066).
     if (shot.saveLink && !shot.linked) {
       shot.linked = true;
@@ -334,6 +304,7 @@ async function shootOne(browser, base, shot, size, file) {
     await context.close();
   }
   if (errors.length) throw new Error(`page error: ${errors[0]}`);
+  return measured;
 }
 
 /** Connect the fake pad, then hold each step's button or stick for its time. */
@@ -511,14 +482,21 @@ export async function takeShots(shots, out) {
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
   });
   const files = [];
+  const measured = [];
   const night = nightTime();
   try {
     for (const shot of shots)
       for (const size of shot.sizes) {
         const file = join(out, `${shot.name}-${size}.png`);
-        await shootOne(browser, base, { ...shot, nightTime: night }, size, file);
+        const colors = await shootOne(browser, base, { ...shot, nightTime: night }, size, file);
+        if (colors) measured.push({ ...colors, pair: `${colors.pair}-${size}` });
         files.push(file);
       }
+    // --both: the colour drift between the views, printed and kept beside the shots.
+    if (measured.length) {
+      const rows = await driftReport(server, measured);
+      writeFileSync(join(out, 'colors.json'), `${JSON.stringify(rows, null, 2)}\n`);
+    }
   } finally {
     await browser.close();
     await server.close();

@@ -191,8 +191,12 @@ export class UltraPipeline {
     );
   }
 
-  /** Draw a frame through the pipeline; `night` 0..1 eases the effects off in the dark. */
-  render(dt: number, night: number) {
+  /**
+   * Draw a frame through the pipeline; `night` 0..1 eases the effects off in the dark. `low` 0..1
+   * is the chase camera's share: its top of screen is sky, not the far sea, so the screen's
+   * horizon haze fades out there and the fog alone hazes the far sea, as from above (issue #573).
+   */
+  render(dt: number, night: number, low = 0) {
     const ultra = TUNING.graphics.ultra;
     this.casters.update(dt, this.scene, this.effects.shadows);
     this.followShadows(night);
@@ -210,7 +214,7 @@ export class UltraPipeline {
       .set(haze.dayColor)
       .lerp(this.hazeNight.set(haze.nightColor), night);
     u.uHazeStart!.value = ultra.haze.start;
-    u.uHazeStrength!.value = this.effects.haze ? ultra.haze.strength : 0;
+    u.uHazeStrength!.value = this.effects.haze ? ultra.haze.strength * (1 - low) : 0;
     const samples = this.effects.msaa !== false ? ultra.antialiasSamples : 0;
     this.draw(samples, this.effects.occlusion, this.effects.bloom ? night : undefined);
   }

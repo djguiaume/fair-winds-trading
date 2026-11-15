@@ -18,6 +18,8 @@ export interface Shot {
   turn: [number, number | undefined] | null;
   /** The close chase camera (decision 0272), already switched. */
   chase: boolean;
+  /** `--both`: shot from above and from the follow cam, colours measured (issue #573). */
+  both: boolean;
   /** Tuning changes by path, applied first (`--tune`). */
   tune: Record<string, unknown> | null;
   look: [number, number] | null;

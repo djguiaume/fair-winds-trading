@@ -51,26 +51,27 @@ function setup() {
 const hex = (c: THREE.Color) => c.getHexString();
 
 describe('chase camera light (issue #469)', () => {
-  it('leaves the sea camera as it was and turns the chase view sky blue by day', () => {
-    const { scene, sea, update } = setup();
+  it("keeps the sea camera's fog and light in the chase view (issue #573)", () => {
+    const { scene, atmosphere, sea, update } = setup();
     update(NOON, 0);
     const seaFog = hex(scene.background as THREE.Color);
     expect(sea.strength).toBe(1);
     update(NOON, 1);
-    const horizon = new THREE.Color(TUNING.graphics.sky.looks.day.horizon);
-    expect(hex(scene.background as THREE.Color)).toBe(hex(horizon));
-    expect(hex((scene.fog as THREE.Fog).color)).toBe(hex(horizon));
-    expect(hex(scene.background as THREE.Color)).not.toBe(seaFog);
+    expect(hex(scene.background as THREE.Color)).toBe(seaFog);
+    expect(hex((scene.fog as THREE.Fog).color)).toBe(seaFog);
+    expect(hex(atmosphere.drawnSky.horizon)).toBe(seaFog);
+    const skyline = new THREE.Color(TUNING.graphics.sky.looks.day.horizon);
+    expect(hex(atmosphere.drawnSky.skyline)).toBe(hex(skyline));
     expect(sea.strength).toBeCloseTo(TUNING.graphics.sky.reflection);
   });
 
-  it('keeps the night reflection in the chase view', () => {
+  it("keeps the night reflection colour in the chase view, softened like the day's", () => {
     const { sea, update } = setup();
     update(MIDNIGHT, 0);
     const before = hex(sea.reflected);
     update(MIDNIGHT, 1);
     expect(hex(sea.reflected)).toBe(before);
-    expect(sea.strength).toBe(1);
+    expect(sea.strength).toBeCloseTo(TUNING.graphics.sky.reflection);
   });
 
   it('blends the sky looks like the light: night colours at midnight', () => {
@@ -123,7 +124,8 @@ describe('chase camera light (issue #469)', () => {
 
 describe('drawn sky (issue #470)', () => {
   const frame = (low: number): SkyFrame => ({
-    horizon: new THREE.Color('#a6d6ee'),
+    horizon: new THREE.Color('#2a7f96'),
+    skyline: new THREE.Color('#a6d6ee'),
     zenith: new THREE.Color('#4f9bd6'),
     disc: new THREE.Vector3(0, 0.05, -1).normalize(),
     discColor: new THREE.Color('#fff1d6'),

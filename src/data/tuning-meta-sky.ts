@@ -3,7 +3,7 @@ import { num, text, type TuningMeta } from './tuning-meta-types';
 const lookColors = (id: string, name: string): Record<string, TuningMeta> => ({
   [`graphics.sky.looks.${id}.horizon`]: text(
     `Sky horizon, ${name}`,
-    `Low views: the sky and the fog just above the sea, ${name} (#rrggbb). The far sea fades into it.`,
+    `Low views: the sky just above the haze line, ${name} (#rrggbb). Below it, the fog's colour.`,
   ),
   [`graphics.sky.looks.${id}.zenith`]: text(
     `Sky overhead, ${name}`,
@@ -13,13 +13,29 @@ const lookColors = (id: string, name: string): Record<string, TuningMeta> => ({
 
 /**
  * `graphics.json` › `sky`: the drawn sky of the low views (issues #469 and #470). The chase camera
- * blends the fog toward the horizon colour and draws the dome above it; the sea camera never sees it.
+ * keeps the sea camera's fog (issue #573) and draws the dome above it; the sea camera never sees it.
  */
 export const SKY_META: Readonly<Record<string, TuningMeta>> = {
   ...lookColors('day', 'by day'),
   ...lookColors('golden', 'at dusk and dawn'),
   ...lookColors('night', 'at night'),
   ...lookColors('storm', 'under a storm'),
+  'graphics.sky.air': num(
+    'Air colour',
+    0,
+    1,
+    0.05,
+    undefined,
+    'The haze and fog of both views: 0 the sea’s own horizon tint, 1 the drawn sky’s horizon colour.',
+  ),
+  'graphics.sky.hazeLineDeg': num(
+    'Haze line height',
+    0,
+    10,
+    0.1,
+    '°',
+    'Above the horizon, the fog’s colour (the sea camera’s air) gives way to the sky’s over this height.',
+  ),
   'graphics.sky.gradientDeg': num(
     'Sky gradient height',
     3,
@@ -50,7 +66,7 @@ export const SKY_META: Readonly<Record<string, TuningMeta>> = {
     1,
     0.05,
     '×',
-    'The sea’s sky reflection times this in the chase view, so a low look keeps the water blue.',
+    'The sea’s sky reflection times this in the chase view, so the water stays the sea camera’s blue.',
   ),
   'graphics.sky.reflectZenith': num(
     'Reflected sky height',

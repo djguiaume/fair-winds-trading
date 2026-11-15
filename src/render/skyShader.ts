@@ -1,6 +1,6 @@
 /**
- * The drawn sky of the low views (issue #470): a gradient from the fog's horizon colour to a bluer
- * zenith, the sun or moon disc and its glow, stars at night, and the low-poly clouds, all in one
+ * The drawn sky of the low views (issue #470): the fog's colour at the horizon (the same air as the
+ * sea camera's, issue #573), the sky's own colour above a thin haze line, then a bluer zenith, the sun or moon disc and its glow, stars at night, and the low-poly clouds, all in one
  * draw. The dome is only a direction: it is drawn at the far plane round the camera, behind
  * everything, and only where nothing else was drawn (the depth test), so the sea costs it nothing.
  */
@@ -26,7 +26,10 @@ void main() {
 
 export const SKY_FRAGMENT = /* glsl */ `
 uniform vec3 uHorizon;
+uniform vec3 uSkyline;
 uniform vec3 uZenith;
+// 1 / sine of the haze line's height: the fog's colour gives way to the sky's below it.
+uniform float uHazeLine;
 // x: 1 / sine of the gradient's height, y: its curve, z: bands (0 = smooth), w: how much shows.
 uniform vec4 uGradient;
 uniform vec3 uSunDir;
@@ -51,7 +54,8 @@ float hash(vec3 p) {
 vec3 gradient(vec3 dir) {
   float t = pow(clamp(dir.y * uGradient.x, 0.0, 1.0), uGradient.y);
   if (uGradient.z > 0.5) t = floor(t * uGradient.z + 0.0001) / uGradient.z;
-  return mix(uHorizon, uZenith, t);
+  vec3 sky = mix(uSkyline, uZenith, t);
+  return mix(uHorizon, sky, smoothstep(0.0, 1.0, dir.y * uHazeLine));
 }
 
 float stars(vec3 dir) {
