@@ -23,6 +23,13 @@ export class CameraRig {
   readonly seaCentre = new THREE.Vector3();
   /** 1 = default; larger = farther away. */
   zoom = 1;
+  /**
+   * The share of the screen's width the scene is pushed right, so the boat sits in the part the
+   * title's menu column leaves free (issue #531); eased toward `stageShift`.
+   */
+  stageShift = 0;
+  private shift = 0;
+  private aspectShown = 0;
   /** A point the camera looks at instead of ahead of the boat (the home island, 0126). */
   private focus: { x: number; y: number } | null = null;
   /** Where on the screen the focus point sits, from the centre in screen fractions (0210). */
@@ -99,7 +106,7 @@ export class CameraRig {
     chase.update(dt, boatHeading, this.focus === null, speedKn, heel);
     if (this.jumpNext) chase.snap(boatHeading, speedKn, heel);
     const b = chase.eased;
-    const chaseHeading = chase.heading + chase.yaw;
+    const chaseHeading = chase.heading + chase.yaw + chase.drift;
     const heading = this.orbit.heading + b * wrapAngle(chaseHeading - this.orbit.heading);
     const axes = viewAxes(heading, this.axes);
     const ahead = lerp(speedKn * c.aheadPerKn, c.chase.lookAhead, b);
@@ -112,6 +119,7 @@ export class CameraRig {
     const sight = TUNING.weather.sight.far * sightDist;
     const frame = chase.frame(TUNING.weather.sight.far * c.chase.sightDistance, this.chaseFrame);
     this.setFov(lerp(this.seaFov, frame.fov / DEG, b));
+    this.slide(dt, aspect);
     this.followTarget(dt, aspect, pos, dir, ahead, seaDist);
     const eye = this.seaEye(this.orbit.pitch, seaDist);
     const look = this.look.copy(this.target);
@@ -199,6 +207,26 @@ export class CameraRig {
     const pitch = Math.atan2(eye.y - look.y, run);
     const middle = seaAhead(eye.y, pitch, this.camera.fov * DEG, sight);
     this.seaCentre.set(eye.x + axes.forwardX * middle, 0, eye.z + axes.forwardZ * middle);
+  }
+
+  /** Eases the scene toward its shift to the right; the projection changes only while it moves. */
+  private slide(dt: number, aspect: number) {
+    const before = this.shift;
+    this.shift = approach(this.shift, this.stageShift, TUNING.camera.title.shiftRate, dt);
+    if (Math.abs(this.shift - this.stageShift) < 1e-3) this.shift = this.stageShift;
+    if (this.shift === before && this.aspectShown === aspect) return;
+    this.aspectShown = aspect;
+    if (this.shift === 0) this.camera.clearViewOffset();
+    else
+      this.camera.setViewOffset(
+        1000 * aspect,
+        1000,
+        -this.shift * 1000 * aspect,
+        0,
+        1000 * aspect,
+        1000,
+      );
+    this.camera.updateProjectionMatrix();
   }
 
   /** The follow cam sees wider than the sea camera; the projection changes only when it does. */

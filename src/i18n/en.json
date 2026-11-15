@@ -1648,7 +1648,7 @@
   "market.var.originMakes": "its own goods",
   "market.name": "First market",
   "market.done.title": "First delivery complete!",
-  "market.done.copy": "Explore, compare prices and save for upgrades. Sailing lessons are in the menu anytime.",
+  "market.done.copy": "Explore, compare prices and save for upgrades. Sailing lessons are in Settings anytime.",
   "lesson.done.title": "Rook is home safe",
   "lesson.done.copy": "Explore, compare prices and save for upgrades. The sailing lessons are in Settings anytime.",
   "menu.level": "Level: {level}, change",

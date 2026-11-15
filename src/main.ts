@@ -91,7 +91,6 @@ import {
   refreshPiers,
   resetBoat,
   resetLand,
-  startAtPrologue,
   syncWorldLand,
   holdStorms,
   stepWorld,
@@ -157,6 +156,7 @@ import { startTvMode } from './input/tv';
 import { padLogFromUrl } from './ui/padLog';
 import { usePadBrand } from './ui/padGlyphs';
 import { ScreenStack } from './ui/screens/stack';
+import { beginPrologue } from './ui/cameraStage';
 import { type TitleState, TitleScreen } from './ui/screens/title';
 import { PauseScreen } from './ui/screens/pause';
 import { awayFromGame } from './ui/screens/portraitGate';
@@ -1095,6 +1095,7 @@ coach.onSkip = (quest) => {
   // Skip leaves the lessons, not the story: the rescue and Rook's ride home (decision 0160).
   quests.coachOff(quest);
   if (quest === TUTORIAL_QUEST) tutorialChoice.set('skipped');
+  camera.stage.closeOpening();
   coach.render();
   refreshMenuTutorial();
   autosave();
@@ -1117,10 +1118,8 @@ function startFirstVoyage() {
 }
 function startTutorial() {
   // A fresh voyage taking the tutorial begins alone at sea (decision 0127).
-  if (!resumedVoyage && world.time < 60) {
-    startAtPrologue(world);
+  if (!resumedVoyage && world.time < 60 && beginPrologue(world, camera.stage))
     sailStep = world.boat.sailStep;
-  }
   coach.finished = null;
   quests.ask(TUTORIAL_QUEST);
 }
@@ -1134,7 +1133,7 @@ function startUncoachedPrologue(): boolean {
     world.time >= 60 ||
     quests.progress(TUTORIAL_QUEST) ||
     quests.isDone(TUTORIAL_QUEST) ||
-    !startAtPrologue(world)
+    !beginPrologue(world, camera.stage)
   )
     return false;
   sailStep = world.boat.sailStep;
@@ -1744,7 +1743,8 @@ function tick(now: number) {
   hud.goal = seaGoal();
   followQuestCourse();
   hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);
-  camera.update();
+  title.stage(camera.stage, mode === 'menu' && !started && QUALITY[level].liveTitle);
+  camera.update(dt, world.boat.sailStep > 0);
   if (coachTick % 15 === 0) seaNews();
   showRunClock();
   questNote.update(dt, mode === 'play' && !paused && hudVisible, (key) => questSeen.has(key));

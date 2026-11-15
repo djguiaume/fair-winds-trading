@@ -1,10 +1,12 @@
 import { LANGUAGES, language, t } from '../../i18n';
+import type { CameraStage } from '../cameraStage';
 import { icon } from '../icons';
 import { listRow, panelClasses } from '../components';
 import { el } from '../components/dom';
 import type { MenuRows } from './menuRows';
 import type { Screen } from './stack';
-import keyArt from './art/title-key.jpg';
+import stillDay from './art/title-still-day.jpg';
+import stillNight from './art/title-still-night.jpg';
 import './screens.css';
 import './title.css';
 
@@ -34,9 +36,10 @@ export interface TitleState {
 }
 
 /**
- * The title (decision 0268, title 6 of the v1.5 kit): a full-height torn logbook page on the left
- * with the stacked logo, the tagline and the menu; the key art on the right, a golden-hour grade
- * of the cover. Continue is the one sage row; the rest are plain rows of the same size: three
+ * The title (decision 0268, title 6 of the v1.5 kit, live since issue #531): a full-height torn
+ * logbook page on the left with the stacked logo, the tagline and the menu, the real sea on the
+ * right (the camera's work, `CameraStage`). Where the scene cannot run (Low and Ultra-low) a still
+ * of the same view stands in, one for day and one for night. Continue is the one sage row; the rest are plain rows of the same size: three
  * rows in all (decision 0311), with the level line under New voyage and a small line holding the
  * language. How to play, the lessons and Move your voyage live in Settings.
  */
@@ -47,6 +50,9 @@ export class TitleScreen implements MenuRows {
   private readonly fresh: HTMLElement;
   private readonly level: HTMLButtonElement;
   private readonly settingsRow: HTMLElement;
+  private readonly page: HTMLElement;
+  private share = 0;
+  private sharedAt = 0;
 
   constructor(host: TitleHost) {
     this.play = this.row('menu-play', t('menu.newVoyage'), host.play);
@@ -61,16 +67,12 @@ export class TitleScreen implements MenuRows {
     this.level.classList.add('title-level');
     const small = el('div', 'title-small');
     small.append(this.fullscreen(), this.languages(host.setLanguage));
-    const page = el('section', `${panelClasses('torn', 'day')} title-page`);
-    page.append(this.brand(), this.list, this.level, small, this.hint(), this.version());
-    const art = el('img', 'title-art');
-    art.src = keyArt;
-    art.alt = '';
-    art.decoding = 'async';
+    this.page = el('section', `${panelClasses('torn')} title-page`);
+    this.page.append(this.brand(), this.list, this.level, small, this.hint(), this.version());
     const root = el('div', 'title');
     root.id = 'menu';
     root.hidden = true;
-    root.append(art, page);
+    root.append(this.still('day', stillDay), this.still('night', stillNight), this.page);
     this.screen = { id: 'menu', root, enter: 'fade', back: () => {} };
   }
 
@@ -86,9 +88,37 @@ export class TitleScreen implements MenuRows {
       });
   }
 
+  /**
+   * The scene behind the page is the live one while `live`, the still picture otherwise; the
+   * camera stages it clear of the page.
+   */
+  stage(camera: CameraStage, live: boolean) {
+    this.screen.root.classList.toggle('title--live', live);
+    camera.title(live, live ? this.columnShare() : 0);
+  }
+
+  /** How much of the screen's width the page covers, 0..1: the scene is centred on the rest. */
+  private columnShare(): number {
+    const width = window.innerWidth;
+    // The page is measured again only when the window changes, and not while it is hidden.
+    if (this.sharedAt !== width) {
+      this.share = this.page.getBoundingClientRect().right / width;
+      this.sharedAt = this.share > 0 ? width : 0;
+    }
+    return this.share;
+  }
+
   /** A row before Settings (Free Sailing's setup and way out). */
   addRow(id: string, label: string, press: () => void) {
     this.settingsRow.before(this.row(id, label, press));
+  }
+
+  private still(tone: 'day' | 'night', src: string) {
+    const img = el('img', `title-art title-art--${tone}`);
+    img.src = src;
+    img.alt = '';
+    img.decoding = 'async';
+    return img;
   }
 
   private row(id: string, label: string, press: () => void, detail?: string) {

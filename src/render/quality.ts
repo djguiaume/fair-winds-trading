@@ -40,6 +40,8 @@ export interface QualityProfile {
   richHouses: boolean;
   /** The Gerstner waves by default (decision 0250); Settings › Waves overrides it. */
   waves: boolean;
+  /** The title shows the live scene behind the menu; off keeps a still of the same view (#531). */
+  liveTitle: boolean;
   /** The wind's gusts on the sea (decision 0295); needs the waves on and `fancyWater`. */
   gusts: boolean;
 }

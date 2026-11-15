@@ -149,3 +149,9 @@
     animation: none;
   }
 }
+
+/* Phone landscape: the card keeps to the right, out of the middle where the opening view's boat sits
+   (art bible §13, issue #533). */
+:root[data-layout='phone'] .coach {
+  max-width: min(240px, 32vw);
+}

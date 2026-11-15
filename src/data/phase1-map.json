@@ -17,11 +17,15 @@
   "homeIsland": "skerry",
   "prologue": {
     "start": {
-      "x": 320,
-      "y": 40,
-      "headingDeg": 300
+      "x": 340,
+      "y": 55,
+      "headingDeg": 215
     },
-    "wreck": "east-reef"
+    "wreck": "east-reef",
+    "opening": {
+      "hour": 8,
+      "view": "b"
+    }
   },
   "islands": [
     {

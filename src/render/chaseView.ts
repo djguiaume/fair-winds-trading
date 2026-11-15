@@ -37,6 +37,8 @@ export class ChaseView {
   zoom = 1;
   /** The player's look round the boat (issue #536): + to the right of straight astern, radians. */
   yaw = 0;
+  /** The title's slow swing round the boat, radians, added to the look and never to the orbit. */
+  drift = 0;
   /** Steeper (+) or flatter (-) than the framing's rest, radians. */
   tilt = 0;
   /** 0 at rest .. 1 at full speed, eased so the camera never pumps. */

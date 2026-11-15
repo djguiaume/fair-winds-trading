@@ -5,6 +5,7 @@ import { TUNING } from '../data/tuning';
 import type { ChaseView } from '../render/chaseView';
 import type { CameraRig } from '../render/cameraRig';
 import type { SeaMotion } from '../render/seaMotion';
+import { CameraStage } from './cameraStage';
 import { CompassCamera } from './compassCamera';
 import type { Hud } from './hud';
 import { type Settings, saveSettings } from './settings';
@@ -22,6 +23,8 @@ export class CameraControls {
   private readonly rig: CameraRig;
   private readonly motion: SeaMotion;
   private readonly chase: ChaseView;
+  /** The title's live scene and the first voyage's opening place the camera (#531, #533). */
+  readonly stage: CameraStage;
   private quiet = false;
   /** The view last written to the settings, so a switch from any input is saved once. */
   private savedView: string;
@@ -40,6 +43,11 @@ export class CameraControls {
     const orbit = (this.orbit = rig.orbit);
     if (start.tilt) orbit.set(0, start.tilt);
     const chase = (this.chase = rig.chase);
+    this.stage = new CameraStage(
+      rig,
+      () => settings.sailingView,
+      () => settings.gentleMotion,
+    );
     this.savedView = settings.sailingView;
     chase.view = this.savedView;
     if (start.chase) chase.active = true;
@@ -91,7 +99,8 @@ export class CameraControls {
   }
 
   /** Every frame: the reset button shows while the camera is turned. */
-  update() {
+  update(dt: number, sailsUp: boolean) {
+    this.stage.update(dt, sailsUp);
     this.compass.update(this.turned);
     this.compass.setChase(this.chase.active);
     this.hud.portLabels.chase = this.chase.active;
@@ -106,7 +115,7 @@ export class CameraControls {
   /** The view switched from the key, the pad, a pinch or the button is the one Settings keeps. */
   private keepView() {
     const view = this.chase.view;
-    if (!this.remember || view === this.savedView) return;
+    if (!this.remember || this.stage.view !== null || view === this.savedView) return;
     this.savedView = view;
     this.settings.sailingView = view;
     saveSettings(this.settings);
@@ -116,7 +125,7 @@ export class CameraControls {
   sync() {
     if (this.settings.sailingView !== this.savedView) {
       this.savedView = this.settings.sailingView;
-      this.chase.view = this.savedView;
+      if (this.stage.view === null) this.chase.view = this.savedView;
     }
     this.orbit.enabled = this.settings.turnCamera;
     this.orbit.autoReturn = this.settings.cameraReturns;

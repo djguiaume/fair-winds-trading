@@ -284,7 +284,15 @@ export interface MapDef {
    * The tutorial's prologue (decision 0127): where a voyage that takes it begins, and the terrain
    * feature whose wreck landmark is the boat to rescue. Without it the tutorial starts at the chart.
    */
-  prologue?: { start: { x: number; y: number; headingDeg: number }; wreck: string };
+  prologue?: {
+    start: { x: number; y: number; headingDeg: number };
+    wreck: string;
+    /**
+     * The first frame (issue #533): the clock hour the voyage begins at (morning, 7 to 8.7) and the
+     * follow-cam framing it opens in, until the sails are up. Without it, the hour and view stay.
+     */
+    opening?: { hour: number; view: string };
+  };
   /** Buoys, boats and lights at sea (decision 0130). */
   marks?: SeaMarkDef[];
   /** Currents: lanes and areas of moving water (decision 0140). */

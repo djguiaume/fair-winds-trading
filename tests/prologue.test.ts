@@ -7,7 +7,8 @@ import { pointOf } from '../src/sim/questLibrary';
 import { SLOOP } from '../src/sim/ship';
 import { DEG } from '../src/sim/math';
 import { cardFor, questGoal, questTarget, trackedMarkers } from '../src/ui/questView';
-import { createWorld, startAtPrologue, stepWorld } from '../src/sim/world';
+import { startAtPrologue } from '../src/sim/prologue';
+import { createWorld, stepWorld } from '../src/sim/world';
 import { TUTORIAL, tutorialVoyage } from './helpers/tutorial';
 
 // Decision 0127: the tutorial is the prologue rescue, and Rook's thanks is the island. Since 0151 it
