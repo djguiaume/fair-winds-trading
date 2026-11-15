@@ -1,4 +1,66 @@
+import camera from './tuning/camera.json';
 import { num, text, type TuningMeta } from './tuning-meta-types';
+
+/** One follow-cam framing's numbers (decision 0312); every entry of `chase.framings` gets them. */
+const FRAMING_FIELDS: Readonly<Record<string, TuningMeta>> = {
+  fovDeg: num(
+    'Follow cam view',
+    30,
+    80,
+    1,
+    '°',
+    'Vertical field of view in the follow cam (the sea camera keeps 40°). Wider shows more round the boat.',
+  ),
+  boatY: num(
+    'Boat on screen',
+    0.5,
+    0.8,
+    0.01,
+    'of height',
+    "How far down the screen the boat's centre sits (art bible §13: 0.62 to 0.68).",
+  ),
+  horizonY: num(
+    'Horizon at rest',
+    0.2,
+    0.55,
+    0.01,
+    'of height',
+    'How far down the screen the horizon sits when she is slow (art bible §13: 0.35 to 0.42).',
+  ),
+  horizonYFast: num(
+    'Horizon at speed',
+    0.2,
+    0.55,
+    0.01,
+    'of height',
+    'The horizon at full speed: a little higher up the screen as the camera climbs.',
+  ),
+  distance: num(
+    'Chase distance',
+    10,
+    100,
+    1,
+    'units',
+    "How far from the boat's centre the follow cam stands at rest, at zoom 1.",
+  ),
+  pullAtSpeed: num(
+    'Pull back at speed',
+    0,
+    0.5,
+    0.01,
+    '× distance',
+    'How much farther back the camera stands at full speed (art bible §13: at most 0.3).',
+  ),
+};
+
+const FRAMING_META: Record<string, TuningMeta> = Object.fromEntries(
+  Object.keys(camera.chase.framings).flatMap((id) =>
+    Object.entries(FRAMING_FIELDS).map(([field, meta]) => [
+      `camera.chase.framings.${id}.${field}`,
+      { ...meta, label: `${meta.label} (${id.toUpperCase()})` },
+    ]),
+  ),
+);
 
 /** `camera.json`: the sea camera and the player turning it (decision 0223). */
 export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
@@ -124,41 +186,10 @@ export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
     's',
     'With "Camera comes back by itself" on: seconds without camera input before it eases back.',
   ),
+  ...FRAMING_META,
   'camera.chase.cycle': text(
     'Camera button cycle',
     'The views the camera button steps through, in order: framing ids from chase.framings and "top" for the sea camera.',
-  ),
-  'camera.chase.framings.*.fovDeg': num(
-    'Follow cam view',
-    30,
-    80,
-    1,
-    '°',
-    'Vertical field of view in the follow cam (the sea camera keeps 40°). Wider shows more round the boat.',
-  ),
-  'camera.chase.framings.*.boatY': num(
-    'Boat on screen',
-    0.5,
-    0.8,
-    0.01,
-    'of height',
-    "How far down the screen the boat's centre sits (art bible §13: 0.62 to 0.68).",
-  ),
-  'camera.chase.framings.*.horizonY': num(
-    'Horizon at rest',
-    0.2,
-    0.55,
-    0.01,
-    'of height',
-    'How far down the screen the horizon sits when she is slow (art bible §13: 0.35 to 0.42).',
-  ),
-  'camera.chase.framings.*.horizonYFast': num(
-    'Horizon at speed',
-    0.2,
-    0.55,
-    0.01,
-    'of height',
-    'The horizon at full speed: a little higher up the screen as the camera climbs.',
   ),
   'camera.chase.aimHeight': num(
     'Boat centre height',
@@ -167,22 +198,6 @@ export const CAMERA_META: Readonly<Record<string, TuningMeta>> = {
     0.5,
     'units',
     "How high above the water the point the camera frames as the boat's centre is.",
-  ),
-  'camera.chase.framings.*.distance': num(
-    'Chase distance',
-    10,
-    100,
-    1,
-    'units',
-    "How far from the boat's centre the follow cam stands at rest, at zoom 1.",
-  ),
-  'camera.chase.framings.*.pullAtSpeed': num(
-    'Pull back at speed',
-    0,
-    0.5,
-    0.01,
-    '× distance',
-    'How much farther back the camera stands at full speed (art bible §13: at most 0.3).',
   ),
   'camera.chase.fullSpeedKn': num(
     'Full speed',
