@@ -339,7 +339,9 @@ Story calls made for threads outside the arcs. They stand unless Guillaume chang
 - **Finding the home island after the tutorial** (0159): Rook names Skerry, "just west of Saltmere", and a "Sail to Skerry" step with a chart mark takes the captain there. Rook speaks the arrival card: bare plots and a sound pier, and the people of the islands (Kit, Ines, Maren, Ada) will each give a plot. In French say "les îles", not "l'anneau". No building names, deadlines or dialect.
 - **Sailing lessons** (the menu's "Replay tutorial", Guillaume 2026-10-24): a separate navigation-only quest that never replays the rescue. Rook runs a buoy course near Saltmere. His lines stay story-neutral, because it can be played before the rescue or long after: no gratitude, Skerry or arcs. No reward (replayable, no farming); the buoys only show while the lesson runs; no dock speed written into text. Done card: "Neatly sailed, captain. The course is here whenever you want it." Titles: "Hoist and lower sails", "Find the no-go zone", "Tack up to buoy A", "Reach to buoy C", "Run home and dock". French uses real terms (virer de bord, vent de travers, vent arrière) and whatever word the HUD already uses for the no-go zone. The HUD says **« zone de vent debout »** (not « zone interdite »). Buoy letters follow the order the player reaches them, as in the quest file. Coach cards may quote Rook (“ ”, « » with a non-breaking space inside), like `lesson.island.copy`. The full French lines: project files `plan/sailing-lessons/storyteller-ruling-2.md`.
 
-## Status (2026-10-28)
+- **v1.11 "Welcome aboard"** (2026-11-15): the line that replaces the tutorial offer, the six-step first voyage and the first-market trading hints are in [v1.11-rulings.md](v1.11-rulings.md).
 
-- Phase 3 and Phase 4 story are built and merged, and so is the Phase 5 story: the regatta, standing orders, the voiced Skerry choice and the keepers on the harbour screen (see [docs/phase-5/story.md](../phase-5/story.md)).
-- No story question is open. What v1.1 may ask, and the pointers, are in [handover.md](handover.md).
+## Status (2026-11-15)
+
+- Phase 3, 4 and 5 story are built and merged (regatta, standing orders, the voiced Skerry choice, keepers: see [docs/phase-5/story.md](../phase-5/story.md)). v1.9 and v1.10 added no words.
+- No story question is open. What v1.11 asked is answered in [v1.11-rulings.md](v1.11-rulings.md); other pointers are in [handover.md](handover.md).
