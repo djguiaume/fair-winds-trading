@@ -55,6 +55,8 @@ Sheets with top view | follow cam at morning, noon, golden, dusk, night and stor
 | Open sea | 6.3 ✓ sun | 7.6 ✓ sun | **7.2 ✗** | 5.0 ✓ sun | 3.6 ✓ | 6.6 ✓ sun |
 | Sunreach | 1.7 ✓ | 1.2 ✓ | 7.3 ✓ sun | 1.2 ✓ | 1.7 ✓ | 1.4 ✓ |
 
-Sea ΔE, top vs follow; "sun" = looking into the sun or moon (≤ 10). 17 of 18 pass. The open sea at golden hour fails at 7.2: the low sun is 64° off the bow, just past the 60° line, and its wide glitter lightens the follow cam's sea. Left for #550 (light) and #551 (water). The storm reads heavy in both views (sea darker than sky, no white-out).
+Sea ΔE, top vs follow; "sun" = looking into the sun or moon (≤ 10). 17 of 18 pass. The storm reads heavy in both views (sea darker than sky, no white-out).
+
+**Known exception (art director, 2026-11-15):** the open sea at golden hour, sea ΔE 7.2. The low sun is 64° off the bow, past the 60° into-the-sun line (kept at 60° on purpose), and its wide glitter lightens the follow cam's sea. Owned by #550 (light) and #551 (water); #550 checks it again with `--both`.
 
 Run it: `npm run shots -- --at 285,-60 --heading 180 --time 175 --both --sizes desktop` (prints the table, writes `colors.json`).
