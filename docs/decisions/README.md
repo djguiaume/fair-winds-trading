@@ -337,3 +337,4 @@ Template for new entries: `# NNNN. Title`, then **Status**, **Context**, **Decis
 | [0314](0314-the-painted-title-is-back-the-live-title-is-parked-behind-a-.md) | **The painted title is back; the live title is parked behind a switch**: `graphics.title.live` (default off) picks the painted picture or the live scene (#531) | 2026-11-15 | Accepted |
 | [0315](0315-version-111-release-welcome-aboard.md) | **Version 1.11 release, Welcome aboard**: package 1.11.0, tag v1.11.440, one review of the sheets | 2026-11-15 | Accepted |
 | [0316](0316-thin-out-the-sea-life.md) | **Thin out the sea life**: the wake gulls, shoals, terns and dolphins follow the player less; data only | 2026-11-15 | Accepted |
+| [0318](0318-one-atmosphere-in-both-views.md) | **One atmosphere in both views**: one fog colour for the top view and the follow cam, a softer sky mirror from behind, `shots --both` measures the drift (#573) | 2026-11-15 | Accepted |

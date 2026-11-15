@@ -691,7 +691,7 @@ export class GameView {
     }
 
     this.mirror.render(dt, this.ocean, this.level, this.target, day.night, this.effects.mirror);
-    if (ultra) ultra.render(dt, day.night);
+    if (ultra) ultra.render(dt, day.night, this.rig.chase.eased);
     // A canvas made for Ultra has no depth: until its pipeline loads, it draws nothing.
     else if (!this.ultra?.renderPlain(this.profile) && this.canvasDepth)
       this.renderer.render(this.scene, this.camera);
