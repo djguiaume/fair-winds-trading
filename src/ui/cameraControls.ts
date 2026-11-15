@@ -1,6 +1,6 @@
 import type { Input } from '../input/input';
 import type { SeaPad } from '../input/gamepad';
-import type { CameraOrbit } from '../render/cameraOrbit';
+import { type CameraOrbit, dragTurn } from '../render/cameraOrbit';
 import { TUNING } from '../data/tuning';
 import type { ChaseView } from '../render/chaseView';
 import type { CameraRig } from '../render/cameraRig';
@@ -41,13 +41,13 @@ export class CameraControls {
     input.onPinch = (f) => {
       if (!chase.pinch(f, rig.zoom <= TUNING.camera.zoomMin)) input.onZoom(f);
     };
-    // The chase view follows the boat, so the player's turning waits until it is off.
-    input.onCameraTurn = (dx, dy, device) => chase.active || orbit.drag(dx, dy, device);
-    input.onCameraReset = () => orbit.reset();
+    // In the follow cam the same drags look round the boat (issue #536).
+    input.onCameraTurn = (dx, dy, device) => dragTurn(chase.active ? chase : orbit, dx, dy, device);
+    input.onCameraReset = () => this.resetView();
     input.onCameraChase = () => chase.toggle();
     this.compass = new CompassCamera(
       document.getElementById('wind-compass')!,
-      () => orbit.reset(),
+      () => this.resetView(),
       () => chase.toggle(),
     );
     this.sync();
@@ -55,23 +55,35 @@ export class CameraControls {
 
   /** The controller's zoom, turn and reset this frame. */
   pad(sea: SeaPad) {
-    if (sea.zoom !== 1) this.rig.setZoom(this.rig.zoom * sea.zoom);
-    if (!this.chase.active) this.orbit.turn(sea.turn);
+    if (sea.zoom !== 1 && this.chase.active) this.chase.zoomBy(sea.zoom);
+    else if (sea.zoom !== 1) this.rig.setZoom(this.rig.zoom * sea.zoom);
+    (this.chase.active ? this.chase : this.orbit).turn(sea.turn, 0);
     if (sea.resetCamera) this.pressCameraButton();
   }
 
   /**
-   * The pad's one camera button (right stick in): back north-up when the camera is turned,
+   * The pad's one camera button (right stick in): back to rest when the camera is turned,
    * otherwise it switches the close chase view.
    */
   private pressCameraButton() {
-    if (this.orbit.turned && !this.chase.active) this.orbit.reset();
+    if (this.turned) this.resetView();
     else this.chase.toggle();
+  }
+
+  /** The view in use is turned away from where it rests. */
+  private get turned(): boolean {
+    return this.chase.active ? this.chase.turned : this.orbit.turned;
+  }
+
+  /** Back north-up above the sea, or behind the boat in the follow cam. */
+  private resetView() {
+    if (this.chase.active) this.chase.reset();
+    else this.orbit.reset();
   }
 
   /** Every frame: the reset button shows while the camera is turned. */
   update() {
-    this.compass.update(this.orbit.turned && !this.chase.active);
+    this.compass.update(this.turned);
     this.compass.setChase(this.chase.active);
     this.hud.portLabels.chase = this.chase.active;
     // The close view shows the boat and the sea, so the HUD keeps to the wind compass and speed.

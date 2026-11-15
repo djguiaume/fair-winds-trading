@@ -33,12 +33,38 @@ export const NORTH_UP: Readonly<ViewAxes> = viewAxes(0, {} as ViewAxes);
  * and little behind, so the ocean grid centres there rather than on the target (decision 0223).
  */
 export function seaMiddle(pitch: number, dist: number, fov: number, sight: number): number {
-  const height = Math.sin(pitch) * dist;
+  return seaAhead(Math.sin(pitch) * dist, pitch, fov, sight) - Math.cos(pitch) * dist;
+}
+
+/**
+ * How far ahead of the spot under the camera the middle of the sea on screen lies, for a camera
+ * `height` up looking `pitch` down (the follow cam may look a little up: the near edge still meets
+ * the sea while `pitch` is above minus half the field of view).
+ */
+export function seaAhead(height: number, pitch: number, fov: number, sight: number): number {
   // Past straight down the bottom of the screen looks back behind the camera: a negative distance.
   const near = height / Math.tan(pitch + fov / 2);
   const top = pitch > fov / 2 ? height / Math.tan(pitch - fov / 2) : sight;
   const far = Math.min(top, Math.sqrt(Math.max(0, sight * sight - height * height)));
-  return (near + far) / 2 - Math.cos(pitch) * dist;
+  return (near + far) / 2;
+}
+
+/** A camera the player turns by a heading and a pitch (radians). */
+export interface Turnable {
+  turn(heading: number, pitch: number): void;
+}
+
+/**
+ * A drag of (dx, dy) CSS pixels, by the right mouse button or two fingers, turns `camera`: up
+ * flattens. The sea camera and the follow cam share the feel (`camera.json`).
+ */
+export function dragTurn(camera: Turnable, dx: number, dy: number, device: 'mouse' | 'touch') {
+  const c = TUNING.camera;
+  const mouse = device === 'mouse';
+  camera.turn(
+    dx * (mouse ? c.mouseDegPerPx : c.touchDegPerPx) * DEG,
+    dy * (mouse ? c.mouseTiltDegPerPx : c.touchTiltDegPerPx) * DEG,
+  );
 }
 
 /**
@@ -77,12 +103,7 @@ export class CameraOrbit {
 
   /** A drag of (dx, dy) CSS pixels, by the right mouse button or two fingers: up flattens. */
   drag(dx: number, dy: number, device: 'mouse' | 'touch') {
-    const c = TUNING.camera;
-    const mouse = device === 'mouse';
-    this.turn(
-      dx * (mouse ? c.mouseDegPerPx : c.touchDegPerPx) * DEG,
-      dy * (mouse ? c.mouseTiltDegPerPx : c.touchTiltDegPerPx) * DEG,
-    );
+    dragTurn(this, dx, dy, device);
   }
 
   /** Ease back north-up at the default tilt. */
