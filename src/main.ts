@@ -1743,7 +1743,7 @@ function tick(now: number) {
   hud.goal = seaGoal();
   followQuestCourse();
   hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);
-  title.stage(camera.stage, mode === 'menu' && !started && QUALITY[level].liveTitle);
+  title.stage(camera.stage, mode === 'menu' && !started, QUALITY[level].liveTitle);
   camera.update(dt, world.boat.sailStep > 0);
   if (coachTick % 15 === 0) seaNews();
   showRunClock();

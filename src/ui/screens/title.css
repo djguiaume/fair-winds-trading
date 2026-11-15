@@ -28,6 +28,27 @@ body.at-title .in-game {
   object-position: 62% 60%;
 }
 
+.title-art--key {
+  display: none;
+}
+
+/* The painted picture (live title switched off): it starts under the torn edge, so the crop is
+   centred on the boat and the quay, not the page. */
+.title--painted {
+  --page-w: min(540px, 46vw);
+}
+
+.title--painted .title-art {
+  display: none;
+}
+
+.title--painted .title-art--key {
+  display: block;
+  inset: 0 0 0 calc(var(--page-w) - var(--edge));
+  width: calc(100% - var(--page-w) + var(--edge));
+  object-position: 61% 58%;
+}
+
 :root[data-night] .title-art--day,
 :root:not([data-night]) .title-art--night {
   display: none;
@@ -269,6 +290,10 @@ body.at-title .in-game {
 /* Selectors carry `:root[data-layout]` to beat the components' own phone padding. */
 :root[data-layout='phone'] .title {
   --page-w: clamp(300px, 46vw, 400px);
+}
+
+:root[data-layout='phone'] .title--painted {
+  --page-w: min(460px, 56vw);
 }
 
 :root[data-layout='phone'] .title-page {
