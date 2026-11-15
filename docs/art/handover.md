@@ -1,26 +1,22 @@
-# Art director handover (v1.10 to v1.11, 2026-11-15)
+# Art director handover (v1.11 to v1.12, 2026-11-15)
 
-v1.10.74 "Villages" shipped. Your OK means "ready to show Guillaume", never "merged". Your own PRs are docs only. Replace this file at the end of your release. Earlier rulings (sky, buoy, sea life, bloom, gusts, ground cover, houses, tones) are unchanged: art bible §2 and decisions 0295 to 0300.
+v1.11.440 "Welcome aboard" shipped. Your OK means "ready to show Guillaume", never "merged". Your own PRs are docs only. Replace this file at the end of your release. Earlier rulings are unchanged: art bible §2 and decisions 0295 to 0300, 0306, 0307.
 
-## 1. What v1.10 settled
+## 1. What v1.11 settled
 
-- **Village rules:** art bible §12 is organic-village rules plus one test: would this pass as a drawing of a real old-European village, judged at the sailing camera. The check now only guards what can break (slope, shore, lava, merging). Decisions 0306 and 0307.
-- **Guillaume's picks (2026-11-14):** all three references (Vernazza, Polperro, Cadgwith, in `docs/art/village-references/`), and each town must feel different by biome and industry. The §12 table gives every town its shape and industry cue; if two towns look alike after a recolour, change shape, not colour.
-- **Review habit that worked:** top view of the sailing camera judges rows; the follow-cam shots at that distance look alike before and after. Look at every image yourself and name the town in "must fix".
-- Night lights, the Ultra moon and follow-cam looks were built by other parts (`docs/reviews/v1.10/`); I did not review those.
+- **Art bible §13** holds the rulings: one HUD in both views (only the view button and Map/Cargo/Menu icons fade, to 40% after 6 s idle); phone landscape HUD pick **A** (lever right, icons bottom-left, mirrored left-handed layout as a Settings option, speed stays the biggest number, point of sail on the compass plate); follow-cam framing pick **B** (hull centre at about 65% height, horizon 40%, 12-20° over the hull at rest, view 54-58°, distance +20-30% eased); live title (paper panel on the left third, morning scene off Saltmere, still on Low); opening at 8 am, heading about 210°.
+- **Reviews:** sheets in `docs/reviews/v1.11/` (follow-cam-framing, phone-hud, part3, part4) and project files `v1.11-review/`.
+- **Habit that worked:** I picked from sheets and gave conditions in one message to the lead; Guillaume decided only on the framing round.
 
-## 2. Open items
+## 2. Open items for v1.12 "Light and water"
 
-- **Westholm millpond:** the §12 table asks for one; a pond that fits by the green draws as a sand patch, a bigger one needs two houses' ground. Needs its own plan.
-- **Westholm barns and roof tones:** all houses share size and thatch tone. Add a few larger barns and a second roof tone.
-- **Stonehaven is looser than "densest stone town":** the narrow shelf and the 0.3W spacing rule cap the core, and no house may stand on the quarry floor. Accepted for v1.10; revisit if Guillaume dislikes it.
-- **Not reviewed in detail:** Abbey Head, Watchman Key (too small to judge rows) and the far-sea town sheets in `docs/reviews/v1.10/towns/far-seas.md`.
-- **Device round [#377](https://github.com/djguiaume/fair-winds-trading/issues/377):** none of the new looks was measured on a real device. Also open: [#374](https://github.com/djguiaume/fair-winds-trading/issues/374), [#380](https://github.com/djguiaume/fair-winds-trading/issues/380).
-- **Next in the order (#568):** v1.11 Welcome aboard (first minute, follow cam). Guillaume wants top and follow views to share atmosphere, light and colours before the follow cam can be default (#573).
-- From earlier: UI nits from v1.5, Fogwatch lantern room, Palm Key level 3 step, Abbey Head club windows and awning, figurehead sun size, Rimewick Low summit spot. Pirates, warships and "cozy fight" rules stay parked.
+- **Flat morning light:** the opening and the title look right in layout but flat; sun direction, warm key light and depth are the v1.12 job (#550 and #573: top and follow views must share atmosphere, light and colours before the follow cam can be default).
+- **Not reviewed by me:** part 3 (first voyage, six steps), part 5 bugs and Low quality (#548); check their sheets in `docs/reviews/v1.11/`.
+- **Title:** the island may still cut the town at the right edge after the swing; check the final shot.
+- **From v1.10:** Westholm millpond, Westholm barns and a second roof tone, Stonehaven looser than "densest", Abbey Head and Watchman Key unreviewed, far-sea town sheets, device round [#377](https://github.com/djguiaume/fair-winds-trading/issues/377), [#374](https://github.com/djguiaume/fair-winds-trading/issues/374), [#380](https://github.com/djguiaume/fair-winds-trading/issues/380).
+- **Older:** Fogwatch lantern room, Palm Key level 3 step, Abbey Head club windows and awning, figurehead sun size, Rimewick Low summit spot. Pirates, warships and "cozy fight" rules stay parked.
 
 ## 3. Pointers
 
-- Sheets: `docs/reviews/v1.10/` and project files `v1.10-review/`.
-- Tools: `npm run island -- audit`, `npm run towns`, `npm run shots` (`--look town --zoom 1.4`), `npm run chart`.
+- Tools: `npm run shots` (`--chase` for the follow cam), `npm run chart`, `npm run island -- audit`, `npm run towns`.
 - Find a build thread with `list_threads`, match the session id, and copy the thread id exactly; never send a placeholder message.
