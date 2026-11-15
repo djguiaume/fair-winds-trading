@@ -82,6 +82,18 @@ describe('Sea HUD (decision 0049)', () => {
     expect(idle()).toBe(false);
   });
 
+  it('shows the breeze words for a while after they change (phone HUD, #560)', () => {
+    const { world, hud } = setup();
+    const fresh = () => $('wind-compass').hasAttribute('data-breeze-new');
+    hud.update(0.2, project, size);
+    expect(fresh()).toBe(true);
+    for (let i = 0; i < 60; i++) hud.update(0.2, project, size);
+    expect(fresh()).toBe(false);
+    world.wind.from += 1.2;
+    for (let i = 0; i < 3; i++) hud.update(0.2, project, size);
+    expect(fresh()).toBe(true);
+  });
+
   it('sets the sails straight from a lever notch and mirrors the boat', () => {
     const { world, hud } = setup();
     const input = new Input($('stage'));

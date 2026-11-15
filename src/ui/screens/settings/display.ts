@@ -13,7 +13,7 @@ export function displayTab(ctx: SettingsContext, host: RowHost) {
   const flag = (
     id: string,
     key: string,
-    name: 'quietHud' | 'showFps' | 'gentleMotion' | 'cameraBob' | 'wakeStyles',
+    name: 'quietHud' | 'leftHanded' | 'showFps' | 'gentleMotion' | 'cameraBob' | 'wakeStyles',
   ) =>
     switchRow({
       id,
@@ -55,6 +55,7 @@ export function displayTab(ctx: SettingsContext, host: RowHost) {
   ];
   const comfort = [
     flag('quiet-hud', 'settings.quietHud', 'quietHud'),
+    flag('left-handed', 'settings.leftHanded', 'leftHanded'),
     choiceRow({
       id: 'motion',
       key: 'settings.motion',

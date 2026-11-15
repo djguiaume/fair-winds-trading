@@ -17,6 +17,8 @@ export interface Settings {
   seenPressHint: boolean;
   /** The view the game starts in and the player last used: from above or behind the boat (#535). */
   sailingView: SailingView;
+  /** Phone landscape HUD mirrored for the left hand (issue #560): lever and compass swap sides. */
+  leftHanded: boolean;
   /** Quiet HUD (issue #441): only the wind compass and the instrument at sea; off by default. */
   quietHud: boolean;
   /** The wind compass dial; it can be switched off on the hardest level only (Guillaume). */
@@ -91,6 +93,7 @@ const DEFAULTS: Settings = {
   seenWindHint: false,
   seenPressHint: false,
   sailingView: 'above',
+  leftHanded: false,
   quietHud: false,
   windCompass: true,
   language: null,

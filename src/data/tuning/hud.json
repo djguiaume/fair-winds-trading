@@ -6,5 +6,6 @@
   "tapeSpanDeg": 70,
   "portSignSeaward": 10,
   "portSignChaseRange": 25,
-  "portSignChaseMinY": 0.5
+  "portSignChaseMinY": 0.5,
+  "breezeShowSec": 6
 }

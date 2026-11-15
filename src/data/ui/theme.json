@@ -93,9 +93,9 @@
     "margin": 16,
     "margin-phone": 12,
     "compass": 168,
-    "compass-phone": 104,
+    "compass-phone": 84,
     "speed": 64,
-    "speed-phone": 58,
+    "speed-phone": 36,
     "tape": 420,
     "tape-phone": 240
   },

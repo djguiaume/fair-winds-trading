@@ -73,12 +73,13 @@ export class Instrument {
 
   /** Tap a step or slide along them; keyboard players press the step buttons. */
   private initDrag() {
-    const pick = (clientX: number) => {
+    const pick = (clientX: number, clientY: number) => {
       let best = this.buttons[0]!;
       let bestGap = Infinity;
       for (const b of this.buttons) {
         const r = b.getBoundingClientRect();
-        const gap = Math.abs(clientX - (r.left + r.width / 2));
+        // Nearest by distance, so the same drag works along the row and along the phone's upright lever.
+        const gap = Math.hypot(clientX - (r.left + r.width / 2), clientY - (r.top + r.height / 2));
         if (gap < bestGap) [best, bestGap] = [b, gap];
       }
       this.choose(Number(best.dataset.step));
@@ -89,10 +90,10 @@ export class Instrument {
       e.preventDefault();
       this.drag = e.pointerId;
       this.sails.setPointerCapture?.(e.pointerId);
-      pick(e.clientX);
+      pick(e.clientX, e.clientY);
     });
     this.sails.addEventListener('pointermove', (e) => {
-      if (e.pointerId === this.drag) pick(e.clientX);
+      if (e.pointerId === this.drag) pick(e.clientX, e.clientY);
     });
     const release = (e: PointerEvent) => {
       if (e.pointerId === this.drag) this.drag = null;

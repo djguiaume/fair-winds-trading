@@ -345,12 +345,6 @@ html[data-layout='phone'] .hud-target {
 html[data-layout='phone'] .hud-target-name {
   font-size: var(--fs-sub);
 }
-html[data-layout='phone'] .hud-actions {
-  gap: 10px;
-}
-html[data-layout='phone'] .hud-action {
-  font-size: var(--fs-sub);
-}
 html[data-layout='phone'] .hud-dock {
   min-height: 44px;
   font-size: var(--fs-lead);

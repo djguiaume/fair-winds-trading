@@ -28,6 +28,7 @@ import { Toaster } from './components';
 import { setHidden } from './hud/parts';
 import './hud/hud.css';
 import './hud/overlays.css';
+import './hud/phone.css';
 
 function $(id: string): HTMLElement {
   const el = document.getElementById(id);

@@ -1645,6 +1645,8 @@
   "settings.hazards": "Dangers et contraintes",
   "settings.look": "Image",
   "settings.comfort": "Confort",
+  "settings.leftHanded": "Affichage pour gaucher",
+  "settings.leftHandedNote": "Sur téléphone à l'horizontale, le levier de voile et les boutons changent de côté",
   "settings.quietHud": "Affichage discret",
   "settings.quietHudNote": "En mer, seulement la rose des vents et la vitesse",
   "settings.windCompass": "Rose des vents",

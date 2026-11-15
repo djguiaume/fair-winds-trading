@@ -19,6 +19,14 @@ export const HUD_META: Readonly<Record<string, TuningMeta>> = {
     '×',
     'How visible the faded buttons stay (1 = no fade; art bible section 13: 0.4).',
   ),
+  'hud.breezeShowSec': num(
+    'Breeze words stay',
+    2,
+    30,
+    1,
+    's',
+    'On a phone the breeze words show this long after they change, then give way to the dial.',
+  ),
   'hud.backingInk': num(
     'Instrument backing',
     0.2,

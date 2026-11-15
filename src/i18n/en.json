@@ -1645,6 +1645,8 @@
   "settings.hazards": "Hazards and annoyances",
   "settings.look": "Picture",
   "settings.comfort": "Comfort",
+  "settings.leftHanded": "Left-handed HUD",
+  "settings.leftHandedNote": "On a phone held sideways, the sail lever and Map, Cargo and Menu swap sides",
   "settings.quietHud": "Quiet HUD",
   "settings.quietHudNote": "At sea, only the wind compass and the speed",
   "settings.windCompass": "Wind compass",

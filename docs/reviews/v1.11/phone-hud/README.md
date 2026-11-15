@@ -22,4 +22,6 @@ Build notes: the lever's drag reads vertical position instead of horizontal; the
 
 | Round | Pick | Notes |
 |---|---|---|
-| 1 | pending | Guillaume and the art director: one of A or B, and whether C ships as the left-handed option |
+| 1 | A, plus C as Settings > Left-handed HUD (art director, 2026-11-15) | Conditions met: knots larger (36 px), point of sail and wind words on the compass plate, one port label (the arrival banner stays off the phone), targets 44 px or more |
+
+Built: `before-after.jpg` (before, A, C). Mockup sources stay in `src/`.
