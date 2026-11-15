@@ -546,8 +546,8 @@ export class GameView {
     this.castaway.update(this.castawayWaiting, time);
     const dir = bearingVector(boat.heading);
     const pos = toScene(boat.x, boat.y, this.tmp);
-
-    const dist = this.rig.place(dt, this.width / this.height, pos, dir, boat.speedKn);
+    const aspect = this.width / this.height;
+    const dist = this.rig.place(dt, aspect, pos, dir, boat.speedKn, this.rigPose.lean);
     this.camera.position.y += this.motion.cameraRise(dt, this.sea.heightAt(pos.x, pos.z));
     const fog = this.scene.fog as THREE.Fog;
     const day = shownDaylightAt(this.dayNight, time);
