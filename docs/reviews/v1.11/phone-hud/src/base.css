@@ -1,0 +1,31 @@
+/* Mockup base for #560: shared parts of the three compact phone-landscape HUDs (844x390).
+   Static look only: the real build wires the same elements. Plates keep the paper ink backing. */
+html[data-layout='phone'] #hud { --m: 12px; }
+/* Status row: coins, hold, hull; the quest line folded to one line under it. */
+html[data-layout='phone'] #captain-stats { top: var(--m); left: var(--m); }
+html[data-layout='phone'] .hud-quest-text span { display: none; }
+html[data-layout='phone'] .hud-quest { padding: 4px 10px 4px 6px; max-width: 220px; min-height: 36px; }
+html[data-layout='phone'] .hud-quest-text b { font-size: var(--fs-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; }
+html[data-layout='phone'] #hud .hud-quest .icon { width: 20px; height: 20px; }
+/* Compass a size smaller; only the point of sail stays under it, the breeze words wait for a change. */
+html[data-layout='phone'] .hud-wind { top: var(--m); right: var(--m); flex-direction: column; align-items: center; gap: 0; }
+html[data-layout='phone'] .hud-dial { width: 84px; height: 84px; }
+html[data-layout='phone'] .hud-wind-text { padding-top: 2px; align-items: center; }
+html[data-layout='phone'] .hud-breeze, html[data-layout='phone'] .hud-gust { display: none; }
+html[data-layout='phone'] .hud-pos { font-size: var(--fs-body); }
+html[data-layout='phone'] #camera-reset { display: none; }
+html[data-layout='phone'] #camera-chase { top: 100px; right: 20px; width: 44px; height: 44px; }
+/* Map, Cargo, Menu as 44 px icon plates. */
+html[data-layout='phone'] .hud-actions { gap: 8px; }
+html[data-layout='phone'] .hud-action { width: 44px; height: 44px; min-height: 44px; padding: 0; justify-content: center; border-radius: 50%; background: var(--hud-backing); }
+html[data-layout='phone'] .hud-action > span:not(.pad-symbol) { display: none; }
+html[data-layout='phone'] #hud .hud-action > .icon { width: 24px; height: 24px; }
+/* The instrument: heading and knots over a slim vertical sail lever (Full on top). */
+html[data-layout='phone'] .hud-instr { min-width: 0; width: 76px; padding: 6px 6px 8px; gap: 2px; align-items: center; bottom: var(--m); }
+html[data-layout='phone'] .hud-speed { flex-direction: column; align-items: center; gap: 0; }
+html[data-layout='phone'] .hud-speed-n { font-size: 30px; }
+html[data-layout='phone'] .hud-speed small { font-size: var(--fs-note); }
+html[data-layout='phone'] .hud-hdg { font-size: var(--fs-note); margin: 0; }
+html[data-layout='phone'] .hud-hdg small { display: none; }
+html[data-layout='phone'] .hud-sails { flex-direction: column-reverse; gap: 4px; margin-top: 6px; width: 100%; }
+html[data-layout='phone'] .hud-sail { flex: none; width: 100%; min-height: 44px; padding: 0; font-size: var(--fs-note); }

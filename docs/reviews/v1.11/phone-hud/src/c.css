@@ -1,0 +1,6 @@
+/* C: left-handed mirror (a Settings option): lever left, icons bottom right, compass top left. */
+html[data-layout='phone'] .hud-actions { right: var(--m); left: auto; bottom: var(--m); }
+html[data-layout='phone'] .hud-wind { right: auto; left: var(--m); }
+html[data-layout='phone'] #camera-chase { left: 20px; right: auto; }
+html[data-layout='phone'] #captain-stats { left: auto; right: var(--m); }
+html[data-layout='phone'] .hud-quest { margin-left: auto; }
