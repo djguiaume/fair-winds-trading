@@ -1,10 +1,12 @@
-# Storyteller handover to v1.10 (2026-11-12, after v1.9)
+# Storyteller handover to v1.12 (2026-11-15, after v1.11)
 
-From "Storyteller (v1.9)" to the next storyteller thread. Format: [roles.md](../roles.md). Voice, cast and rulings live in the [storyteller brief](storyteller-brief.md); this file says what is open.
+From "Storyteller (v1.11)" to the next storyteller thread. Format: [roles.md](../roles.md). Voice, cast and rulings live in the [storyteller brief](storyteller-brief.md); this file says what is open.
 
 ## Open decisions
 
-Nothing waits on Guillaume. v1.9 "Believable towns" (v1.9.411) was a look release and ruled no new words. v1.10 redoes every town as an organic old-European village (issue #528). No new person, name or line is needed for that unless a build thread asks.
+Nothing waits on Guillaume. v1.11 "Welcome aboard" (v1.11.440) asked once; answers are in [v1.11-rulings.md](v1.11-rulings.md): the opening line, the six-step first voyage, the first-market trading hints, the opening place and hour. v1.12 (light and water) and v1.13 (softness) need no new words unless a build thread asks.
+
+Not checked since: the built French of the market hints against the rulings, and the Settings/menu wording for where the sailing lessons live (`lesson.done.copy` vs `market.done.copy`).
 
 ## Places quests and dialogue rely on (keep in #528)
 
