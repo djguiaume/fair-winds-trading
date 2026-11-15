@@ -46,6 +46,11 @@ export class CameraStage {
     this.stageView(view);
   }
 
+  /** The hints were skipped: the opening is over, the player's own view returns. */
+  closeOpening() {
+    if (this.staged !== null && this.staged !== TITLE_VIEW) this.release();
+  }
+
   /** Every frame; `sailsUp` is true once the sails are raised. */
   update(dt: number, sailsUp: boolean) {
     const chase = this.rig.chase;

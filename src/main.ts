@@ -1095,6 +1095,7 @@ coach.onSkip = (quest) => {
   // Skip leaves the lessons, not the story: the rescue and Rook's ride home (decision 0160).
   quests.coachOff(quest);
   if (quest === TUTORIAL_QUEST) tutorialChoice.set('skipped');
+  camera.stage.closeOpening();
   coach.render();
   refreshMenuTutorial();
   autosave();

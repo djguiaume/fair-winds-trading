@@ -71,6 +71,14 @@ describe("the first voyage's opening (#533)", () => {
     expect(s.view).toBeNull();
   });
 
+  it('ends when the hints are skipped', () => {
+    const { rig, stage: s } = stage('top');
+    s.open('b');
+    s.closeOpening();
+    expect(rig.chase.view).toBe('top');
+    expect(s.view).toBeNull();
+  });
+
   it('leaves the camera to the player who takes it first', () => {
     const { rig, stage: s } = stage('top');
     s.open('b');
