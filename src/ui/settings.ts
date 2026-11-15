@@ -1,11 +1,18 @@
 import { type LanguageId, isLanguage } from '../i18n';
 import { applyGraphicsOverrides } from '../perf/graphicsOverrides';
+import { TOP_VIEW, cameraCycle } from '../render/chaseView';
 import type { QualitySetting } from '../render/quality';
 import { type MotionMode, isMotionMode } from './motionMode';
 
-/** The two sailing views (Settings › Display, issue #535): the chart-like view and the follow cam. */
-export const SAILING_VIEWS = ['above', 'behind'] as const;
-export type SailingView = (typeof SAILING_VIEWS)[number];
+/**
+ * The sailing views (Settings › Display, issue #535): the ids of the camera button's cycle
+ * (`camera.json` › `chase.cycle`, decision 0312), the sea camera above (`top`) and the follow cam's
+ * framings. Saves from before the cycle kept `above` or `behind`.
+ */
+export function sailingViewOf(id: unknown): string {
+  if (id === 'behind') return cameraCycle().find((v) => v !== TOP_VIEW) ?? TOP_VIEW;
+  return typeof id === 'string' && cameraCycle().includes(id) ? id : TOP_VIEW;
+}
 
 /** Player settings, saved in localStorage (versioned key so the format can change later). */
 export interface Settings {
@@ -15,8 +22,8 @@ export interface Settings {
   seenWindHint: boolean;
   /** The one-time "ease the sails" message has been shown (decision 0078). */
   seenPressHint: boolean;
-  /** The view the game starts in and the player last used: from above or behind the boat (#535). */
-  sailingView: SailingView;
+  /** The view the game starts in and the player last used, a camera cycle id (#535, 0312). */
+  sailingView: string;
   /** Phone landscape HUD mirrored for the left hand (issue #560): lever and compass swap sides. */
   leftHanded: boolean;
   /** Quiet HUD (issue #441): only the wind compass and the instrument at sea; off by default. */
@@ -92,7 +99,7 @@ const DEFAULTS: Settings = {
   seenHelp: false,
   seenWindHint: false,
   seenPressHint: false,
-  sailingView: 'above',
+  sailingView: TOP_VIEW,
   leftHanded: false,
   quietHud: false,
   windCompass: true,
@@ -140,7 +147,7 @@ export function loadSettings(search = ''): Settings {
     // Until the player picks, gentle motion follows the device's "reduce motion" setting.
     if (typeof saved.gentleMotion !== 'boolean') settings.gentleMotion = prefersReducedMotion();
     if (!isMotionMode(saved.motion)) settings.motion = prefersReducedMotion() ? 'reduced' : 'full';
-    if (!SAILING_VIEWS.includes(settings.sailingView)) settings.sailingView = 'above';
+    settings.sailingView = sailingViewOf(settings.sailingView);
     if (typeof settings.waves !== 'boolean') settings.waves = null;
     if (!isLanguage(settings.language)) settings.language = null;
     const volume = Number(settings.musicVolume);

@@ -1,10 +1,10 @@
 import { LANGUAGES, type MessageKey, language } from '../../../i18n';
 import { MOTION_MODES, type MotionMode } from '../../motionMode';
 import { effectSwitches, qualityOptions } from '../../graphicsSettings';
+import { cameraCycle } from '../../../render/chaseView';
 import type { QualitySetting } from '../../../render/quality';
 import { t } from '../../../i18n';
 import type { RowHost, SettingsContext } from './context';
-import { SAILING_VIEWS, type SailingView } from '../../settings';
 import { choiceRow, switchRow } from './rows';
 
 /** Settings › Display: the picture, the quiet HUD and the comfort switches. */
@@ -28,13 +28,13 @@ export function displayTab(ctx: SettingsContext, host: RowHost) {
     choiceRow({
       id: 'sailing-view',
       key: 'settings.sailingView',
-      options: SAILING_VIEWS.map((id) => ({
+      options: cameraCycle().map((id) => ({
         id,
         label: t(`settings.sailingView.${id}` as MessageKey),
       })),
       get: () => settings.sailingView,
       set: (id) => {
-        settings.sailingView = id as SailingView;
+        settings.sailingView = id;
         host.changed();
       },
     }),
