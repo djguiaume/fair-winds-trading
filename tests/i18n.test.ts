@@ -83,9 +83,7 @@ describe('translations (decision 0037)', () => {
       newVoyage: noop,
       freeSailing: noop,
       settings: noop,
-      help: noop,
-      lessons: noop,
-      transfer: noop,
+      chooseLevel: noop,
       setLanguage: noop,
     }).screen.root;
     expect(title.querySelector('#menu-settings .ui-row-label')!.textContent).toBe(
@@ -152,17 +150,17 @@ describe('translations (decision 0037)', () => {
 
   it('builds grammatical French sentences around goods and ships (decision 0091)', () => {
     setLanguage('fr');
-    expect(t('lesson.deliver.title', { cargo: goodThe('fish'), delivery: 'Saltmere' })).toBe(
+    expect(t('market.deliver.title', { cargo: goodThe('fish'), delivery: 'Saltmere' })).toBe(
       'Portez le poisson à Saltmere',
     );
-    expect(t('lesson.buy.copy', { origin: 'Port Calda', originMakes: goodSome('lampOil') })).toBe(
+    expect(t('market.buy.copy', { origin: 'Port Calda', originMakes: goodSome('lampOil') })).toBe(
       'Port Calda produit de l’huile à lampe\u00a0: c’est bon marché ici. Achetez un lot.',
     );
     expect(t('fleet.switchTo', { ship: shipThe(SHIP_CLASSES.schooner!) })).toBe(
       'Prendre la goélette',
     );
     setLanguage('en');
-    expect(t('lesson.deliver.title', { cargo: goodThe('fish'), delivery: 'Saltmere' })).toBe(
+    expect(t('market.deliver.title', { cargo: goodThe('fish'), delivery: 'Saltmere' })).toBe(
       'Carry the fish to Saltmere',
     );
   });

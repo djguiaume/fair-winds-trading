@@ -1,0 +1,120 @@
+{
+  "id": "first-market",
+  "name": "First market",
+  "start": { "is": "asked" },
+  "text": "market",
+  "lesson": true,
+  "storms": false,
+  "vars": { "origin": "port", "delivery": "port", "cargo": "good" },
+  "steps": [
+    {
+      "id": "dock",
+      "teach": true,
+      "goal": { "is": "docked" },
+      "set": { "origin": "docked" },
+      "coach": { "sea": "port-marker", "chart": "chart-port", "port": "nearest", "action": "chart" }
+    },
+    {
+      "id": "buy",
+      "teach": true,
+      "port": "$origin",
+      "goal": { "is": "bought", "port": "$origin", "qty": 1 },
+      "choose": [{ "id": "continue", "if": { "is": "has-cargo" } }],
+      "set": { "cargo": "aboard" },
+      "unless": [
+        { "if": { "is": "not", "of": { "is": "docked", "port": "$origin" } }, "to": "dock" }
+      ],
+      "coach": {
+        "sea": "dock-button",
+        "chart": "chart-port",
+        "market": "buy-button",
+        "port": "$origin",
+        "good": "makes:$origin",
+        "action": "market"
+      }
+    },
+    {
+      "id": "choose-delivery",
+      "teach": true,
+      "goal": {
+        "is": "all",
+        "of": [{ "is": "course" }, { "is": "not", "of": { "is": "course", "port": "$origin" } }]
+      },
+      "set": { "delivery": "course" },
+      "unless": [
+        {
+          "if": {
+            "is": "all",
+            "of": [
+              { "is": "not", "of": { "is": "has-cargo", "good": "$cargo" } },
+              { "is": "docked" }
+            ]
+          },
+          "to": "buy",
+          "set": { "origin": "docked" }
+        },
+        { "if": { "is": "not", "of": { "is": "has-cargo", "good": "$cargo" } }, "to": "dock" }
+      ],
+      "coach": {
+        "sea": "chart-button",
+        "chart": "chart-port",
+        "port": "buyer:$cargo",
+        "action": "chart"
+      }
+    },
+    {
+      "id": "deliver",
+      "teach": true,
+      "port": "$delivery",
+      "goal": { "is": "docked", "port": "$delivery" },
+      "unless": [
+        {
+          "if": {
+            "is": "all",
+            "of": [
+              { "is": "not", "of": { "is": "has-cargo", "good": "$cargo" } },
+              { "is": "docked" }
+            ]
+          },
+          "to": "buy",
+          "set": { "origin": "docked" }
+        },
+        { "if": { "is": "not", "of": { "is": "has-cargo", "good": "$cargo" } }, "to": "dock" },
+        { "if": { "is": "not", "of": { "is": "course" } }, "to": "choose-delivery" },
+        {
+          "if": {
+            "is": "all",
+            "of": [
+              { "is": "not", "of": { "is": "course", "port": "$delivery" } },
+              { "is": "not", "of": { "is": "course", "port": "$origin" } }
+            ]
+          },
+          "to": "deliver",
+          "set": { "delivery": "course" }
+        }
+      ],
+      "coach": {
+        "sea": "port-marker",
+        "chart": "chart-port",
+        "port": "$delivery",
+        "action": "chart"
+      }
+    },
+    {
+      "id": "sell",
+      "port": "$delivery",
+      "goal": { "is": "delivered", "port": "$delivery", "good": "$cargo", "qty": 1 },
+      "unless": [
+        { "if": { "is": "not", "of": { "is": "docked", "port": "$delivery" } }, "to": "deliver" }
+      ],
+      "coach": {
+        "sea": "dock-button",
+        "chart": "chart-port",
+        "market": "sell-button",
+        "port": "$delivery",
+        "good": "$cargo",
+        "action": "market"
+      }
+    }
+  ]
+}

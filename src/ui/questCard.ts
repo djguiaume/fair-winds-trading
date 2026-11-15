@@ -166,7 +166,9 @@ export function questCardBody(c: QuestCardModel, inline = false): string {
                   ? t('quest.arcRound', { name: c.arc, n: c.round })
                   : c.kind === 'finished'
                     ? t('quest.arcDone', { name: c.arc })
-                    : t('quest.arcStep', { name: c.arc, n: c.stepNo, total: c.steps }),
+                    : c.lesson
+                      ? c.arc
+                      : t('quest.arcStep', { name: c.arc, n: c.stepNo, total: c.steps }),
             )}</span>${
               c.round === undefined && !c.race
                 ? `<span class="quest-pips" aria-hidden="true">${pips}</span>`

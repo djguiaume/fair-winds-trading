@@ -137,7 +137,7 @@ describe('quest builder (decision 0142)', () => {
     );
     // The tutorial is a quest like the others (decision 0151).
     const columns = storyColumns(doc.quests);
-    expect(columns[0]).toEqual(['first-voyage', 'sailing-lessons']);
+    expect(columns[0]).toEqual(['first-market', 'first-voyage', 'sailing-lessons']);
     expect(columns[1]).toEqual(['rooks-thanks']);
     // The four arcs, the club hint and the six races that open after the prologue (0227).
     expect(columns[2]).toHaveLength(11);

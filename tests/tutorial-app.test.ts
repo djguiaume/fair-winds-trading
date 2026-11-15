@@ -45,7 +45,7 @@ vi.mock('../src/render/view', () => ({
 }));
 afterEach(() => vi.unstubAllGlobals());
 
-it('offers a fresh tutorial, pauses planning, completes real trades, then replays without resetting the voyage', async () => {
+it('starts a fresh voyage in one click, pauses planning, completes real trades, then replays without resetting the voyage', async () => {
   localStorage.clear();
   document.body.innerHTML = html
     .split('<body>')[1]!
@@ -67,37 +67,24 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   ).fwt;
   // The tutorial is an ordinary quest (decision 0151).
   const step = () => quests.progress('first-voyage')?.step;
+  const marketStep = () => quests.progress('first-market')?.step;
   const click = (id: string) => {
     const el = document.querySelector<HTMLButtonElement>(id)!;
     expect(el, id).not.toBeNull();
     el.focus();
     el.click();
   };
-  // The offer's dialog joins the page when it asks.
-  const offer = {
-    get open() {
-      return (document.getElementById('tutorial-offer') as HTMLDialogElement | null)?.open ?? false;
-    },
-  };
   const chart = document.getElementById('chart') as HTMLDialogElement;
   const flushClose = async () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
   };
   click('#menu-play');
-  // A fresh voyage starts by picking a difficulty level, Captain preselected (decision 0083).
-  const picker = document.getElementById('new-voyage')!;
-  expect(picker.hidden).toBe(false);
-  expect(input.isEnabled).toBe(false);
-  expect(picker.querySelector('[data-level="captain"]')!.getAttribute('aria-checked')).toBe('true');
-  click('#set-sail');
-  expect(picker.hidden).toBe(true);
+  // One click: no level cards, no tutorial question; the boat is out at sea on Captain (v1.11).
+  expect(document.getElementById('new-voyage')!.hidden).toBe(true);
+  expect(document.getElementById('tutorial-offer')).toBeNull();
   expect(world.trade.difficulty).toBe('captain');
-  expect(offer.open).toBe(true);
-  expect(input.isEnabled).toBe(false);
-  click('#tutorial-start');
-  await flushClose();
-  expect(offer.open).toBe(false);
   expect(input.isEnabled).toBe(true);
+  expect(quests.isRunning('first-voyage')).toBe(true);
   // The prologue starts alone at sea (decision 0127).
   expect(world.boat.x).toBe(world.map.prologue!.start.x);
   expect(world.trade.dockedAt).toBeNull();
@@ -118,16 +105,7 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   expect(step()).toBe('aboard');
   expect((document.getElementById('quest-card') as HTMLDialogElement).open).toBe(true);
   click('#quest-card [data-option="welcome"]');
-  expect(step()).toBe('chart');
-  // The coach mark rings the Map button; tapping it opens the chart, and Rook asks for home.
-  click('#chart-btn');
-  expect(chart.open).toBe(true);
-  expect(input.isEnabled).toBe(false);
-  click('[data-compare="saltmere"]');
-  expect(world.destination?.portId).toBe('saltmere');
-  click('#close-chart');
-  await flushClose();
-  expect(input.isEnabled).toBe(true);
+  expect(step()).toBe('home');
   Object.assign(world.boat, { x: 252, y: -134, speedKn: 0 });
   click('.port-marker[data-port-id="saltmere"]');
   expect(world.trade.dockedAt).toBe('saltmere');
@@ -140,7 +118,9 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   expect(card.open).toBe(false);
   expect(step()).toBe('island');
   click('#tutorial-continue');
-  expect(step()).toBe('buy');
+  // The first voyage is done; the harbour's trading hints begin at this first market.
+  expect(quests.isDone('first-voyage')).toBe(true);
+  expect(marketStep()).toBe('buy');
   expect(input.isEnabled).toBe(false);
   click('[data-action="buy"][data-good="fish"][data-qty="1"]');
   expect(world.trade.captain.cargo.fish).toBe(1);
@@ -157,7 +137,7 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   click('.port-marker[data-port-id="calda"]');
   click('#tp-sell-all');
   expect(world.trade.captain.cargo.fish).toBe(0);
-  expect(quests.isDone('first-voyage')).toBe(true);
+  expect(quests.isDone('first-market')).toBe(true);
   expect(document.querySelector('#tutorial-market .tutorial-card')!.textContent).toContain(
     'First delivery complete',
   );
@@ -171,7 +151,6 @@ it('offers a fresh tutorial, pauses planning, completes real trades, then replay
   // Once the tutorial is done, Settings offers Rook's sailing lessons instead (decision 0164).
   expect(document.querySelector('#settings-lessons')!.textContent).toBe('Sailing lessons');
   click('#settings-lessons');
-  expect(offer.open).toBe(false);
   expect(quests.isRunning('sailing-lessons')).toBe(true);
   expect(quests.isRunning('first-voyage')).toBe(false);
   expect(document.querySelector('.tutorial-card')!.textContent).toMatch(

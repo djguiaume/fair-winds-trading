@@ -142,6 +142,18 @@ body.at-title .in-game {
   cursor: pointer;
 }
 
+.title-link[hidden] {
+  display: none;
+}
+
+/* "Level: Captain, change": a quiet line under the rows, not a fourth row. */
+.title-level {
+  align-self: flex-start;
+  margin-top: var(--ui-space-2);
+  text-align: left;
+  text-decoration: underline;
+}
+
 .title-link:disabled {
   opacity: 0.5;
   cursor: default;

@@ -93,7 +93,7 @@ function rowLine(e: JournalEntry): string {
       : t('journal.done');
     return e.who ? `${e.arc} · ${done}` : done;
   }
-  return `${e.arc} · ${t('journal.step', { n: e.stepNo, total: e.steps })}`;
+  return e.lesson ? e.arc : `${e.arc} · ${t('journal.step', { n: e.stepNo, total: e.steps })}`;
 }
 
 /** The tracked quest: the giver, the arc, the step pips and the step lines. */

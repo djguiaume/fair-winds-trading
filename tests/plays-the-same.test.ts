@@ -98,9 +98,10 @@ describe('plays the same after moving levels, tutorial and music to data (decisi
     const lines: string[] = [];
     for (let run = 0; run < 300; run++) lines.push(...tutorialSession(run));
     expect(lines.length).toBeGreaterThan(60000);
-    expect(hash(lines.join('\n'))).toBe('77c6f205');
+    expect(hash(lines.join('\n'))).toBe('d7613840');
     // 2026-10-25: neutral default texts for the lessons that name controls (decision 0184), then
     // Rook's card at the rescue (decision 0185), then his thanks on the quay (decision 0190).
+    // 2026-11-15: the first voyage's trading steps moved to the first-market quest (v1.11).
     // 300 sessions take about 3.5 s here and over 5 s on a busy CI runner.
   }, 20000);
 });

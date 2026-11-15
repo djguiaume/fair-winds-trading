@@ -102,6 +102,12 @@ export function checkQuests(
       out.push(`${at}: a "raced" goal belongs to a race (a quest with "race")`);
     if (q.lesson !== undefined && typeof q.lesson !== 'boolean')
       out.push(`${at}: lesson is true or false`);
+    for (const [gone, to] of Object.entries(q.retired ?? {})) {
+      if (q.steps?.some((s) => s.id === gone))
+        out.push(`${at} › retired: "${gone}" is still a step`);
+      else if (to !== null && !q.steps?.some((s) => s.id === to))
+        out.push(`${at} › retired.${gone}: no step "${String(to)}"`);
+    }
     if (q.storms !== undefined && q.storms !== false) out.push(`${at}: storms is only ever false`);
     if (q.steps?.some((s) => s.teach !== undefined) && !q.lesson)
       out.push(`${at}: only a lesson has teach steps`);

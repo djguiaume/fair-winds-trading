@@ -45,7 +45,7 @@ vi.mock('../src/render/view', () => ({
 }));
 afterEach(() => vi.unstubAllGlobals());
 
-it('Free sailing on a fresh voyage still plays the prologue, without the coach (decision 0160)', async () => {
+it('Skipping the hints on a fresh voyage still plays the prologue, without the coach (decision 0160)', async () => {
   localStorage.clear();
   document.body.innerHTML = html
     .split('<body>')[1]!
@@ -70,18 +70,11 @@ it('Free sailing on a fresh voyage still plays the prologue, without the coach (
     expect(el, id).not.toBeNull();
     el.click();
   };
-  // The offer's dialog joins the page when it asks.
-  const offer = {
-    get open() {
-      return (document.getElementById('tutorial-offer') as HTMLDialogElement | null)?.open ?? false;
-    },
-  };
   const bubble = () => document.querySelector<HTMLElement>('.tutorial-card');
+  // One click starts the voyage with its hints; Skip on the first bubble turns them off (v1.11).
   click('#menu-play');
-  click('#set-sail');
-  expect(offer.open).toBe(true);
-  click('#tutorial-free');
-  await new Promise((resolve) => setTimeout(resolve, 0));
+  expect(quests.isCoached('first-voyage')).toBe(true);
+  click('#tutorial-skip');
   // Alone at sea at the prologue's spot, sails down: not beside Saltmere with full sails.
   const start = world.map.prologue!.start;
   expect([world.boat.x, world.boat.y]).toEqual([start.x, start.y]);
@@ -92,8 +85,13 @@ it('Free sailing on a fresh voyage still plays the prologue, without the coach (
   expect(quests.isCoached('first-voyage')).toBe(false);
   expect(bubble()?.hidden ?? true).toBe(true);
   // The story keeps the sea: the sailing lessons wait until it is over (decision 0164).
-  expect(document.getElementById('menu-tutorial-label')!.textContent).toBe('Sailing lessons');
-  expect(document.querySelector<HTMLButtonElement>('#menu-tutorial')!.disabled).toBe(true);
+  click('#menu-btn');
+  click('#pause-settings');
+  expect(document.querySelector('#settings-lessons')!.textContent).toBe('Sailing lessons');
+  expect(document.querySelector('#settings-lessons')!.getAttribute('aria-disabled')).toBe('true');
+  // Esc leaves Settings, then the pause card.
+  for (let n = 0; n < 2; n++)
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape' }));
   const wreck = pointOf(world.map, 'wreck')!;
   Object.assign(world.boat, { x: wreck.x + 12, y: wreck.y, speedKn: 0.5 });
   for (let n = 0; n < 8; n++) quests.check(0.5);

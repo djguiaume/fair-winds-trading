@@ -19,6 +19,9 @@ const waveYs = (n: number) =>
 
 const words = (key: string, fallback: string) => (hasText(key) ? t(key) : fallback);
 
+/** A level's name in the player's language ("Captain"). */
+export const levelName = (id: Difficulty) => words(`level.${id}`, DIFFICULTY[id]!.name);
+
 /** Degrees the boat heels on the level's sea: the rougher the level, the more she leans. */
 const HEEL = [0, -5, -10];
 

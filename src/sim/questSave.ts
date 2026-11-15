@@ -11,6 +11,24 @@ import { TUNING } from '../data/tuning';
 
 const isCount = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0;
 
+/** A save at a step the file retired carries on where the file says (`retired`). */
+function moveRetired(quest: QuestDef, p: Partial<QuestProgress>): Partial<QuestProgress> {
+  const to = typeof p.step === 'string' ? quest.retired?.[p.step] : undefined;
+  if (to === undefined || findStep(quest, p.step)) return p;
+  const chose = Object.fromEntries(
+    Object.entries(p.chose ?? {}).filter(([s, o]) =>
+      findStep(quest, s)?.choose?.some((x) => x.id === o),
+    ),
+  );
+  const kept = { chose, ...(p.vars ? { vars: p.vars } : {}) };
+  if (to === null) return { step: QUEST_DONE, counts: [], ...kept };
+  return {
+    step: to,
+    counts: new Array<number>(slotLayout(findStep(quest, to)?.goal).size).fill(0),
+    ...kept,
+  };
+}
+
 /**
  * Saved quest progress checked against the quest files: a quest or step no longer there, or bad
  * numbers, drop that quest's progress (it starts again when its condition holds).
@@ -31,8 +49,9 @@ export function readQuests(
   if (typeof byId !== 'object' || byId === null) return out;
   const fitting = questsFor(map, quests);
   for (const quest of fitting) {
-    const p = (byId as Record<string, unknown>)[quest.id] as Partial<QuestProgress> | undefined;
-    if (!p || typeof p !== 'object') continue;
+    const saved = (byId as Record<string, unknown>)[quest.id] as Partial<QuestProgress> | undefined;
+    if (!saved || typeof saved !== 'object') continue;
+    const p = moveRetired(quest, saved);
     const step = findStep(quest, p.step);
     if (!step && p.step !== QUEST_DONE) continue;
     const counts = Array.isArray(p.counts) ? p.counts : [];

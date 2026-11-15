@@ -196,23 +196,13 @@ const visible = (page, sel) =>
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
- * Past the title menu, level card and tutorial offer as a player would click (`--url "/?free"`: its
+ * Past the title menu as a player would click (one click, v1.11) (`--url "/?free"`: its
  * setup is the shot, 0266); then, unless the shot is the prologue, back to plain free play (0160).
  */
 async function enter(page, shot) {
   await page.waitForFunction(() => !!window.fwt, null, { timeout: 30000 });
   if (await visible(page, '.free-setup[open]')) return;
   if (await visible(page, '#menu-play')) await page.click('#menu-play');
-  await page
-    .locator('#set-sail')
-    .waitFor({ state: 'visible', timeout: 3000 })
-    .catch(() => {});
-  if (await visible(page, '#set-sail')) await page.click('#set-sail');
-  await page
-    .locator('#tutorial-free')
-    .waitFor({ state: 'visible', timeout: 2000 })
-    .catch(() => {});
-  if (await visible(page, '#tutorial-free')) await page.click('#tutorial-free');
   if (!shot.prologue && !shot.url) await page.evaluate(() => window.fwt.freePlay?.());
 }
 

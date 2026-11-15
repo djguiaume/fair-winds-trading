@@ -2,7 +2,7 @@ import { tOptional } from '../i18n';
 import type { MapDef } from '../sim/map';
 import { QUEST_DONE, type QuestBook, type QuestDef, type QuestStep } from '../sim/quests';
 import { type Character, character } from './portraits';
-import { lineNumber, mainLine } from './questLine';
+import { countedLine, lineNumber, mainLine } from './questLine';
 import { arcName, portName, stepParams, stepProgress } from './questWords';
 
 /* The journal's entries (decision 0124): every quest started, its steps and its story. */
@@ -23,6 +23,8 @@ export interface JournalEntry {
   state: 'tracked' | 'active' | 'offered' | 'ignored' | 'done';
   stepNo: number;
   steps: number;
+  /** A lesson shows its steps as dots, never as "step n of m" (v1.11). */
+  lesson: boolean;
   /** The tracked quest's steps: done ones, the one now, and one line for what is still hidden. */
   lines: JournalStep[];
   /** The options picked, for a finished quest. */
@@ -54,7 +56,8 @@ export function journal(book: QuestBook, map: MapDef): JournalEntry[] {
       giver,
       who: giver ? (port ? `${giver.name} · ${port}` : giver.name) : port,
       arc: arcName(quest),
-      steps: mainLine(quest).length,
+      steps: countedLine(quest).length,
+      lesson: !!quest.lesson,
       lines: [] as JournalStep[],
       chose: [] as string[],
     };
@@ -87,7 +90,11 @@ export function journal(book: QuestBook, map: MapDef): JournalEntry[] {
   for (const quest of book.quests) {
     const p = book.progress(quest.id);
     if (p?.step !== QUEST_DONE) continue;
-    const entry: JournalEntry = { ...base(quest), state: 'done', stepNo: mainLine(quest).length };
+    const entry: JournalEntry = {
+      ...base(quest),
+      state: 'done',
+      stepNo: countedLine(quest).length,
+    };
     for (const [step, option] of Object.entries(p.chose))
       entry.chose.push(tOptional(`${quest.text}.${step}.${option}.title`) ?? option);
     entry.story = [];

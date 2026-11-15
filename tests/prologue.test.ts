@@ -76,10 +76,10 @@ describe('the prologue at sea (decision 0127)', () => {
     for (let n = 0; n < 5; n++) v.check(0.5);
     expect(v.step).toBe('wreck');
     v.check(0.5);
-    // Rook speaks on his card (decision 0185), then the chart lesson.
+    // Rook speaks on his card (decision 0185), then the way home.
     expect(v.step).toBe('aboard');
     v.cont('welcome');
-    expect(v.step).toBe('chart');
+    expect(v.step).toBe('home');
     expect(v.quests.compassOf(v.quests.trackedStep)).toBeNull();
     expect(v.vars.origin).toBe('saltmere');
   });
@@ -92,7 +92,7 @@ describe('the prologue at sea (decision 0127)', () => {
     expect(v.wreck).toBeNull();
     expect(v.step).toBe('aboard');
     v.cont('welcome');
-    expect(v.step).toBe('chart');
+    expect(v.step).toBe('home');
     expect(v.vars.origin).toBeTruthy();
   });
 });

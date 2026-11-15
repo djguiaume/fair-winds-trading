@@ -10,7 +10,7 @@ describe('texts per way of playing (decision 0184)', () => {
   it('reads the version for touch, keys or pad, else the default', () => {
     const sell = (v: Parameters<typeof setTextVariant>[0]) => {
       setTextVariant(v);
-      return t('lesson.sell.copy', { cargo: 'fish' });
+      return t('market.sell.copy', { cargo: 'fish' });
     };
     expect(sell(null)).toBe('Sell fish here, or use Sell all.');
     expect(sell('touch')).toBe('Sell fish here, or tap Sell all.');

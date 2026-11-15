@@ -51,6 +51,7 @@ function cardModel(q: QuestDef, s: QuestStep | undefined, l: Lang): QuestCardMod
     arc: textOf(doc, l, `${q.text}.name`) ?? q.name,
     stepNo: Math.min(i + 1, q.steps.length),
     steps: q.steps.length,
+    lesson: !!q.lesson,
     round: q.repeat && s ? i + 1 : undefined,
     progress: q.repeat && typeof s?.goal?.qty === 'number' ? `0 / ${s.goal.qty}` : undefined,
     // The version for the way of playing picked under the speech, else the default (0184).

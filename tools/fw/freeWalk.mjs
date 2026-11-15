@@ -38,10 +38,6 @@ function logWrites() {
 async function startVoyage(page) {
   await page.locator('#menu-play').waitFor({ state: 'visible', timeout: 30000 });
   await page.click('#menu-play');
-  await page.locator('#set-sail').waitFor({ state: 'visible', timeout: 5000 });
-  await page.click('#set-sail');
-  await page.locator('#tutorial-free').waitFor({ state: 'visible', timeout: 5000 });
-  await page.click('#tutorial-free');
   await page.evaluate(() => window.fwt.freePlay?.());
 }
 
