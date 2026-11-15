@@ -8,7 +8,7 @@ import { CurrentField, laneShape } from './currents';
 import { outlineCrosses, smoothOutline } from './flowShapes';
 import { TUNING } from '../data/tuning';
 import { isFar, isGood } from './goods';
-import { openingProblems } from './openingCheck';
+import { openingCheck } from './openingCheck';
 import { islandCoasts, islandPoint } from './islandLayout';
 import {
   designOf,
@@ -757,15 +757,8 @@ export function quickChecks(map: MapDef): MapCheck[] {
         )
       : pass('landmarks', 'every scenery island has a landmark', 'warning'),
   );
-  out.push(...berthChecks(map));
-  const opening = openingProblems(map);
-  out.push(
-    opening.length
-      ? fail('opening', `first voyage's opening: ${list(opening)}`)
-      : pass('opening', "the first voyage's opening is a morning with land ahead"),
-  );
-  // Other boats (decision 0215): their ports, names and lanes in open water.
-  out.push(...trafficQuickChecks(map));
+  out.push(...berthChecks(map), openingCheck(map));
+  out.push(...trafficQuickChecks(map)); // Other boats (decision 0215): ports, names, lanes
   return out;
 }
 

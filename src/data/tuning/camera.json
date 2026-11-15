@@ -69,7 +69,7 @@
     "pinchSwitch": 0.4
   },
   "title": {
-    "yawDeg": -45,
+    "yawDeg": -38,
     "driftDeg": 6,
     "driftPeriodSec": 48,
     "shiftRate": 3

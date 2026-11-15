@@ -1,6 +1,7 @@
 import { TUNING } from '../data/tuning';
 import { secondsAtHour } from './daylight';
 import { DEG, wrapAngle } from './math';
+import type { MapCheck } from './mapChecks';
 import type { MapDef } from './map';
 
 /** A new voyage is "fresh" for its first minute (`main.ts`): the opening hour must fit inside it. */
@@ -34,4 +35,17 @@ export function openingProblems(map: MapDef): string[] {
   if (home && Math.hypot(home.x - start.x, home.y - start.y) - home.radius < sight)
     problems.push(`${home.name ?? home.id} is in sight of the start`);
   return problems;
+}
+
+/** The map check for `openingProblems` (`quickChecks`). */
+export function openingCheck(map: MapDef): MapCheck {
+  const problems = openingProblems(map);
+  return {
+    id: 'opening',
+    ok: problems.length === 0,
+    severity: 'error',
+    message: problems.length
+      ? `first voyage's opening: ${problems.join('; ')}`
+      : "the first voyage's opening is a morning with land ahead",
+  };
 }

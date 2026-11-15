@@ -5,7 +5,8 @@ import type { CameraRig } from '../src/render/cameraRig';
 import { ChaseView } from '../src/render/chaseView';
 import { openingProblems } from '../src/sim/openingCheck';
 import { SLOOP } from '../src/sim/ship';
-import { createWorld, startAtPrologue } from '../src/sim/world';
+import { startAtPrologue } from '../src/sim/prologue';
+import { createWorld } from '../src/sim/world';
 import { daylightAt } from '../src/sim/daylight';
 import { CameraStage } from '../src/ui/cameraStage';
 

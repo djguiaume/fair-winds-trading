@@ -1,4 +1,5 @@
 import { LANGUAGES, language, t } from '../../i18n';
+import type { CameraStage } from '../cameraStage';
 import { icon } from '../icons';
 import { listRow, panelClasses } from '../components';
 import { el } from '../components/dom';
@@ -87,13 +88,17 @@ export class TitleScreen implements MenuRows {
       });
   }
 
-  /** The scene behind the page is the live one, not the still picture. */
-  setLive(live: boolean) {
+  /**
+   * The scene behind the page is the live one while `live`, the still picture otherwise; the
+   * camera stages it clear of the page.
+   */
+  stage(camera: CameraStage, live: boolean) {
     this.screen.root.classList.toggle('title--live', live);
+    camera.title(live, live ? this.columnShare() : 0);
   }
 
   /** How much of the screen's width the page covers, 0..1: the scene is centred on the rest. */
-  columnShare(): number {
+  private columnShare(): number {
     const width = window.innerWidth;
     // The page is measured again only when the window changes, and not while it is hidden.
     if (this.sharedAt !== width) {

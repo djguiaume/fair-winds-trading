@@ -21,7 +21,6 @@ import {
 import { townLevels } from './founding';
 import { questsDone, questsRunning, settlementLevels } from './settlement';
 import { type LandState, hasQuestLand, landOut, landWith, syncLand } from './questLand';
-import { secondsAtHour } from './daylight';
 import { DIFFICULTIES, knobs, weatherFor } from './difficulty';
 import { type ZoneVisual, CLEAR, mapZones, zoneField, zoneVisualAt } from './windZones';
 import { type BeltNow, beltNow } from './stormBelt';
@@ -338,23 +337,6 @@ export function resetBoat(world: World): void {
   world.boat = createBoat(start.x, start.y, start.headingDeg * DEG);
   world.destination = null;
   world.course = { index: 0, legStart: world.time, reached: 0, lastLegSeconds: null };
-}
-
-/**
- * A voyage that takes the tutorial begins at the prologue's spot at sea (decision 0127), when the
- * map has one, lying still with the sails down so the first lesson is raising them (decision 0139).
- * Returns whether the boat moved.
- */
-export function startAtPrologue(world: World): boolean {
-  const start = world.map.prologue?.start;
-  if (!start) return false;
-  world.boat = createBoat(start.x, start.y, start.headingDeg * DEG);
-  world.boat.sailStep = 0;
-  world.destination = null;
-  world.trade.dockedAt = null;
-  const opening = world.map.prologue?.opening;
-  if (opening) world.time = secondsAtHour(opening.hour);
-  return true;
 }
 
 export function currentWaypoint(world: World) {

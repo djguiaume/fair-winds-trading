@@ -1,6 +1,8 @@
 import { TUNING } from '../data/tuning';
 import type { CameraRig } from '../render/cameraRig';
 import { DEG, approach } from '../sim/math';
+import { startAtPrologue } from '../sim/prologue';
+import type { World } from '../sim/world';
 
 /** The follow-cam framing the title's live scene is shot in (`camera.json` › `chase.framings`). */
 const TITLE_VIEW = 'title';
@@ -76,4 +78,12 @@ export class CameraStage {
     const swing = Math.sin((this.seconds / c.driftPeriodSec) * 2 * Math.PI);
     return (c.yawDeg + (this.still() ? 0 : c.driftDeg * swing)) * DEG;
   }
+}
+
+/** A fresh voyage begins at the prologue's place and morning hour, the camera behind her (#533). */
+export function beginPrologue(world: World, stage: CameraStage): boolean {
+  if (!startAtPrologue(world)) return false;
+  const view = world.map.prologue?.opening?.view;
+  if (view) stage.open(view);
+  return true;
 }

@@ -11,6 +11,6 @@ Decision [0313](../../decisions/0313-the-live-title-and-the-first-voyages-openin
 | `opening-before.jpg`, `opening-after.jpg` | The first frame after the title, then and now |
 | `opening-phone-landscape.jpg` | The first frame on 844x390: the lesson card keeps right of the boat |
 
-Picks for the art director and Guillaume: the title pose (distance 42, look round -45°, swing 6°), the opening heading and hour (8 am, 225°), the still being a day capture.
+Picks for the art director and Guillaume: the title pose (distance 42, look round -38°, swing 6°), the opening heading and hour (8 am, 215°), the still being a day capture.
 
 Shot tips: `npm run shots -- --menu --quality high --wait 3500 --time 35 --script day.js` (a script setting `fwt.world.time = 35`; `--time` turns day and night on), the still with `--style` hiding `.title-page, .title-version`.
