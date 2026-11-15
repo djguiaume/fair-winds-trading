@@ -22,7 +22,7 @@
     "horizonY": 0.4,
     "horizonYFast": 0.36,
     "aimHeight": 1.5,
-    "distance": 46,
+    "distance": 27,
     "pullAtSpeed": 0.25,
     "fullSpeedKn": 12,
     "speedEaseSec": 2,

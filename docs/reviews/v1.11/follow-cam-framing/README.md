@@ -28,7 +28,7 @@ A 40° variant would keep the calls flat but sits flatter than §13 allows.
 
 | Round | Shown | Art director | Guillaume |
 | --- | --- | --- | --- |
-| 1 (2026-11-15) | A, B, C | | |
+| 1 (2026-11-15) | A, B, C | B: A puts the sail over the island and harbour at the pier, C shrinks the boat too much on a phone and at 8 kn; wider view OK | |
 
 ## Re-create
 
