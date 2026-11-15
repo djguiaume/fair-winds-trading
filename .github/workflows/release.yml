@@ -56,3 +56,14 @@ jobs:
             git push origin "refs/tags/${TAG}"
           fi
           gh release create "$TAG" --verify-tag --title "$TITLE" --notes-file "$notes"
+      - name: List issues left open in the milestone
+        if: ${{ inputs.milestone != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          MILESTONE: ${{ inputs.milestone }}
+        run: |
+          left=$(bash tools/ci/open-issues.sh "$MILESTONE")
+          [ -z "$left" ] && exit 0
+          echo "::warning::Issues still open in the milestone: close them or move them to the next one"
+          { echo "### Still open in $MILESTONE"; echo "$left"; } >> "$GITHUB_STEP_SUMMARY"
