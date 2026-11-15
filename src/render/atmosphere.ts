@@ -140,6 +140,8 @@ export interface SkyFrame {
   readonly skyline: THREE.Color;
   /** The sky higher up. */
   readonly zenith: THREE.Color;
+  /** How high the fog's haze reaches before the sky's own colour, degrees (issue #552). */
+  hazeDeg: number;
   /** Toward the sun (or moon), scene space, at its true height: it sets on the horizon. */
   readonly disc: THREE.Vector3;
   /** The sun's (or moon's) colour as seen in the sky. */
@@ -172,11 +174,14 @@ export class Atmosphere {
   private low = 0;
   private windKn = 0;
   private readonly reflected = new THREE.Color();
+  /** The camera's target (the boat) in sim coordinates, for the storms on the horizon. */
+  private readonly boatAt = { x: 0, y: 0 };
   /** The drawn sky's inputs, written by `update`. */
   readonly drawnSky: SkyFrame = {
     horizon: new THREE.Color(),
     skyline: new THREE.Color(),
     zenith: new THREE.Color(),
+    hazeDeg: 1,
     disc: new THREE.Vector3(0, 1, 0),
     discColor: new THREE.Color(),
     low: 0,
@@ -295,7 +300,9 @@ export class Atmosphere {
     lightDirection(this.skyLightDir, day.lightBearing, day.lightHeight);
     ocean.setSun(this.skyLightDir, this.sun.color, this.sun.intensity);
     this.updateSky(l, skyLook, day, low, h);
-    this.dome.update(Math.max(0, dt), this.drawnSky, this.windKn);
+    this.boatAt.x = target.x;
+    this.boatAt.y = -target.z;
+    this.dome.update(Math.max(0, dt), this.drawnSky, this.windKn, weather.storms, this.boatAt);
   }
 
   /**
@@ -324,6 +331,7 @@ export class Atmosphere {
     sky.horizon.copy(l.sky);
     sky.skyline.copy(skyLook.horizon);
     sky.zenith.copy(skyLook.zenith);
+    sky.hazeDeg = skyLook.hazeDeg;
     lightDirection(sky.disc, day.lightBearing, day.skyHeight);
     sky.discColor.copy(l.sun);
     sky.low = low;

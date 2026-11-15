@@ -1,0 +1,8 @@
+[
+  { "name": "1-morning", "at": [0, -330], "heading": 106, "time": 4 },
+  { "name": "2-noon", "at": [0, -330], "heading": 180, "time": 175 },
+  { "name": "3-golden", "at": [0, -330], "heading": 96, "time": 400 },
+  { "name": "4-night", "at": [0, -330], "heading": 200, "time": 560 },
+  { "name": "5-fresh-wind", "at": [0, -330], "heading": 60, "time": 120, "script": "docs/reviews/v1.12/rich-sky/src/fresh.js" },
+  { "name": "6-squall", "at": [0, -330], "heading": 180, "time": 140, "script": "docs/reviews/v1.12/rich-sky/src/squall.js" }
+]

@@ -127,6 +127,7 @@ describe('drawn sky (issue #470)', () => {
     horizon: new THREE.Color('#2a7f96'),
     skyline: new THREE.Color('#a6d6ee'),
     zenith: new THREE.Color('#4f9bd6'),
+    hazeDeg: 1.5,
     disc: new THREE.Vector3(0, 0.05, -1).normalize(),
     discColor: new THREE.Color('#fff1d6'),
     low,
