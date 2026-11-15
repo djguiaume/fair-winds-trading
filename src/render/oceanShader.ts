@@ -107,10 +107,10 @@ void main() {
   // Ultra-low (decision 0247): no facets; the waves show in the crest colour alone.
   float light = 1.0;
 #else
+#ifdef GERSTNER
   // Flat shading: one normal per triangle from screen-space derivatives.
   vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
   if (n.y < 0.0) n = -n;
-#ifdef GERSTNER
   // Soft facets (issue #282): the waves' own slope with the ones the grid can't hold (per vertex,
   // the ripples per pixel), and a share of the facets, all fading out toward the horizon.
   float near = vWave.w;
@@ -128,6 +128,9 @@ void main() {
   slope *= uWaveLook.w;
   vec3 shade = normalize(vec3(slope.x, 1.0, slope.y));
 #else
+  // Low (issue #548): the coarse grid's flat facets read as square tiles, so the sea is one smooth
+  // light and only the crest colour shows the swell.
+  vec3 n = vec3(0.0, 1.0, 0.0);
   vec3 shade = n;
 #endif
   float light = 0.62 + 0.5 * max(dot(shade, uSunDir), 0.0);
