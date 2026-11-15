@@ -1,0 +1,37 @@
+name: Close issues
+
+# Safety net for "Fixes #N" (issue #569): when a PR merges into main, closes every issue its
+# body names after Fixes/Closes/Resolves, including the 2nd and 3rd of "Fixes #1, #2, #3".
+# The PR body only reaches the script through env, never a shell line.
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  close:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Close the fixed issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          for n in $(node tools/ci/closing.mjs); do
+            state=$(gh issue view "$n" --json state --jq .state)
+            [ "$state" = OPEN ] || continue
+            gh issue close "$n" --reason completed --comment "Fixed by #$PR."
+          done
