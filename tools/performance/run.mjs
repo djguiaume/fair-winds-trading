@@ -71,8 +71,9 @@ try {
       await page.waitForFunction(() => !!window.fwt);
       const startupMs = await page.evaluate(() => performance.now());
       await page.locator('#menu-play').click();
-      // Plain free play, not the prologue a skipped tutorial still plays (decision 0160).
-      await page.evaluate(() => window.fwt?.freePlay?.());
+      // Skip the hints as a player would; the prologue a skipped tutorial still plays is the scene
+      // the budgets were measured on (decision 0160).
+      await page.locator('#tutorial-skip').click();
       // A fresh browser context prevents settings, adaptive quality and saves leaking between runs.
       await page.waitForTimeout(config.warmupMs);
       await page.evaluate(() => {
