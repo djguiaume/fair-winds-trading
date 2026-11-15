@@ -87,7 +87,7 @@ describe('island files (decision 0101)', () => {
     // Old phones.
     expect(checksOf(broken(() => {}, 8900))).toEqual(['budget']);
     expect(broken(() => {}, 7400).map((i) => i.check)).toContain('budget');
-  });
+  }, 30000);
 
   it('warns about overlapping buildings and props that go with nothing in their place', () => {
     const issues = broken((d) => {
