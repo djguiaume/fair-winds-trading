@@ -83,17 +83,47 @@ export function daylightAt(t: number): Daylight {
           : s < NIGHT_END
             ? 0
             : smooth((s - NIGHT_END) / (DAY_SECONDS - NIGHT_END)) * 0.6;
-  // The sun rises in the east at 6 and sets in the west at 18 (northern summer, low in the south);
-  // the moon takes the same path through the night.
-  const arc = (((hour - 6 + 24) % 12) / 12) * Math.PI;
+  const { bearing, height } = lightPath(hour);
   return {
     hour,
     night,
     warm,
-    lightBearing: Math.PI / 2 + arc,
-    lightHeight: Math.max(0.15, Math.sin(arc)),
-    skyHeight: Math.sin(arc),
+    lightBearing: bearing,
+    lightHeight: Math.max(0.15, height),
+    skyHeight: height,
   };
+}
+
+/** The twilight's light swings round the north from west to east, below the horizon. */
+const TWILIGHT_DIP = Math.sin(Math.PI / 12);
+
+/**
+ * Where the light comes from at a clock hour (issue #550). The sun rises in the east at 6 and
+ * sets in the west at 18 (northern summer, low in the south); its afterglow keeps the light in the
+ * west through the golden hour, then swings round the north to the east by `moonRise`, where the
+ * moon rises and crosses the south to set in the west at `moonSet`; before sunrise the light swings
+ * round again. The light never jumps and no disc shows in the east at sunset. `height` is the true
+ * sine over the horizon: below 0 nothing shows in the sky.
+ */
+export function lightPath(hour: number): { bearing: number; height: number } {
+  const { moonRise, moonSet } = TUNING.weather.daylight;
+  const h = (hour - 6 + 24) % 24;
+  const rise = (moonRise - 6 + 24) % 24;
+  const set = (moonSet - 6 + 24) % 24;
+  const turn = (k: number, from: number, to: number) => ({
+    bearing: (1.5 + smooth(k)) * Math.PI,
+    height: from + (to - from) * smooth(k),
+  });
+  if (h < 12)
+    return { bearing: Math.PI / 2 + (h / 12) * Math.PI, height: Math.sin((h / 12) * Math.PI) };
+  // The golden hour (until dusk begins at 19): the sun just set in the west.
+  if (h < 13) return { bearing: 1.5 * Math.PI, height: -Math.sin(((h - 12) / 12) * Math.PI) };
+  if (h < rise) return turn((h - 13) / (rise - 13), -TWILIGHT_DIP, 0);
+  if (h < set) {
+    const arc = ((h - rise) / (set - rise)) * Math.PI;
+    return { bearing: Math.PI / 2 + arc, height: Math.sin(arc) };
+  }
+  return turn((h - set) / (24 - set), 0, 0);
 }
 
 /** Game time whose light is kept when day and night is off: early afternoon. */

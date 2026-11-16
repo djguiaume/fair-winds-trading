@@ -116,6 +116,36 @@
     "calmSec": 20,
     "climbSec": 90
   },
+  "shadows": {
+    "lead": 0.6,
+    "maxLead": 0.5,
+    "contrast": 0.3,
+    "nightContrast": 0.5,
+    "minUp": 0.3,
+    "blobLift": 1.2,
+    "sea": 0.35,
+    "seaSpread": 1.5,
+    "contact": {
+      "height": 1.2,
+      "shade": 0.45
+    },
+    "high": {
+      "mapSize": 2048,
+      "radius": 2,
+      "bias": -0.0005,
+      "normalBias": 0.04,
+      "box": 80,
+      "distance": 120,
+      "sunHeight": 0.8,
+      "sunTurnDeg": 30,
+      "nightStrength": 0.45
+    }
+  },
+  "sunlight": {
+    "sailThrough": 0.6,
+    "sailFocus": 3,
+    "haze": 1
+  },
   "ultra": {
     "exposure": 1.1,
     "nightExposure": 1.15,
@@ -168,9 +198,21 @@
     "fresnelPower": 2,
     "glint": 0.8,
     "glintSharpness": 160,
-    "glintFadeFrom": 0.6,
-    "glintFadeTo": 0.85,
+    "glintFadeFrom": 0.4,
+    "glintFadeTo": 0.6,
     "glintMax": 0.5,
+    "glitter": {
+      "strength": 0.9,
+      "lobe": 24,
+      "points": 2.5,
+      "share": 0.3,
+      "fadeFrom": 0.8,
+      "fadeTo": 0.98,
+      "twinkle": 6,
+      "far": 0.5,
+      "haze": 0.2,
+      "moon": 6
+    },
     "foamInner": 0.5,
     "foamWidth": 3.6,
     "foamStrength": 0.8,
@@ -216,26 +258,37 @@
   "sky": {
     "looks": {
       "day": {
-        "horizon": "#a6d6ee",
-        "zenith": "#5aa0d4"
+        "horizon": "#7fc0e6",
+        "zenith": "#3f8ed6",
+        "hazeDeg": 1.5
       },
       "golden": {
         "horizon": "#f0c49c",
-        "zenith": "#6271a6"
+        "zenith": "#6271a6",
+        "hazeDeg": 3.5
       },
       "night": {
         "horizon": "#14304f",
-        "zenith": "#071629"
+        "zenith": "#071629",
+        "hazeDeg": 1.2
       },
       "storm": {
         "horizon": "#56666e",
-        "zenith": "#323f46"
+        "zenith": "#323f46",
+        "hazeDeg": 4
       }
+    },
+    "air": 1,
+    "check": {
+      "sea": 5,
+      "seaIntoSun": 10,
+      "fog": 2,
+      "intoSunDeg": 60
     },
     "gradientDeg": 24,
     "gradientCurve": 0.6,
     "bands": 0,
-    "reflection": 0.7,
+    "reflection": 0.25,
     "reflectZenith": 0.3,
     "sun": {
       "sizeDeg": 2.4,
@@ -243,23 +296,59 @@
       "glow": 0.35,
       "glowDeg": 22,
       "moonGlow": 0.3,
-      "moonGlowDeg": 2.9
+      "moonGlowDeg": 2.9,
+      "lowGrow": 0.8,
+      "lowDeg": 12,
+      "horizonGlow": 0.5,
+      "horizonGlowDeg": 40
     },
     "stars": {
       "density": 0.1,
       "brightness": 0.8
     },
     "clouds": {
-      "count": 13,
+      "count": 20,
       "seed": 7,
-      "baseDeg": [0.4, 3],
-      "widthDeg": [7, 16],
-      "heightDeg": [1.5, 4],
+      "baseDeg": [0.4, 4],
+      "widthDeg": [8, 20],
+      "heightDeg": [2, 6],
       "cover": 0.95,
       "light": 0.85,
       "shade": 0.82,
       "haze": 0.45,
-      "driftDegPerKn": 0.04
+      "driftDegPerKn": 0.04,
+      "soft": 0.25,
+      "sunSide": 0.35,
+      "amount": {
+        "clear": 0.45,
+        "perKn": 0.02,
+        "gloom": 0.5
+      },
+      "dark": 0.45
+    },
+    "streaks": {
+      "count": 10,
+      "seed": 11,
+      "baseDeg": [7, 20],
+      "lengthDeg": [18, 45],
+      "thickDeg": [0.4, 1.4],
+      "opacity": 0.5,
+      "drift": 0.4,
+      "amount": {
+        "clear": 0.4,
+        "perKn": 0.02,
+        "gloom": 0.3
+      }
+    },
+    "squall": {
+      "rangeUnits": 450,
+      "heightUnits": 45,
+      "minWidthDeg": 6,
+      "maxTopDeg": 10,
+      "darkness": 0.95,
+      "rain": 0.9,
+      "shafts": 400,
+      "color": "#4d5d68"
     }
   },
   "reflection": {
@@ -292,7 +381,13 @@
     "falloff": 0.24,
     "peak": 0.8,
     "lanternSize": 16,
-    "beaconSize": 20
+    "beaconSize": 20,
+    "pool": {
+      "count": 6,
+      "strength": 0.8,
+      "radius": 10,
+      "sea": 0.2
+    }
   },
   "houses": {
     "richWithin": 140,

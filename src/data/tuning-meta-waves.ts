@@ -10,6 +10,16 @@ const FEELS_BOTTOM = num(
   'Depth (0 at the coast, 1 off the shelf) where the band starts to calm: more = it calms further out. Swell feels the bottom first.',
 );
 
+/** The least share of a band's waves left in a closed harbour (`waves.coast.keep`, issue #551). */
+const KEEP = num(
+  'Kept in harbour',
+  0,
+  1,
+  0.05,
+  undefined,
+  'The least share of this band the coast keeps, however deep the shelter: ripples, so a harbour is not a mirror.',
+);
+
 /** `waves.json`: the sea's wave bands (decision 0245). Heights and lengths in map units. */
 export const WAVES_META: Readonly<Record<string, TuningMeta>> = {
   'waves.gravity': num(
@@ -95,7 +105,7 @@ export const WAVES_META: Readonly<Record<string, TuningMeta>> = {
   'waves.bands.*.steepness': num(
     'Crest sharpness',
     0,
-    1,
+    6,
     0.05,
     undefined,
     'Gerstner shift per unit of height: sharper crests, flatter troughs.',
@@ -118,6 +128,14 @@ export const WAVES_META: Readonly<Record<string, TuningMeta>> = {
     'Crest height added in a storm core, on top of its wind.',
   ),
   'waves.bands.*.max': num('Highest crest', 0, 6, 0.01, 'u', 'The band never grows past this.'),
+  'waves.bands.*.scale': num(
+    'Wave scale',
+    0.5,
+    3,
+    0.05,
+    '×',
+    'How much taller the waves stand than the sea state says: what the boats ride and the ocean draws. The drag on her speed and the foam read the sea state, so they do not change.',
+  ),
   'waves.bands.*.windowSec': num(
     'Memory',
     0,
@@ -140,6 +158,9 @@ export const WAVES_META: Readonly<Record<string, TuningMeta>> = {
   ),
   ...Object.fromEntries(
     ['swell', 'chop', 'ripple'].map((band) => [`waves.coast.reach.${band}`, FEELS_BOTTOM]),
+  ),
+  ...Object.fromEntries(
+    ['swell', 'chop', 'ripple'].map((band) => [`waves.coast.keep.${band}`, KEEP]),
   ),
   'waves.coast.floor': num(
     'Left at the coast',
@@ -341,5 +362,21 @@ export const WAVES_META: Readonly<Record<string, TuningMeta>> = {
     0.05,
     'u',
     'A calmer sea than this lightens its crests as little as this height would: ripples stay ripples.',
+  ),
+  'waves.look.viewTone': num(
+    'Facing the camera',
+    0,
+    4,
+    0.1,
+    undefined,
+    'How much darker a slope facing the camera is than one turned away: the waves read from the low follow cam (issue #551).',
+  ),
+  'waves.look.viewToneMax': num(
+    'Facing limit',
+    0,
+    0.6,
+    0.05,
+    undefined,
+    'The most a slope darkens or lightens for facing the camera, so a steep back near the horizon never turns black.',
   ),
 };

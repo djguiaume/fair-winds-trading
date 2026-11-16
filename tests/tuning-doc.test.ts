@@ -6,6 +6,13 @@ describe('tuningDoc values', () => {
     expect(parseValue('8')).toBe(8);
     expect(parseValue('true')).toBe(true);
     expect(parseValue('false')).toBe(false);
+    expect(parseValue('#7fc0e6')).toBe('#7fc0e6');
+  });
+
+  it('takes text for a text value, such as a sky colour', () => {
+    expect(valueProblem('graphics.sky.looks.day.horizon', '#7fc0e6')).toBeNull();
+    expect(valueProblem('graphics.sky.looks.day.horizon', 3)).toMatch(/is text/);
+    expect(valueProblem('hud.idleFadeSec', '#7fc0e6')).toMatch(/not a number/);
   });
 
   it('takes true or false for a toggle and a number for a number', () => {

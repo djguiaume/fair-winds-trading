@@ -91,7 +91,9 @@ export class BoatRide {
 
     this.atSea = approach(this.atSea, docked ? 0 : 1, 1 / ride.dockSec, dt);
     const tilt = conditions.waves ? conditions.share * this.atSea : 0;
-    const level = ((bow + stern + starboard + port) / 4) * motion.heave;
+    // Her middle too, so a sharp crest under her waist lifts her instead of washing over (#551).
+    const around = (bow + stern + starboard + port) / 4;
+    const level = (around + (sea(x, z) - around) * ride.middle) * motion.heave;
     const pitch = Math.atan2(bow - stern, 2 * half) * motion.pitch * tilt;
     const roll = Math.atan2(starboard - port, 2 * side) * motion.roll * tilt;
     this.heave = approach(this.heave, finite(level), 1 / ride.heaveSec, dt);

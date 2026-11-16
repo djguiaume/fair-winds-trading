@@ -2,8 +2,10 @@
 
 /** The effects the player can switch off one by one (Settings, decision 0221). */
 export interface GraphicsEffects {
-  /** Ultra's soft shadows on everything. */
+  /** The sun's shadows: on everything on Ultra, the land and the sea on High (issue #550). */
   shadows: boolean;
+  /** Houses, trees and quays darken toward their foot, on High and Ultra (issue #550). */
+  contact: boolean;
   /** Ultra's ambient occlusion. */
   occlusion: boolean;
   /** Ultra's tone mapping (Neutral, decision 0221). */
@@ -22,11 +24,20 @@ export interface GraphicsEffects {
   msaa?: boolean;
   /** The wind's gusts on the sea; on unless a `?off=gusts` device test says false (issue #498). */
   gusts?: boolean;
+  /** Cloud shadows on the sea; on unless a `?off=clouds` device test says false (issue #546). */
+  clouds?: boolean;
+  /** The sun's glitter path on the sea; on unless `?off=glitter` says false (issue #550). */
+  glitter?: boolean;
+  /** Sun through the sails and haze toward the sun; on unless `?off=sunlight` (issue #550). */
+  sunlight?: boolean;
+  /** Lamplight pools round the lanterns at night; on unless `?off=pools` (issue #547). */
+  pools?: boolean;
 }
 
 /** Every effect on: the view's default before Settings are applied. */
 export const allEffects = (): GraphicsEffects => ({
   shadows: true,
+  contact: true,
   occlusion: true,
   toneMapping: true,
   haze: true,

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { BOAT_LOOK } from './boatLook';
+import { addSunThrough } from '../sunThrough';
 
 /**
  * The sails' material: vertex colours plus a flat white glow, so canvas reads pale in any light
@@ -53,6 +54,7 @@ export function sailCanvasMaterial() {
         'vec3 totalEmissiveRadiance = emissive;',
         'vec3 totalEmissiveRadiance = emissive * vGlow;',
       );
+    addSunThrough(shader);
   };
   material.customProgramCacheKey = () => 'sail-canvas-glow-marks';
   return material;

@@ -4,6 +4,7 @@ export { BOAT_SCALE, STYLE_D } from './boatStyle';
 import { createRng } from '../../sim/rng';
 import { keepGroup, mergeAll, paint, paintGroups, vertexColorMaterial } from './geometry';
 import { type BoatModel, type BoatPose, type ShipUpgrades, STOCK_UPGRADES } from './types';
+import { sunlitSail } from '../sunThrough';
 
 interface MastDef {
   /** Position along the hull in reference units, + toward the bow. */
@@ -333,13 +334,7 @@ export class StorybookBoat implements BoatModel {
     }
 
     const woodMat = vertexColorMaterial();
-    const sailMat = new THREE.MeshLambertMaterial({
-      vertexColors: true,
-      side: THREE.DoubleSide,
-      flatShading: true,
-      emissive: '#ffffff',
-      emissiveIntensity: 0.22,
-    });
+    const sailMat = sunlitSail(0.22, 'storybook-sail');
     this.disposables.push(woodMat, sailMat);
     const cloth = sailColors(upg.sails, cls.band);
     const extraTop = upg.sails >= 3;

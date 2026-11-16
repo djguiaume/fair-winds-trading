@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { IslandDef, TerrainDef } from '../sim/map';
 import { PALETTE } from './palette';
+import { highestWaves } from '../sim/waves';
 import { TUNING } from '../data/tuning';
 import type { QualityProfile } from './quality';
 import { DAY, NIGHT, type Look } from './atmosphere';
@@ -11,14 +12,12 @@ import { oceanVertexShader as vertexShader, waveSag } from './oceanWaves';
 import { oceanFragmentShader as fragmentShader } from './oceanShader';
 import { type SeaWaves, gerstnerDefines, gerstnerUniforms } from './seaWaves';
 import { type GustUniforms, gustUniforms } from './seaGusts';
+import type { CloudUniforms } from './seaClouds';
+import { seaLightUniforms } from './seaLight';
 import { SHORE_WASH_UNIFORMS, shoreWashOff } from './shoreWash';
 
 /** Conservative displacement bound: the classic waves' three amplitudes, or every band's cap. */
-export const maxWaveHeight = () =>
-  Math.max(
-    0.32 + 0.24 + 0.12,
-    Object.values(TUNING.waves.bands).reduce((sum, band) => sum + band.max, 0),
-  );
+export const maxWaveHeight = () => Math.max(0.32 + 0.24 + 0.12, highestWaves());
 
 /** The side of the game's ocean grid, which follows the camera (units). */
 export const OCEAN_SIZE = 480;
@@ -63,7 +62,7 @@ export function oceanFor(
 }
 
 /** The view's switches the ocean reads each frame (`GraphicsEffects`). */
-export type OceanSwitches = { reflection?: boolean; gusts?: boolean };
+export type OceanSwitches = { reflection?: boolean; gusts?: boolean; clouds?: boolean };
 const ALL_ON: OceanSwitches = {};
 
 /** Which water shader a quality level draws. */
@@ -163,7 +162,7 @@ export class Ocean {
         defines: {
           ...waterDefines(look),
           ...(look.seabed ? { DEPTH: '' } : {}),
-          ...(look.gerstner ? gerstnerDefines(!!look.coast) : {}),
+          ...(look.gerstner ? gerstnerDefines(!!look.coast, look.fancy) : {}),
           ...(look.gusts ? { GUSTS: '' } : {}),
         },
         uniforms: {
@@ -204,6 +203,7 @@ export class Ocean {
             : {}),
           ...(look.gerstner ? { ...gerstnerUniforms(), ...SHORE_WASH_UNIFORMS } : {}),
           ...(look.gusts ? gustUniforms() : {}),
+          ...seaLightUniforms(!!look.reflect),
         },
       });
     // The ring's colours until the first update places the camera.
@@ -351,6 +351,8 @@ export class Ocean {
           this.ramp.night,
           effects.gusts !== false,
         );
+      if ('CLOUDS' in this.mesh.material.defines)
+        waves.writeClouds(u as unknown as CloudUniforms, day, this.gloom, effects.clouds !== false);
       // The fine waves and facets fade in fog distances, so they follow the camera's zoom.
       const { facets, detailFrom, detailTo, slopeGain } = TUNING.waves.look;
       const near = u.uFogNear!.value as number;

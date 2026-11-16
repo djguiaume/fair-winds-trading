@@ -1,25 +1,75 @@
 import { num, text, type TuningMeta } from './tuning-meta-types';
+import { CLOUDS_META } from './tuning-meta-clouds';
 
 const lookColors = (id: string, name: string): Record<string, TuningMeta> => ({
   [`graphics.sky.looks.${id}.horizon`]: text(
     `Sky horizon, ${name}`,
-    `Low views: the sky and the fog just above the sea, ${name} (#rrggbb). The far sea fades into it.`,
+    `Low views: the sky just above the haze line, ${name} (#rrggbb). Below it, the fog's colour.`,
   ),
   [`graphics.sky.looks.${id}.zenith`]: text(
     `Sky overhead, ${name}`,
     `Low views: the colour the sky deepens to higher up, ${name} (#rrggbb).`,
   ),
+  [`graphics.sky.looks.${id}.hazeDeg`]: num(
+    `Haze line, ${name}`,
+    0,
+    10,
+    0.1,
+    '°',
+    `Above the horizon, the fog’s colour gives way to the sky’s over this height, ${name}.`,
+  ),
 });
 
 /**
  * `graphics.json` › `sky`: the drawn sky of the low views (issues #469 and #470). The chase camera
- * blends the fog toward the horizon colour and draws the dome above it; the sea camera never sees it.
+ * keeps the sea camera's fog (issue #573) and draws the dome above it; the sea camera never sees it.
  */
 export const SKY_META: Readonly<Record<string, TuningMeta>> = {
   ...lookColors('day', 'by day'),
   ...lookColors('golden', 'at dusk and dawn'),
   ...lookColors('night', 'at night'),
   ...lookColors('storm', 'under a storm'),
+  ...CLOUDS_META,
+  'graphics.sky.air': num(
+    'Air colour',
+    0,
+    1,
+    0.05,
+    undefined,
+    'The haze and fog of both views: 0 the sea’s own horizon tint, 1 the drawn sky’s horizon colour.',
+  ),
+  'graphics.sky.check.sea': num(
+    'One-atmosphere limit, sea',
+    0,
+    30,
+    0.5,
+    'ΔE',
+    '`npm run shots -- --both`: the most the sea may differ between the two views (art director, #573).',
+  ),
+  'graphics.sky.check.seaIntoSun': num(
+    'One-atmosphere limit, into the sun',
+    0,
+    30,
+    0.5,
+    'ΔE',
+    'The same, when the follow cam looks toward the sun or moon: its glitter and backlight are allowed.',
+  ),
+  'graphics.sky.check.fog': num(
+    'One-atmosphere limit, fog',
+    0,
+    10,
+    0.5,
+    'ΔE',
+    'The most the fog colour may differ between the two views: one air.',
+  ),
+  'graphics.sky.check.intoSunDeg': num(
+    'Into the sun within',
+    10,
+    90,
+    5,
+    '°',
+    'The follow cam looks into the sun when its bearing is this close to the sun’s.',
+  ),
   'graphics.sky.gradientDeg': num(
     'Sky gradient height',
     3,
@@ -50,7 +100,7 @@ export const SKY_META: Readonly<Record<string, TuningMeta>> = {
     1,
     0.05,
     '×',
-    'The sea’s sky reflection times this in the chase view, so a low look keeps the water blue.',
+    'The sea’s sky reflection times this in the chase view, so the water stays the sea camera’s blue.',
   ),
   'graphics.sky.reflectZenith': num(
     'Reflected sky height',
@@ -108,6 +158,38 @@ export const SKY_META: Readonly<Record<string, TuningMeta>> = {
     '°',
     'How far round the moon the halo spreads: about 1.6 times its radius.',
   ),
+  'graphics.sky.sun.lowGrow': num(
+    'Low sun, larger',
+    0,
+    0.8,
+    0.05,
+    '×',
+    'On the horizon the sun and moon look this much larger (0 = the same size high and low).',
+  ),
+  'graphics.sky.sun.lowDeg': num(
+    'Low sun from',
+    1,
+    45,
+    1,
+    '°',
+    'Below this height the sun grows, its warm band shows and it lights the clouds’ sides.',
+  ),
+  'graphics.sky.sun.horizonGlow': num(
+    'Warm horizon band',
+    0,
+    1.5,
+    0.05,
+    undefined,
+    'A low sun warms the horizon round it by this much; 0 is none.',
+  ),
+  'graphics.sky.sun.horizonGlowDeg': num(
+    'Warm horizon width',
+    5,
+    120,
+    1,
+    '°',
+    'How far round the horizon the low sun’s warm band reaches.',
+  ),
   'graphics.sky.stars.density': num(
     'Star density',
     0,
@@ -123,85 +205,5 @@ export const SKY_META: Readonly<Record<string, TuningMeta>> = {
     0.05,
     undefined,
     'How bright the stars shine on a clear night.',
-  ),
-  'graphics.sky.clouds.count': num(
-    'Clouds',
-    0,
-    40,
-    1,
-    undefined,
-    'How many low-poly clouds stand round the horizon; 0 is a clear sky.',
-  ),
-  'graphics.sky.clouds.seed': num(
-    'Cloud seed',
-    0,
-    999,
-    1,
-    undefined,
-    'Another number places and shapes the clouds anew.',
-  ),
-  'graphics.sky.clouds.baseDeg': num(
-    'Cloud base (lowest, highest)',
-    -2,
-    20,
-    0.1,
-    '°',
-    'How high above the horizon the clouds sit; the chase view sees about 5° of sky.',
-  ),
-  'graphics.sky.clouds.widthDeg': num(
-    'Cloud width (smallest, largest)',
-    1,
-    60,
-    0.5,
-    '°',
-    'How wide each cloud is, as an angle round the horizon.',
-  ),
-  'graphics.sky.clouds.heightDeg': num(
-    'Cloud height (smallest, largest)',
-    0.5,
-    20,
-    0.1,
-    '°',
-    'How tall each cloud stands above its flat base.',
-  ),
-  'graphics.sky.clouds.cover': num(
-    'Cloud opacity',
-    0,
-    1,
-    0.05,
-    undefined,
-    'How solid the clouds are against the sky.',
-  ),
-  'graphics.sky.clouds.light': num(
-    'Cloud sunlit tops',
-    0,
-    1,
-    0.05,
-    undefined,
-    'How much the cloud tops take the sun’s colour (white by day, gold at dusk, moonlit at night).',
-  ),
-  'graphics.sky.clouds.shade': num(
-    'Cloud base shade',
-    0,
-    1.5,
-    0.01,
-    '×',
-    'The cloud bases are the sky’s colour times this; lower is darker.',
-  ),
-  'graphics.sky.clouds.haze': num(
-    'Cloud haze',
-    0,
-    1,
-    0.05,
-    undefined,
-    'How much the lowest clouds fade into the horizon colour, for distance.',
-  ),
-  'graphics.sky.clouds.driftDegPerKn': num(
-    'Cloud drift',
-    0,
-    0.5,
-    0.01,
-    '°/s per kn',
-    'How fast the clouds drift round the horizon for each knot of wind.',
   ),
 };

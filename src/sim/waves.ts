@@ -31,6 +31,10 @@ export interface WaveField {
   band: Uint8Array;
 }
 
+/** The highest the field can stand: every band at its cap, times its scale. */
+export const highestWaves = () =>
+  WAVE_BANDS.reduce((h, b) => h + TUNING.waves.bands[b].max * TUNING.waves.bands[b].scale, 0);
+
 /** Components across every band, in `WAVE_BANDS` order. */
 export function waveCount(): number {
   return WAVE_BANDS.reduce((n, band) => n + TUNING.waves.bands[band].lengths.length, 0);
@@ -80,7 +84,9 @@ export function setWaveField(field: WaveField, sea: SeaState, seed: number, t: n
       const along =
         total > 0 ? lean(band.offsetDeg, i, n, state.toX, state.toY, band.spread) / total : 1 / n;
       const share = (1 - state.coherence) / n + state.coherence * along;
-      const amp = state.height * share;
+      // `scale` raises what boats ride and the ocean draws (issue #551); the drag and the foam
+      // read the sea state's height, so they keep their tuning.
+      const amp = state.height * share * band.scale;
       field.kx[c] = dir.x * k;
       field.ky[c] = dir.y * k;
       field.phase[c] = wrapPhase(TAU * hash01(seed, b, i) - omega * t);

@@ -9,7 +9,7 @@
   "birds": {
     "gull": {
       "model": "life-gull",
-      "count": 12,
+      "count": 10,
       "size": 1,
       "seas": ["ring", "west", "east", "north", "south"],
       "home": "harbour",
@@ -23,11 +23,11 @@
     },
     "wake-gull": {
       "model": "life-gull",
-      "count": 5,
+      "count": 2,
       "size": 1,
       "seas": ["ring", "west", "east", "north"],
       "home": "wake",
-      "range": 90,
+      "range": 60,
       "circle": [3, 8],
       "height": [5, 9],
       "speed": 7,
@@ -37,7 +37,7 @@
     },
     "tern": {
       "model": "life-tern",
-      "count": 8,
+      "count": 5,
       "size": 0.85,
       "seas": ["ring", "south", "east"],
       "home": "reef",
@@ -57,7 +57,7 @@
     "seas": ["ring", "south", "west", "east"],
     "shore": [35, 100000],
     "from": "medium",
-    "every": [35, 90],
+    "every": [60, 150],
     "staySec": [16, 28],
     "side": [9, 16],
     "cruiseKn": 6,
@@ -79,14 +79,14 @@
   },
   "shoals": {
     "model": "life-shoal",
-    "count": 6,
+    "count": 4,
     "size": [0.8, 1.5],
     "color": "shoal",
     "opacity": 0.45,
     "seas": ["ring", "south", "west", "east", "north"],
     "shore": [6, 70],
     "from": "medium",
-    "range": [25, 120],
+    "range": [40, 140],
     "driftKn": 0.8,
     "swirl": 0.35
   }

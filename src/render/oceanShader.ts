@@ -4,6 +4,11 @@ import { seaFoamFunctions, seaFoamShader } from './seaFoam';
 import { waveFineShader, waveShadingVaryings } from './oceanWaves';
 import { surfFunctions, surfLinesShader } from './shoreWash';
 import { gustFunctions, gustShader } from './seaGusts';
+import { seaShadowFunctions } from './seaShadow';
+import { cloudFunctions, cloudShader } from './seaClouds';
+import { glitterFunctions } from './seaGlitter';
+import { sunHazeFunctions } from './sunHaze';
+import { lampPoolFunctions } from './lampPools';
 
 /**
  * The ocean's colours (`ocean.ts`): flat shaded, by the seabed's depth or the classic shallow
@@ -36,6 +41,9 @@ uniform vec3 uFoam;
 uniform vec3 uFogColor;
 uniform float uFogNear;
 uniform float uFogFar;
+${sunHazeFunctions}
+${lampPoolFunctions}
+uniform float uLampPoolSea;
 // The sky's Fresnel tint: on every faceted depth-coloured sea too, so Low and Medium match High's
 // colour (issue #282); the glint stays High and Ultra's.
 #if defined(REFLECT) || (defined(DEPTH) && !defined(PLAIN))
@@ -57,6 +65,8 @@ uniform vec3 uMirrorLook;
 uniform vec4 uMirrorSoft;
 #endif
 #ifdef REFLECT
+${seaShadowFunctions}
+${glitterFunctions}
 uniform vec3 uSunColor;
 uniform float uGlint;
 uniform float uGlintSharpness;
@@ -67,11 +77,14 @@ uniform vec3 uGlintFade;
 // Soft shore foam: full strength out to x, fading over y, opacity z, outer line w.
 uniform vec4 uFoamLook;
 #endif
-#if defined(COAST) || defined(GUSTS)
+#if defined(COAST) || defined(GUSTS) || defined(CLOUDS)
 ${seaFoamFunctions}
 #endif
 #ifdef GUSTS
 ${gustFunctions}
+#endif
+#ifdef CLOUDS
+${cloudFunctions}
 #endif
 #ifdef COAST
 // The sea now (x: how rough, y: how wide the shore foam grows, z: surf, w: whitecaps), and per
@@ -127,6 +140,10 @@ void main() {
   // mirror and the glint keep the true ones.
   slope *= uWaveLook.w;
   vec3 shade = normalize(vec3(slope.x, 1.0, slope.y));
+  // A slope facing a low camera looks into the water, one turned away catches the sky: the
+  // waves read from the follow cam without changing the sea's mean colour (issue #551).
+  vec3 eye = normalize(cameraPosition - vWorld);
+  float facing = (dot(shade, eye) - eye.y) * near;
 #else
   // Low (issue #548): the coarse grid's flat facets read as square tiles, so the sea is one smooth
   // light and only the crest colour shows the swell.
@@ -154,7 +171,9 @@ void main() {
 #if defined(GERSTNER) && !defined(PLAIN)
   // Lit crest faces, darker troughs (issue #282), whatever the sea's height.
   col *= 1.0 + uWaveTone.y * (smoothstep(-0.8, 0.8, height / uWaveTone.z) - 0.5);
-  light = mix(1.0, light, uWaveTone.x);
+  // The swell's long lines, darker in its troughs, seen from above on the open sea (issue #546).
+  col *= 1.0 + uSwellLook.x * (smoothstep(-1.0, 1.0, vSwell) - 0.5);
+  light = mix(1.0, light, uWaveTone.x) * (1.0 - clamp(uWaveView.x * facing, -uWaveView.y, uWaveView.y));
 #else
   col *= 1.0 + uDepthLook.y * (smoothstep(-0.35, 0.45, height) - 0.5);
   light = mix(1.0, light, uDepthLook.z);
@@ -196,6 +215,11 @@ void main() {
 #endif
 
   col *= light;
+#ifdef REFLECT
+  // The boat, quays and cliffs shade the water (issue #550); the sky's reflection stays.
+  float sunLit = seaSunLit(vWorld);
+  col *= 1.0 - uSeaShadowLook.x * (1.0 - sunLit);
+#endif
 #ifdef SKY
   // The sky mirrored at low angles (Fresnel), and the sun or moon sparkling on the facets.
 #ifdef VERTEX_SKY
@@ -233,9 +257,22 @@ void main() {
   // A glint belongs to a low view: looking down at a high sun it would blow out half the screen.
   float glint = pow(max(dot(n, normalize(uSunDir + toEye)), 0.0), uGlintSharpness);
   glint *= 1.0 - smoothstep(uGlintFade.x, uGlintFade.y, toEye.y);
-  col += uSunColor * min(glint * uGlint, uGlintFade.z);
+  col += uSunColor * min(glint * uGlint, uGlintFade.z) * sunLit;
+  // The glitter path toward the sun or the moon, broken by the shade.
+  vec3 glitter = uSunColor * uGlitter.x * seaGlitter(vWorld, n, toEye) * sunLit;
 #endif
-  col = mix(col, uFogColor, smoothstep(uFogNear, uFogFar, vFogDepth));
+#ifdef CLOUDS
+  // Cloud shadows drifting downwind (issue #546), on the reflections and the glint too.
+  ${cloudShader}
+#endif
+  // Lamplight on the water by the lanterns (issue #547).
+  col += lampPool(vWorld) * uLampPoolSea;
+  float fogged = smoothstep(uFogNear, uFogFar, vFogDepth);
+  col = mix(col, sunHazed(uFogColor, vWorld - cameraPosition), fogged);
+#ifdef REFLECT
+  // The path runs on into the haze, up to the sun or moon on the horizon.
+  col += glitter * (1.0 - fogged * uGlitterHaze);
+#endif
   gl_FragColor = vec4(col, 1.0);
   #include <colorspace_fragment>
 }
