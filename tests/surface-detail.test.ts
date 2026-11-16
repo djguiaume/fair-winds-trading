@@ -21,7 +21,8 @@ describe('surface patterns (issue #572)', () => {
     expect(surfaceOfPart({ color: 'walls[variant]' }, undefined)).toBe('plaster');
     expect(surfaceOfPart({ color: 'walls[variant]' }, stone)).toBe('stone');
     expect(surfaceOfPart({ color: { leanTo: 'roofs[1]' } }, stone)).toBe('slate');
-    expect(surfaceOfPart({ color: 'plank' }, undefined)).toBe('planks');
+    expect(surfaceOfPart({ color: 'plank' }, undefined)).toBe('boards');
+    expect(surfaceOfPart({ color: 'boatHull' }, undefined)).toBe('planks');
     expect(surfaceOfPart({ color: 'plank', surface: 'none' }, undefined)).toBeUndefined();
     expect(surfaceOfPart({ color: '#ffffff' }, undefined)).toBeUndefined();
   });
@@ -37,7 +38,7 @@ describe('surface patterns (issue #572)', () => {
     const kinds = new Set(parts.map((g) => g.userData.surface));
     expect(kinds).toContain('plaster');
     expect(kinds.has('tiles') || kinds.has('thatch')).toBe(true);
-    expect(kinds).toContain('planks');
+    expect(kinds).toContain('boards');
   });
 
   it('merging bakes each part’s pattern per vertex, plain parts as 0', () => {

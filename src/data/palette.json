@@ -147,7 +147,7 @@
         "sand": "ringsand"
       },
       "surfaces": {
-        "walls": "planks",
+        "walls": "boards",
         "roofs": "thatch"
       }
     },
@@ -217,7 +217,7 @@
         "boatBand": ["#a8403a", "#3f6a9a"]
       },
       "surfaces": {
-        "walls": "planks",
+        "walls": "boards",
         "roofs": "slate"
       }
     },
@@ -525,16 +525,16 @@
   "surfaces": {
     "walls": "plaster",
     "roofs": "tiles",
-    "plank": "planks",
-    "wood": "planks",
-    "post": "planks",
-    "dark": "planks",
+    "plank": "boards",
+    "wood": "boards",
+    "post": "boards",
+    "dark": "boards",
     "boatDeck": "planks",
     "boatHull": "planks",
     "fishHull": "planks",
     "fishCabin": "planks",
-    "cargo": "planks",
-    "hatch": "planks",
+    "cargo": "boards",
+    "hatch": "boards",
     "stone": "stone",
     "stoneDark": "stone",
     "stoneBlock": "stone",

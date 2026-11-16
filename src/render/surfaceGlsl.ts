@@ -1,14 +1,16 @@
 /**
- * GLSL for the soft surface patterns (issue #572): planks, stone, plaster, roof tiles, slate,
- * thatch and sail canvas, drawn from the model's own position in world units, never from an image.
- * Each returns a lightness shift around 0 (its tones about -1 to 1, seams to -1.5) that `surfaceDetail.ts` scales by the
- * pattern's contrast, so a pattern only lightens or darkens the face's own colour, never its hue.
- * The order of `SURFACE_KINDS` is the shader's kind numbers (1 = the first, 0 = none).
+ * GLSL for the soft surface patterns (issue #572): planks (boats), boards (quays, signs, timber
+ * walls), stone, plaster, roof tiles, slate, thatch and sail canvas, drawn from the model's own
+ * position in world units, never from an image. Each returns a lightness shift around 0 (its tones
+ * about -1 to 1, seams to -1.5) that `surfaceDetail.ts` scales by the pattern's contrast, so a
+ * pattern only lightens or darkens the face's own colour, never its hue. The order of
+ * `SURFACE_KINDS` is the shader's kind numbers (1 = the first, 0 = none).
  */
 
 /** The patterns, in the order the shader numbers them from 1. */
 export const SURFACE_KINDS = [
   'planks',
+  'boards',
   'stone',
   'plaster',
   'tiles',
@@ -121,18 +123,18 @@ vec2 surfaceAxes(vec3 p, vec3 n, bool slope) {
 }
 float surfaceShift(int kind, vec3 p, vec3 n) {
   vec4 k = uSurfaceKinds[kind - 1];
-  bool slope = kind >= 4 && kind <= 6;
+  bool slope = kind >= 5 && kind <= 7;
   vec2 uv = surfaceAxes(p, n, slope) / k.x;
   // Fade a pattern that has grown finer than a few pixels, before it can shimmer.
   float fine = 1.0 - smoothstep(0.2, 0.55, length(fwidth(uv)));
   if (fine <= 0.0) return 0.0;
   float t;
-  if (kind == 1) t = sdPlanks(uv);
-  else if (kind == 2) t = sdStone(uv);
-  else if (kind == 3) t = sdPlaster(uv);
-  else if (kind == 4) t = sdTiles(uv, 1.3);
-  else if (kind == 5) t = sdTiles(uv * vec2(1.0, 0.8), 1.8);
-  else if (kind == 6) t = sdThatch(uv);
+  if (kind <= 2) t = sdPlanks(uv);
+  else if (kind == 3) t = sdStone(uv);
+  else if (kind == 4) t = sdPlaster(uv);
+  else if (kind == 5) t = sdTiles(uv, 1.3);
+  else if (kind == 6) t = sdTiles(uv * vec2(1.0, 0.8), 1.8);
+  else if (kind == 7) t = sdThatch(uv);
   else t = sdCanvas(uv);
   return clamp(t, -2.0, 1.5) * k.y * fine;
 }

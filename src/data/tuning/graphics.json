@@ -141,7 +141,7 @@
     },
     "high": {
       "mapSize": 2048,
-      "radius": 2,
+      "radius": 4,
       "bias": -0.0005,
       "normalBias": 0.04,
       "box": 80,
@@ -436,6 +436,10 @@
       "planks": {
         "size": 0.22,
         "contrast": 0.1
+      },
+      "boards": {
+        "size": 0.22,
+        "contrast": 0.06
       },
       "stone": {
         "size": 0.3,
