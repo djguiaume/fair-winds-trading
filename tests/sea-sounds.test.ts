@@ -1,3 +1,4 @@
+import { GustWatch } from '../src/audio/rigging';
 import { describe, expect, it } from 'vitest';
 import { AUDIO, EFFECTS, MUSIC, RING, SEA_BEDS, THEMES, audioProblems } from '../src/audio/catalog';
 import {
@@ -149,5 +150,27 @@ describe('sounds of the sea (decision 0209)', () => {
     expect(problems).toContain('sea north call 6: every [min, max] seconds, min 1 or more');
     expect(problems).toContain('seas: no bed for sea "east"');
     expect(problems).toContain('effect gull: pitch from 0.25 to 4');
+  });
+
+  it('eases the mix toward the follow cam with its blend (issue #555)', () => {
+    const bed = SEA_BEDS[RING]!;
+    const mix = (aboard: number) => layerMix(bed, AUDIO.boat, { ...here, luffing: true, aboard });
+    const sea = mix(0);
+    const half = mix(0.5);
+    const aboardFull = mix(1);
+    expect(sea).toEqual(layerMix(bed, AUDIO.boat, { ...here, luffing: true }));
+    expect(aboardFull.wash).toBeCloseTo(sea.wash * AUDIO.boat.aboard.wash);
+    expect(aboardFull.waves).toBeLessThan(sea.waves);
+    expect(half.wash).toBeGreaterThan(sea.wash);
+    expect(half.wash).toBeLessThan(aboardFull.wash);
+  });
+
+  it('hears a gust over the wind average, then holds its tongue for a while', () => {
+    const watch = new GustWatch();
+    for (let i = 0; i < 20; i++) expect(watch.step(0.25, 10, 1.5, 6)).toBe(false);
+    expect(watch.step(0.25, 13, 1.5, 6)).toBe(false); // too soon after the start
+    for (let i = 0; i < 30; i++) watch.step(0.25, 10, 1.5, 6);
+    expect(watch.step(0.25, 13, 1.5, 6)).toBe(true);
+    expect(watch.step(0.25, 13.5, 1.5, 6)).toBe(false);
   });
 });

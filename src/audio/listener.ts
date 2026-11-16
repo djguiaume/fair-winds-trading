@@ -3,8 +3,9 @@ import { trueWindAngle } from '../sim/boat';
 import { reefDistance } from '../sim/hazards';
 import { noGoAngle } from '../sim/ship';
 import type { World, WorldEvent } from '../sim/world';
-import { SEA_BEDS, SOUND_EVENTS } from './catalog';
+import { BOAT_SOUNDS, SEA_BEDS, SOUND_EVENTS } from './catalog';
 import type { Music } from './music';
+import { GustWatch } from './rigging';
 import { calmAt, seaIdAt, type PlaceDistances } from './seaBed';
 
 /** What the listener needs of the music player: the sea's bed and named effects. */
@@ -16,6 +17,8 @@ export interface HeardView {
   volcanoSounds(x: number, y: number): { eruptions: number[]; vent: number };
   /** From a sim point to the nearest bird of these kinds (issue #476; 0 while none are drawn). */
   seaLife: { birdDistance(kinds: string[], x: number, y: number): number };
+  /** How far the follow cam is on, 0 (the sea camera) to 1 (issue #555). */
+  rig: { chase: { eased: number } };
 }
 
 /** How often the sea's sound is worked out, seconds: the layers glide between. */
@@ -34,6 +37,7 @@ export class SeaListener {
   /** Which side the wind was on, to hear her tack or gybe; seconds since the last flap. */
   private side = 0;
   private sinceFlap = 0;
+  private readonly gusts = new GustWatch();
 
   constructor(
     private readonly player: Player,
@@ -54,6 +58,9 @@ export class SeaListener {
     if (side !== 0 && this.side !== 0 && side !== this.side && sailsUp && !docked) {
       if (this.sinceFlap > 1.5 && boat.speedKn > 0.3) {
         this.player.effectNamed(SOUND_EVENTS.tack.effect);
+        const { effect, level } = BOAT_SOUNDS.aboard.rattle;
+        if (this.view.rig.chase.eased > 0)
+          this.player.effectNamed(effect, level * this.view.rig.chase.eased);
         this.sinceFlap = 0;
       }
     }
@@ -63,6 +70,12 @@ export class SeaListener {
     if (this.since < EVERY) return;
     const step = this.since;
     this.since = 0;
+
+    const aboard = this.view.rig.chase.eased;
+    const { creak } = BOAT_SOUNDS.aboard;
+    // The rig groans as a gust fills the sail, only heard from on board.
+    if (this.gusts.step(step, wind.speedKn, creak.gustKn, creak.every) && sailsUp && !docked)
+      if (aboard > 0.3) this.player.effectNamed(creak.effect, creak.level * aboard);
 
     const sea = seaIdAt(boat.x, boat.y);
     const bed = SEA_BEDS[sea];
@@ -99,6 +112,7 @@ export class SeaListener {
         rain,
         docked,
         calm: bed ? calmAt(bed, islands, boat.x, boat.y) : 1,
+        aboard,
       },
       where,
     );
