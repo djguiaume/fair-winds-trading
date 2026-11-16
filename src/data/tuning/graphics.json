@@ -211,19 +211,23 @@
     "looks": {
       "day": {
         "horizon": "#7fc0e6",
-        "zenith": "#3f8ed6"
+        "zenith": "#3f8ed6",
+        "hazeDeg": 1.5
       },
       "golden": {
         "horizon": "#f0c49c",
-        "zenith": "#6271a6"
+        "zenith": "#6271a6",
+        "hazeDeg": 3.5
       },
       "night": {
         "horizon": "#14304f",
-        "zenith": "#071629"
+        "zenith": "#071629",
+        "hazeDeg": 1.2
       },
       "storm": {
         "horizon": "#56666e",
-        "zenith": "#323f46"
+        "zenith": "#323f46",
+        "hazeDeg": 4
       }
     },
     "air": 1,
@@ -233,7 +237,6 @@
       "fog": 2,
       "intoSunDeg": 60
     },
-    "hazeLineDeg": 1.5,
     "gradientDeg": 24,
     "gradientCurve": 0.6,
     "bands": 0,
@@ -245,23 +248,59 @@
       "glow": 0.35,
       "glowDeg": 22,
       "moonGlow": 0.3,
-      "moonGlowDeg": 2.9
+      "moonGlowDeg": 2.9,
+      "lowGrow": 0.8,
+      "lowDeg": 12,
+      "horizonGlow": 0.5,
+      "horizonGlowDeg": 40
     },
     "stars": {
       "density": 0.1,
       "brightness": 0.8
     },
     "clouds": {
-      "count": 13,
+      "count": 20,
       "seed": 7,
-      "baseDeg": [0.4, 3],
-      "widthDeg": [7, 16],
-      "heightDeg": [1.5, 4],
+      "baseDeg": [0.4, 4],
+      "widthDeg": [8, 20],
+      "heightDeg": [2, 6],
       "cover": 0.95,
       "light": 0.85,
       "shade": 0.82,
       "haze": 0.45,
-      "driftDegPerKn": 0.04
+      "driftDegPerKn": 0.04,
+      "soft": 0.25,
+      "sunSide": 0.35,
+      "amount": {
+        "clear": 0.45,
+        "perKn": 0.02,
+        "gloom": 0.5
+      },
+      "dark": 0.45
+    },
+    "streaks": {
+      "count": 10,
+      "seed": 11,
+      "baseDeg": [7, 20],
+      "lengthDeg": [18, 45],
+      "thickDeg": [0.4, 1.4],
+      "opacity": 0.5,
+      "drift": 0.4,
+      "amount": {
+        "clear": 0.4,
+        "perKn": 0.02,
+        "gloom": 0.3
+      }
+    },
+    "squall": {
+      "rangeUnits": 450,
+      "heightUnits": 45,
+      "minWidthDeg": 6,
+      "maxTopDeg": 10,
+      "darkness": 0.95,
+      "rain": 0.9,
+      "shafts": 400,
+      "color": "#4d5d68"
     }
   },
   "reflection": {

@@ -1,0 +1,10 @@
+{
+  "graphics.sky.clouds.soft": 0.6,
+  "graphics.sky.clouds.count": 16,
+  "graphics.sky.clouds.widthDeg": [12, 28],
+  "graphics.sky.clouds.heightDeg": [3, 8],
+  "graphics.sky.clouds.amount.clear": 0.55,
+  "graphics.sky.streaks.count": 16,
+  "graphics.sky.streaks.opacity": 0.6,
+  "graphics.sky.sun.horizonGlow": 0.5
+}
