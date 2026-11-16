@@ -36,7 +36,7 @@ uniform vec3 uCloudAt;
 uniform vec3 uCloudLook;
 float cloudAt(vec2 xz) {
   vec2 q = (xz - uCloudAt.xy) * uCloudAt.z;
-  float n = 0.6 * foamNoise(q) + 0.3 * foamNoise(q * 2.3 + 5.1) + 0.1 * foamNoise(q * 5.1 - 2.7);
+  float n = 0.67 * foamNoise(q) + 0.33 * foamNoise(q * 2.3 + 5.1);
   return smoothstep(uCloudLook.x, uCloudLook.y, n);
 }
 `;
