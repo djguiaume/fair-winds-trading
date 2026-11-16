@@ -40,12 +40,13 @@ Measured on each ship at upgrade level 3 (`tests/boat-close-up.test.ts` holds ev
 | Hoy, fluyt | 999, 1699 | 312 | 420 |
 | Indiaman | 2167 | 420 | 528 |
 
-- **Draw calls**: the tiller is its own mesh on the player's boat (+1 in both views, it left the
+- **Draw calls** (High follow-cam docking budget raised 58 to 61 for these, measured 60): the tiller is its own mesh on the player's boat (+1 in both views, it left the
   hull mesh to turn); the crew is one mesh for every sailor (+1, follow cam only); the spray is
   one instanced draw (+1 while any flies). Traffic boats are unchanged.
 - **Why it is worth it**: the boat is on screen every second of the follow cam (the v1.9 review's
   biggest miss against Saltline: nobody aboard, nothing moving). 200 to 500 triangles is under
   a tenth of one town house cluster; the two to three draws stay inside the follow-cam budget
   (`tools/performance/budget.json`).
-- **Spray**: at most 64 bits of 20 triangles (1280 triangles at the very most, about 300 in a
-  steady 7 kn run), fixed arrays, nothing allocated per frame.
+- **Spray**: at most 64 bits of 20 triangles (1280 triangles at the very most, near that in a
+  steady 7 kn run: many small bits that shrink as they fly, the art director's note on the first
+  sheet), fixed arrays, nothing allocated per frame.

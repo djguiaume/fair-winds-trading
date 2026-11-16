@@ -13,7 +13,7 @@ The v1.9 whole-game review (`docs/reviews/whole-game-v1.9/README.md`, section 4)
 - **Sails that trim**: belly scaled by the point of sail (flatter close-hauled, fuller running), and the boom eased at a set swing rate in `RigPose`, so a gybe swings across and the cloth fills on the new side as the boom crosses.
 - **Spray** (`boatSpray.ts`, owned with the crash debris by `boatSplashes.ts`): one instanced mesh, at most 64 bits in fixed arrays; bow spray from 3 kn to full at 7 kn and more into head seas, a lee splash when the heel grows fast (a gust), a burst on a bump. Off on Ultra-low. Numbers in `waves.json › spray`.
 - **Camera lean**: the follow cam rolls with a share of the heel, at most 3°, eased slower than the heel (`SeaMotion.cameraLean`, `waves.json › motion`). Settings › Motion reduced or off sets `SeaMotion.steady`, which also stops the camera riding the waves. No new Settings switch.
-- Option A (helmsman alone on the sloop) ships as default; option B (`closeUp.extraHands` 1) is one tuning number away for the art director's pick.
+- Option A (helmsman alone on the sloop) ships: the art director picked it, since in option B (`closeUp.extraHands` 1) the second hand merges into the helmsman from the follow cam and costs triangles on every ship.
 
 ## Consequences
 

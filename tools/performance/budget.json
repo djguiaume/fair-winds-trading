@@ -1,5 +1,5 @@
 {
-  "note": "Draw calls and triangles per scenario at quality high in the headless run, set about 10% above the measurement (smooth ground, 2026-10-29, #278: about 150k triangles on screen, mostly the island ground; sailing and docking re-set after the town folk of #477 and the rich town houses of #500, which add one mesh per town in view). Chase scenarios are the same set-ups from the follow cam, other levels have their own counts under `levels` (issue #558; measured 2026-11-15, set about 10% above). The classic look and its budget were retired with decision 0307 (#563). A rendering change that needs more raises it here with its reason in the PR. Not a replacement for ?bench on a real device.",
+  "note": "Draw calls and triangles per scenario at quality high in the headless run, set about 10% above the measurement (smooth ground, 2026-10-29, #278: about 150k triangles on screen, mostly the island ground; sailing and docking re-set after the town folk of #477 and the rich town houses of #500, which add one mesh per town in view). Chase scenarios are the same set-ups from the follow cam, other levels have their own counts under `levels` (issue #558; measured 2026-11-15, set about 10% above). The classic look and its budget were retired with decision 0307 (#563). High dockingChase calls 58 to 61 for the player's boat up close (decision 0326: the tiller, the crew and the spray are one draw each; measured 60). A rendering change that needs more raises it here with its reason in the PR. Not a replacement for ?bench on a real device.",
   "scenarios": {
     "sailing": {
       "calls": 38,
@@ -14,7 +14,7 @@
       "triangles": 158000
     },
     "dockingChase": {
-      "calls": 58,
+      "calls": 61,
       "triangles": 262000
     }
   },

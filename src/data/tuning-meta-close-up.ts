@@ -121,6 +121,14 @@ export const CLOSE_UP_META: Readonly<Record<string, TuningMeta>> = {
     'Size of a bit at the slowest spray.',
   ),
   'waves.spray.sizeMax': num('Biggest bit', 0.1, 1.5, 0.01, 'm', 'Size of a bit at full spray.'),
+  'waves.spray.shrink': num(
+    'Spray shrink',
+    0,
+    1,
+    0.05,
+    '',
+    'How much a bit shrinks over its flight (1 = gone by the end).',
+  ),
   'waves.spray.rise': num('Spray rise', 0, 10, 0.1, 'm/s', 'How fast the spray is thrown up.'),
   'waves.spray.outward': num(
     'Spray outward',

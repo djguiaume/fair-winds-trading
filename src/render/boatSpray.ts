@@ -200,7 +200,7 @@ export class BoatSpray {
     for (let i = 0; i < this.live; i++) {
       const o = i * 8;
       const age = st[o + 7]! / s.life;
-      const size = st[o + 6]! * (1 - age * 0.6);
+      const size = st[o + 6]! * (1 - age * s.shrink);
       this.euler.set(age * 4 + i, i * 1.7, 0);
       this.quat.setFromEuler(this.euler);
       this.pos.set(st[o]!, st[o + 1]!, st[o + 2]!);
