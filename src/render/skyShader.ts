@@ -96,24 +96,28 @@ float stars(vec3 dir) {
   return on * spot * (0.4 + 0.6 * hash(cell + 7.0)) * smoothstep(0.0, 0.03, dir.y);
 }
 
-// A storm off the bow: a dark cloud wall with a lumpy top and, under its base, streaked rain
-// down to the sea's far edge. Returns how much of it covers this direction (x), how much lighter
-// it is here (y: 1 between the rain shafts) and the height up its cloud (z: 0 base … 1 top).
+// A storm off the bow: a cloud wall with a soft lumpy top and a flat dark underside, and under it
+// a rain veil with thin streaks standing on the sea's far edge. Returns how much of it covers this
+// direction (x), how much lighter it is here (y: 1 in the veil between streaks) and the height up
+// its cloud (z: 0 underside … 1 top).
 vec3 squall(vec3 dir, vec2 flatDir, vec4 s, float top) {
   float across = length(flatDir - s.xy);
   float side = 1.0 - smoothstep(s.z * 0.75, s.z, across);
-  float u = (flatDir.x * s.y - flatDir.y * s.x) / s.z;
+  float angle = flatDir.x * s.y - flatDir.y * s.x;
+  float u = angle / s.z;
   float lump = top * (0.85 + 0.15 * sin(u * 7.0 + 1.3) * sin(u * 3.1 + 0.4)) * (1.0 - 0.25 * u * u);
-  float base = lump * 0.4;
-  float wall = 1.0 - smoothstep(lump * 0.85, lump, dir.y);
-  float rain = 1.0 - smoothstep(base * 0.6, base, dir.y);
-  float shafts = 0.5 + 0.5 * sin(u * uSquallRain.y * s.z + dir.y * 25.0);
-  float body = wall * mix(1.0, uSquallRain.x, rain);
+  float base = top * 0.35;
+  float wall = 1.0 - smoothstep(lump * 0.7, lump, dir.y);
+  float rain = 1.0 - smoothstep(base * 0.9, base, dir.y);
+  // Thin streaks, unevenly spaced, leaning a little with the fall.
+  float a = angle * uSquallRain.y + dir.y * 4.0;
+  float streak = smoothstep(0.2, 1.0, sin(a) * 0.7 + sin(a * 0.37 + 2.0) * 0.3);
+  float body = wall * mix(1.0, uSquallRain.x * mix(0.8, 1.0, streak), rain);
   // The camera stands above the sea, so the sea's far edge is a few degrees under the true
   // horizon: the rain reaches down to it.
   float foot = smoothstep(-0.1, -0.03, dir.y);
   float up = clamp((dir.y - base) / max(lump - base, 1e-3), 0.0, 1.0);
-  return vec3(s.w * side * body * foot, rain * (1.0 - shafts), up);
+  return vec3(s.w * side * body * foot, rain * (1.0 - streak), up);
 }
 
 void main() {
@@ -150,10 +154,10 @@ void main() {
     if (next.x > storm.x) storm = next;
   }
   if (storm.x > 0.0) {
-    // The cloud is darkest at its base and catches the light up top; between the rain shafts
-    // the sky behind shows a little.
-    vec3 grey = uSquallColor * mix(0.8, 1.35, storm.z);
-    col = mix(col, mix(grey, uHorizon, 0.35 * storm.y), storm.x);
+    // Slate, darkest at the flat underside and catching the light up top; the sky shows a
+    // little through the rain veil between its streaks.
+    vec3 grey = uSquallColor * mix(0.8, 1.3, storm.z * storm.z);
+    col = mix(col, mix(grey, uHorizon, 0.15 * storm.y), storm.x);
   }
   gl_FragColor = vec4(mix(uHorizon, col, uGradient.w), alpha);
   #include <colorspace_fragment>

@@ -125,8 +125,10 @@ export class SkyDome {
       blending: THREE.CustomBlending,
       blendSrc: THREE.SrcAlphaFactor,
       blendDst: THREE.OneMinusSrcAlphaFactor,
-      // The picture stays opaque: a rim's alpha must not reach the canvas or a render target.
-      blendSrcAlpha: THREE.ZeroFactor,
+      // Alpha keeps the larger of the two: the dome marks the sky as drawn (the sea mirror reads
+      // that, decision 0292) and a cloud rim never makes the picture see-through.
+      blendEquationAlpha: THREE.MaxEquation,
+      blendSrcAlpha: THREE.OneFactor,
       blendDstAlpha: THREE.OneFactor,
     });
     this.mesh = new THREE.Mesh(skyGeometry(data), material);

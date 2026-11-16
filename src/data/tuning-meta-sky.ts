@@ -161,7 +161,7 @@ export const SKY_META: Readonly<Record<string, TuningMeta>> = {
   'graphics.sky.sun.lowGrow': num(
     'Low sun, larger',
     0,
-    3,
+    0.8,
     0.05,
     '×',
     'On the horizon the sun and moon look this much larger (0 = the same size high and low).',

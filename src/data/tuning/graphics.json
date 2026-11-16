@@ -251,7 +251,7 @@
       "moonGlowDeg": 2.9,
       "lowGrow": 0.8,
       "lowDeg": 12,
-      "horizonGlow": 0.35,
+      "horizonGlow": 0.5,
       "horizonGlowDeg": 40
     },
     "stars": {
@@ -297,10 +297,10 @@
       "heightUnits": 45,
       "minWidthDeg": 6,
       "maxTopDeg": 10,
-      "darkness": 0.85,
-      "rain": 0.8,
-      "shafts": 30,
-      "color": "#3b4a55"
+      "darkness": 0.95,
+      "rain": 0.9,
+      "shafts": 400,
+      "color": "#4d5d68"
     }
   },
   "reflection": {

@@ -30,3 +30,4 @@ plus `--tune docs/art/sky/looks/b-bands.json`, `--time 695 --heading 92` (sunris
 | Round | Picked | Rejected | Notes |
 | --- | --- | --- | --- |
 | 1 (2026-11-04) | Art director: A, chase tilt 11° (Guillaume's pick pending) | B, C | Top blue less saturated (#5aa0d4), 13 clouds instead of 16; horizon clear of the status line and compass on a phone; stern wake shows at the closest zoom |
+| 2 (2026-11-16, #552, [0320](../../decisions/0320-a-richer-sky-two-soft-cloud-layers-weather-driven-squalls-on.md)) | Art director: A soft rims (shipped) | B crisp ([looks/552-b-crisp.json](looks/552-b-crisp.json)): barely different from before; C towering ([looks/552-c-towering.json](looks/552-c-towering.json)): heavy by day, blurred at night (its stronger warm horizon band kept) | Squall band reworked once: on the horizon, flat underside, slate, thin streaks. Sheets in [docs/reviews/v1.12/rich-sky](../../reviews/v1.12/rich-sky/README.md) |
