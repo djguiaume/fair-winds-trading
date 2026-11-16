@@ -13,9 +13,10 @@ export function qualityOptions() {
   ] as const;
 }
 
-/** The effects the switches cover; the water's reflection also shows on High. */
+/** The effects the switches cover; the shadows and the water's reflection also show on High. */
 const EFFECTS: readonly (keyof GraphicsEffects)[] = [
   'shadows',
+  'contact',
   'occlusion',
   'toneMapping',
   'haze',
@@ -31,6 +32,7 @@ function drawn(id: keyof GraphicsEffects, level: QualityLevel): boolean {
   if (id === 'reflection') return profile.waterReflection;
   if (id === 'mirror') return profile.mirror;
   if (id === 'groundCover') return coverOn(level);
+  if (id === 'shadows' || id === 'contact') return profile.shadows;
   return profile.ultra;
 }
 

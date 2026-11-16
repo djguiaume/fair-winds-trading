@@ -35,10 +35,11 @@ import type { Parts } from './props';
 import { islandVents, partCraters } from './islandCraters';
 import { type Steps, finish } from '../../sim/steps';
 import { FrameJobs } from '../frameJobs';
+import { matchContact, withContactShade } from './contactShade';
 
 /** Separate land batches keep camera and shadow culling local to each island. */
 export class HighlandIslands extends THREE.Group implements IslandModel {
-  private readonly land = vertexColorMaterial();
+  private readonly land = withContactShade(vertexColorMaterial());
   private readonly glass = new THREE.MeshBasicMaterial({ vertexColors: true });
   /** Molten lava (decision 0171): glows like the windows, tinted orange by day. */
   private readonly lava = new THREE.MeshBasicMaterial({ vertexColors: true });
@@ -98,6 +99,7 @@ export class HighlandIslands extends THREE.Group implements IslandModel {
   }
 
   private mesh(parts: Parts, material: THREE.Material) {
+    matchContact(parts, material === this.land);
     const geometry = mergeAll(parts);
     // Bounds include authored outlying props, piers and raised terrain, not just radius.
     geometry.computeBoundingBox();

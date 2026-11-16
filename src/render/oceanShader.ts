@@ -4,6 +4,7 @@ import { seaFoamFunctions, seaFoamShader } from './seaFoam';
 import { waveFineShader, waveShadingVaryings } from './oceanWaves';
 import { surfFunctions, surfLinesShader } from './shoreWash';
 import { gustFunctions, gustShader } from './seaGusts';
+import { seaShadowFunctions } from './seaShadow';
 
 /**
  * The ocean's colours (`ocean.ts`): flat shaded, by the seabed's depth or the classic shallow
@@ -57,6 +58,7 @@ uniform vec3 uMirrorLook;
 uniform vec4 uMirrorSoft;
 #endif
 #ifdef REFLECT
+${seaShadowFunctions}
 uniform vec3 uSunColor;
 uniform float uGlint;
 uniform float uGlintSharpness;
@@ -196,6 +198,11 @@ void main() {
 #endif
 
   col *= light;
+#ifdef REFLECT
+  // The boat, quays and cliffs shade the water (issue #550); the sky's reflection stays.
+  float sunLit = seaSunLit(vWorld);
+  col *= 1.0 - uSeaShadowLook.x * (1.0 - sunLit);
+#endif
 #ifdef SKY
   // The sky mirrored at low angles (Fresnel), and the sun or moon sparkling on the facets.
 #ifdef VERTEX_SKY
@@ -233,7 +240,7 @@ void main() {
   // A glint belongs to a low view: looking down at a high sun it would blow out half the screen.
   float glint = pow(max(dot(n, normalize(uSunDir + toEye)), 0.0), uGlintSharpness);
   glint *= 1.0 - smoothstep(uGlintFade.x, uGlintFade.y, toEye.y);
-  col += uSunColor * min(glint * uGlint, uGlintFade.z);
+  col += uSunColor * min(glint * uGlint, uGlintFade.z) * sunLit;
 #endif
   col = mix(col, uFogColor, smoothstep(uFogNear, uFogFar, vFogDepth));
   gl_FragColor = vec4(col, 1.0);

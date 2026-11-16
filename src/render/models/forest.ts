@@ -4,6 +4,7 @@ import type { ForestTree } from '../../sim/forest';
 import { buildProp } from './propRecipe';
 import { mergeAll, triangleCount } from './geometry';
 import type { QualityLevel } from '../quality';
+import { bakeContact } from './contactShade';
 
 /**
  * The new look's forests drawn (issue #275): per island, one instanced mesh per tree kind, so an
@@ -28,6 +29,7 @@ function modelOf(kind: string, style: string) {
       vars: look.vars,
       colors: look.colors,
     });
+    bakeContact(parts);
     model = mergeAll(parts);
     model.computeBoundingSphere();
     models.set(key, model);

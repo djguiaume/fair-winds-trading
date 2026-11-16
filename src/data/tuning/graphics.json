@@ -110,6 +110,30 @@
     "firstSec": 2,
     "cooldownSec": 4
   },
+  "shadows": {
+    "lead": 0.6,
+    "maxLead": 0.5,
+    "contrast": 0.3,
+    "minUp": 0.3,
+    "blobLift": 1.2,
+    "sea": 0.35,
+    "seaSpread": 1.5,
+    "contact": {
+      "height": 1.2,
+      "shade": 0.45
+    },
+    "high": {
+      "mapSize": 2048,
+      "radius": 2,
+      "bias": -0.0005,
+      "normalBias": 0.04,
+      "box": 80,
+      "distance": 120,
+      "sunHeight": 0.8,
+      "sunTurnDeg": 30,
+      "nightStrength": 0.45
+    }
+  },
   "ultra": {
     "exposure": 1.1,
     "nightExposure": 1.15,
