@@ -82,4 +82,28 @@ export const GLITTER_META: Readonly<Record<string, TuningMeta>> = {
     '/s',
     'How fast the points twinkle.',
   ),
+  'graphics.water.glitter.far': num(
+    'Glitter far light',
+    0,
+    1,
+    0.05,
+    undefined,
+    'Far off, where a point is under two pixels, the path is smooth: its light against the share of points lit.',
+  ),
+  'graphics.water.glitter.haze': num(
+    'Glitter through the haze',
+    0,
+    1,
+    0.05,
+    undefined,
+    'How much of the far path the haze hides: 1 as much as the sea, lower and it runs on to the horizon.',
+  ),
+  'graphics.water.glitter.moon': num(
+    'Moon path boost',
+    1,
+    10,
+    0.25,
+    undefined,
+    'The glitter times this under the moon, whose light is faint, so its path still shows (issue #547).',
+  ),
 };

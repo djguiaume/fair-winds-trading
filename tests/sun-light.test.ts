@@ -25,11 +25,18 @@ describe('sunlight on the sea and in the air (issue #550)', () => {
   it('draws the glitter path only with the reflections on and the sun up', () => {
     const u = glitterUniforms();
     const strength = TUNING.graphics.water.glitter.strength;
-    writeGlitter(u, true, 1);
+    writeGlitter(u, true, 1, 0);
     expect(u.uGlitter.value.x).toBeCloseTo(strength);
-    writeGlitter(u, true, 0);
+    writeGlitter(u, true, 0, 0);
     expect(u.uGlitter.value.x).toBe(0);
-    writeGlitter(u, false, 1);
+    writeGlitter(u, false, 1, 0);
     expect(u.uGlitter.value.x).toBe(0);
+  });
+
+  it('brightens the path under the moon', () => {
+    const u = glitterUniforms();
+    const g = TUNING.graphics.water.glitter;
+    writeGlitter(u, true, 1, 1);
+    expect(u.uGlitter.value.x).toBeCloseTo(g.strength * g.moon);
   });
 });

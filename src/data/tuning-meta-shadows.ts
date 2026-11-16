@@ -102,6 +102,14 @@ export const SHADOWS_META: Readonly<Record<string, TuningMeta>> = {
     undefined,
     'Share of the sky light given to the sun: sunny level ground keeps its brightness, shade gets deeper and bluer.',
   ),
+  'graphics.shadows.nightContrast': num(
+    'Moonlit shade depth',
+    0,
+    0.6,
+    0.05,
+    undefined,
+    'The same at night (issue #547): the moon as a cool key light, its shade deeper but never black.',
+  ),
   'graphics.shadows.minUp': num(
     'Low sun floor',
     0.1,

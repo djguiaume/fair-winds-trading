@@ -227,7 +227,7 @@ export class SunShadows {
     setSunThrough(this.rich);
     setSunHaze(sky, this.rich);
     const shown = Math.min(1, Math.max(0, sky.disc.y / GLITTER_RISE));
-    writeGlitter(ocean.mesh.material.uniforms, this.reflect, shown);
+    writeGlitter(ocean.mesh.material.uniforms, this.reflect, shown, night);
     if (!this.ultra) this.cast(this.drawn);
     const data = this.data;
     const seaShade = data ? look.sea * (1 + (data.nightStrength - 1) * night) : 0;
@@ -237,7 +237,8 @@ export class SunShadows {
     snapToTexels(this.centre, this.toLight, (2 * data.box) / data.mapSize, this.right, this.up);
     light.target.position.copy(this.centre);
     light.position.copy(this.centre).addScaledVector(this.toLight, back);
-    deepenShade(light, this.sky, look.contrast, this.toLight.y);
+    const contrast = look.contrast + (look.nightContrast - look.contrast) * night;
+    deepenShade(light, this.sky, contrast, this.toLight.y);
     if (!this.ultra) applyShadow(light, this.renderer, shadowSettings(data, night, this.settings));
   }
 

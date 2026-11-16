@@ -12,6 +12,7 @@ import {
 } from './fieldGroundGlsl';
 import { SHORE_WASH_UNIFORMS } from '../shoreWash';
 import { withSunHaze } from '../sunHaze';
+import { withLampPools } from '../lampPools';
 
 /**
  * The new look's ground material (issue #373): a Lambert material whose colour is decided per
@@ -128,7 +129,7 @@ export function fieldGroundMaterial(
     Object.assign(shader.uniforms, uniforms, SHORE_WASH_UNIFORMS);
     Object.assign(shader, groundShaderSources(shader.vertexShader, shader.fragmentShader));
   };
-  return withSunHaze(material);
+  return withLampPools(withSunHaze(material));
 }
 
 /**
