@@ -46,6 +46,7 @@ export interface GraphicsView {
 export function applyGraphics(view: GraphicsView, settings: Settings) {
   view.effects.msaa = settings.effects.msaa !== false;
   view.effects.gusts = settings.effects.gusts !== false;
+  view.effects.clouds = settings.effects.clouds !== false;
   for (const id of EFFECTS) view.effects[id] = settings.effects[id] !== false;
   setGroundCover({ switchedOn: view.effects.groundCover });
 }

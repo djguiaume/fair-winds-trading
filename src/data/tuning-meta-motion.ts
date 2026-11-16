@@ -69,6 +69,14 @@ export const MOTION_META: Readonly<Record<string, TuningMeta>> = {
     '× beam',
     'How far apart, as a share of her beam, the sea is read at her two sides: more = she rolls less to short chop.',
   ),
+  'waves.motion.ride.middle': num(
+    'Rides her middle',
+    0,
+    1,
+    0.05,
+    undefined,
+    'How much her rise follows the sea under her middle rather than the average at bow, stern and sides: more keeps a sharp crest from washing over her waist.',
+  ),
   'waves.motion.ride.heaveSec': num(
     'Rise smoothing',
     0,

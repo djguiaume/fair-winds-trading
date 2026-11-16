@@ -31,6 +31,8 @@ export interface GraphicsEffects {
   msaa?: boolean;
   /** The wind's gusts on the sea; on unless a `?off=gusts` device test says false (issue #498). */
   gusts?: boolean;
+  /** Cloud shadows on the sea; on unless a `?off=clouds` device test says false (issue #546). */
+  clouds?: boolean;
 }
 
 /** Every effect on: the view's default before Settings are applied. */

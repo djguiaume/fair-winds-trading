@@ -23,27 +23,29 @@
       "lengths": [150, 105, 128, 92, 140, 116],
       "offsetDeg": 15,
       "spread": 4,
-      "steepness": 0.35,
+      "steepness": 0.6,
       "base": 0.12,
       "perKn2": 0.002,
       "storm": 1.6,
       "max": 2,
       "windowSec": 120,
       "samples": 7,
-      "cosmetic": false
+      "cosmetic": false,
+      "scale": 1.5
     },
     "chop": {
       "lengths": [36, 28, 46, 32, 42, 30, 50, 34],
       "offsetDeg": 0,
       "spread": 2,
-      "steepness": 0.6,
+      "steepness": 2,
       "base": 0,
       "perKn2": 0.004,
       "storm": 0.8,
       "max": 1.4,
       "windowSec": 20,
       "samples": 5,
-      "cosmetic": false
+      "cosmetic": false,
+      "scale": 1.8
     },
     "ripple": {
       "lengths": [14, 11, 16, 12],
@@ -56,7 +58,8 @@
       "max": 0.12,
       "windowSec": 4,
       "samples": 2,
-      "cosmetic": true
+      "cosmetic": true,
+      "scale": 1.5
     }
   },
   "coast": {
@@ -73,7 +76,12 @@
     "berth": 14,
     "openAt": 0.5,
     "shelteredAt": 0.25,
-    "sheltered": 0.2
+    "sheltered": 0.2,
+    "keep": {
+      "swell": 0,
+      "chop": 0.15,
+      "ripple": 0.6
+    }
   },
   "foam": {
     "roughAt": 1.6,
@@ -127,6 +135,14 @@
     "mirror": 0.35,
     "night": 0.5
   },
+  "clouds": {
+    "size": 90,
+    "cover": [0.47, 0.57],
+    "shade": 0.14,
+    "gloomGone": 0.6,
+    "speed": 1,
+    "speedPerKn": 0.3
+  },
   "look": {
     "facets": 0.35,
     "detailFrom": 0.8,
@@ -134,7 +150,10 @@
     "slopeGain": 2,
     "shading": 0.6,
     "crest": 0.25,
-    "crestFloor": 0.4
+    "crestFloor": 0.4,
+    "swellTone": 0.2,
+    "viewTone": 2,
+    "viewToneMax": 0.3
   },
   "motion": {
     "heave": 1,
@@ -147,6 +166,7 @@
       "bowStern": 0.8,
       "beam": 1,
       "heaveSec": 0.1,
+      "middle": 0.5,
       "tiltSec": 1.5,
       "small": {
         "length": 18,

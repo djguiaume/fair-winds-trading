@@ -66,9 +66,12 @@ describe('the coast calms the waves (issue #281)', () => {
     expect(calmAt(grid, -400, 0)).toEqual([1, 1, 1]);
     // Off the map's bake: open sea, as the shader's `coastAt`.
     expect(calmAt(grid, 5000, 5000)).toEqual([1, 1, 1]);
-    const lagoonMiddle = calmAt(grid, 0, 0);
-    for (const share of lagoonMiddle)
-      expect(share).toBeLessThanOrEqual(TUNING.waves.coast.sheltered + 0.01);
+    // A closed lagoon calms the swell and the chop; its ripples keep their share (issue #551).
+    const [lagoonSwell, lagoonChop, lagoonRipple] = calmAt(grid, 0, 0);
+    const { sheltered, keep } = TUNING.waves.coast;
+    expect(lagoonSwell).toBeLessThanOrEqual(Math.max(keep.swell, sheltered) + 0.01);
+    expect(lagoonChop).toBeLessThanOrEqual(Math.max(keep.chop, sheltered) + 0.01);
+    expect(lagoonRipple).toBeCloseTo(Math.max(keep.ripple, lagoonChop!), 2);
     // On the shelf off a straight bank: the swell feels the bottom before the chop.
     const [swell, chop] = calmAt(grid, 85, 0);
     expect(swell).toBeLessThan(chop!);

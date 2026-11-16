@@ -49,18 +49,21 @@ float bandShare(int i, vec3 calm) {
  * `waveOffsetAt`, plus the cosmetic bands. Leaves `seaNormal` with the drawn surface's normal
  * there (not normalized), the cross of its two tangents as the CPU's `waveNormalAt`, and
  * `seaFine` with the undrawn waves' slope (x, z) and height (y), which only shade: all of them on
- * Low, the swell's and chop's under `FANCY` (the fragment adds the ripples per pixel).
+ * Low, the swell's and chop's under `FANCY` (the fragment adds the ripples per pixel), and
+ * `seaSwell` with the swell's own height, for its long lines seen from above (issue #546).
  */
 const gerstnerShader = /* glsl */ `
 ${waveUniformsShader}
 vec3 seaNormal = vec3(0.0, 1.0, 0.0);
 vec3 seaFine = vec3(0.0);
+float seaSwell = 0.0;
 
 vec3 waveOffset(vec2 p, vec3 calm) {
   vec3 o = vec3(0.0);
   // The displaced surface's tangents along rest x and rest z.
   vec3 tx = vec3(1.0, 0.0, 0.0), tz = vec3(0.0, 0.0, 1.0);
   seaFine = vec3(0.0);
+  seaSwell = 0.0;
   for (int i = 0; i < WAVE_COUNT; i++) {
     vec2 k = uWave[i].xy;
     float theta = dot(k, p) + uWave[i].z;
@@ -70,6 +73,7 @@ vec3 waveOffset(vec2 p, vec3 calm) {
     vec2 shift = uWaveShift[i] * share;
     o.xz += shift * c;
     o.y += a * s;
+    if (i < SWELL_END) seaSwell += a * s;
     vec3 slope = vec3(-shift.x * s, a * c, -shift.y * s);
     tx += slope * k.x;
     tz += slope * k.y;
@@ -105,7 +109,8 @@ vec3 waveFine(vec2 p, float calm) {
 /**
  * The coast's calm (issue #281, `sim/coastWaves.ts`): each band's share of its waves from the
  * bake's depth (red) and exposure (green), the same bytes and formula as the CPU's `bandCalm`.
- * `uCoast` = (floor, sheltered, shelteredAt, openAt), `uCoastReach` = each band's reach.
+ * `uCoast` = (floor, sheltered, shelteredAt, openAt), `uCoastReach` = each band's reach,
+ * `uCoastKeep` = the least share each band keeps.
  * `seaSurf` is left with how much of the swell the seabed breaks here (open water only), for foam,
  * and `seaBake` with the bake here.
  */
@@ -113,6 +118,7 @@ const coastShader = /* glsl */ `
 ${seabedUniforms()}
 uniform vec4 uCoast;
 uniform vec3 uCoastReach;
+uniform vec3 uCoastKeep;
 float seaSurf = 0.0;
 vec2 seaBake = vec2(1.0);
 
@@ -137,7 +143,7 @@ vec3 coastCalm(vec2 p) {
     calmStep(0.0, uCoastReach.y, bake.x),
     calmStep(0.0, uCoastReach.z, bake.x));
   seaSurf = (1.0 - deep.x) * (1.0 - deep.x) * shelter;
-  return mix(vec3(uCoast.x), vec3(1.0), deep) * shelter;
+  return max(uCoastKeep, mix(vec3(uCoast.x), vec3(1.0), deep) * shelter);
 }
 `;
 
@@ -181,6 +187,7 @@ vec3 seaOffset(vec2 p, float shore) {
 #ifdef GERSTNER
   seaNormal.xz *= calm;
   seaFine *= calm;
+  seaSwell *= calm;
 #endif
   return o * calm;
 }
@@ -192,12 +199,17 @@ vec3 seaOffset(vec2 p, float shore) {
  * the rest point (Medium and up). `uWaveLook` = (how faceted, where the detail starts and ends
  * fading with distance, how much steeper the slopes shade than they stand); `uWaveTone` = (how
  * much the sun shades the slopes, how much lighter a crest is than a trough, the sea's highest
- * crest now). Where no glint needs a true normal per pixel, the sky's Fresnel share comes per
+ * crest now); `uWaveView` = (how much darker a slope facing the camera is than one turned away, the
+ * most it darkens or lightens). Where no glint needs a true normal per pixel, the sky's Fresnel share comes per
  * vertex too (`VERTEX_SKY`).
  */
 export const waveShadingVaryings = /* glsl */ `
 uniform vec4 uWaveLook;
 uniform vec3 uWaveTone;
+uniform vec2 uWaveView;
+// The swell's long lines (issue #546): how much darker its troughs are, its highest crest now.
+uniform vec2 uSwellLook;
+varying float vSwell;
 // The slope (x, z: the normal's over its y), the undrawn waves' height, the detail left here.
 varying vec4 vWave;
 #ifdef FANCY
@@ -278,6 +290,7 @@ void main() {
   float near = waveDetail(vFogDepth);
   vec3 fine = seaFine * near;
   vWave = vec4(seaNormal.xz / max(seaNormal.y, 0.1) - fine.xz, fine.y, near);
+  vSwell = seaSwell / uSwellLook.y;
 #ifdef FANCY
   vRest = vec3(rest, seaShare.z);
 #endif

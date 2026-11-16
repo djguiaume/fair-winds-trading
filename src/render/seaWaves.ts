@@ -8,6 +8,7 @@ import type { World } from '../sim/world';
 import { waveHeight } from './oceanWaves';
 import { ShoreWash } from './shoreWash';
 import { type GustUniforms, SeaGusts } from './seaGusts';
+import { type CloudUniforms, SeaClouds, cloudUniforms } from './seaClouds';
 
 /**
  * The `?waves` test switch (decisions 0245, 0250): `v1` the classic three sines, `v2` or a review
@@ -32,13 +33,17 @@ const bandEnd = (band: number) =>
 
 const RIPPLE = WAVE_BANDS.indexOf('ripple');
 
-/** The defines a Gerstner ocean compiles with; `coast` adds the coast's calm (issue #281). */
-export const gerstnerDefines = (coast = false) => ({
+/**
+ * The defines a Gerstner ocean compiles with; `coast` adds the coast's calm (issue #281), `fancy`
+ * (Medium and up) the cloud shadows (issue #546).
+ */
+export const gerstnerDefines = (coast = false, fancy = false) => ({
   GERSTNER: '',
   WAVE_COUNT: String(waveCount()),
   SWELL_END: String(bandEnd(0)),
   CHOP_END: String(bandEnd(1)),
   ...(coast ? { COAST: '' } : {}),
+  ...(fancy ? { CLOUDS: '' } : {}),
 });
 
 /** Its uniforms, before the first `writeUniforms`. */
@@ -48,13 +53,17 @@ export const gerstnerUniforms = () => ({
   uWaveFine: { value: new Float32Array(waveCount()) },
   uWaveLook: { value: new THREE.Vector4() },
   uWaveTone: { value: new THREE.Vector3(0, 0, 1) },
+  uWaveView: { value: new THREE.Vector2() },
   uBandHeight: { value: new THREE.Vector3() },
   uCoast: { value: new THREE.Vector4() },
   uCoastReach: { value: new THREE.Vector3() },
+  uCoastKeep: { value: new THREE.Vector3() },
   uSeaFoam: { value: new THREE.Vector4() },
   uSeaWind: { value: new THREE.Vector4(0, -1, 1, 0) },
   uFoamBreakup: { value: 1 },
   uFoamCap: { value: new THREE.Color(1, 1, 1) },
+  uSwellLook: { value: new THREE.Vector2(0, 1) },
+  ...cloudUniforms(),
 });
 
 type WaveUniforms = { [K in keyof ReturnType<typeof gerstnerUniforms>]: { value: unknown } };
@@ -100,6 +109,8 @@ export class SeaWaves {
   /** The gusts' drift over the sea (issue #498), and the wind that drives them. */
   private readonly gusts = new SeaGusts();
   private readonly gustWind = { from: 0, speedKn: 0 };
+  /** The clouds' shadows drifting over the sea (issue #546). */
+  private readonly clouds = new SeaClouds();
 
   constructor(
     private readonly world: () => World,
@@ -169,12 +180,27 @@ export class SeaWaves {
     floor: THREE.Color,
     on = true,
   ) {
-    const { wind, time } = this.world();
+    const wind = this.shownWind();
+    this.gusts.write(uniforms, wind, this.world().time, centre, day, floor, on && this.gerstner);
+  }
+
+  /**
+   * The cloud shadows for this frame (`seaClouds.ts`): `day` the light's share, `gloom` the sky's
+   * overcast; a review preview blows its own steady wind.
+   */
+  writeClouds(uniforms: CloudUniforms, day: number, gloom: number, on = true) {
+    const wind = this.shownWind();
+    this.clouds.write(uniforms, wind, this.world().time, day, gloom, on && this.gerstner);
+  }
+
+  /** The wind the sea shows: the world's, or a review preview's steady one. */
+  private shownWind() {
+    const { wind } = this.world();
     this.gustWind.from = wind.from;
     this.gustWind.speedKn = this.preview
       ? TUNING.waves.previews[this.preview].speedKn
       : wind.speedKn;
-    this.gusts.write(uniforms, this.gustWind, time, centre, day, floor, on && this.gerstner);
+    return this.gustWind;
   }
 
   /** Height of the sea at scene (`x`, `z`) now: what boats, buoys, marks and wakes float on. */
@@ -229,9 +255,15 @@ export class SeaWaves {
     const look = TUNING.waves.look;
     const highest = Math.max(look.crestFloor, bands.x + bands.y + bands.z);
     (uniforms.uWaveTone.value as THREE.Vector3).set(look.shading, look.crest, highest);
+    (uniforms.uWaveView.value as THREE.Vector2).set(look.viewTone, look.viewToneMax);
+    (uniforms.uSwellLook.value as THREE.Vector2).set(
+      look.swellTone,
+      Math.max(look.crestFloor, bands.x),
+    );
     const c = TUNING.waves.coast;
     (uniforms.uCoast.value as THREE.Vector4).set(c.floor, c.sheltered, c.shelteredAt, c.openAt);
     (uniforms.uCoastReach.value as THREE.Vector3).set(c.reach.swell, c.reach.chop, c.reach.ripple);
+    (uniforms.uCoastKeep.value as THREE.Vector3).set(c.keep.swell, c.keep.chop, c.keep.ripple);
     const foam = TUNING.waves.foam;
     const rough = Math.min(1, (this.sea.swell.height + this.sea.chop.height) / foam.roughAt);
     // A coarse grid spreads each crest's foam over wide triangles: it keeps less (never whiter).
