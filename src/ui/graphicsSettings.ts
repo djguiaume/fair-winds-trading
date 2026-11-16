@@ -1,6 +1,7 @@
 import { t } from '../i18n';
 import { QUALITY, QUALITY_LEVELS, type QualityLevel } from '../render/quality';
 import { coverOn, setGroundCover } from '../render/models/fieldGroundCover';
+import { switchLampPools } from '../render/lampPools';
 import type { GraphicsEffects } from '../render/ultraPipeline';
 import type { SwitchSpec } from './screens/settings/rows';
 import type { Settings } from './settings';
@@ -43,12 +44,13 @@ export interface GraphicsView {
 }
 
 /** The effects only a `?off=` device test switches off (issue #377), with no Settings row. */
-const TEST_ONLY = ['msaa', 'gusts', 'clouds', 'glitter', 'sunlight'] as const;
+const TEST_ONLY = ['msaa', 'gusts', 'clouds', 'glitter', 'sunlight', 'pools'] as const;
 
 /** Pushes the saved graphics choices to the view: the effects, MSAA and the waves. */
 export function applyGraphics(view: GraphicsView, settings: Settings) {
   for (const id of [...EFFECTS, ...TEST_ONLY]) view.effects[id] = settings.effects[id] !== false;
   setGroundCover({ switchedOn: view.effects.groundCover });
+  switchLampPools(view.effects.pools !== false);
 }
 
 /**

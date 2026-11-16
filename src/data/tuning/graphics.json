@@ -114,6 +114,7 @@
     "lead": 0.6,
     "maxLead": 0.5,
     "contrast": 0.3,
+    "nightContrast": 0.5,
     "minUp": 0.3,
     "blobLift": 1.2,
     "sea": 0.35,
@@ -201,7 +202,10 @@
       "share": 0.3,
       "fadeFrom": 0.8,
       "fadeTo": 0.98,
-      "twinkle": 6
+      "twinkle": 6,
+      "far": 0.5,
+      "haze": 0.2,
+      "moon": 6
     },
     "foamInner": 0.5,
     "foamWidth": 3.6,
@@ -371,7 +375,13 @@
     "falloff": 0.24,
     "peak": 0.8,
     "lanternSize": 16,
-    "beaconSize": 20
+    "beaconSize": 20,
+    "pool": {
+      "count": 6,
+      "strength": 0.8,
+      "radius": 10,
+      "sea": 0.2
+    }
   },
   "houses": {
     "richWithin": 140,

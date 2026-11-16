@@ -3,6 +3,7 @@
   "contact": "contact",
   "glitter": "glitter",
   "sunlight": "sunlight",
+  "pools": "pools",
   "ao": "occlusion",
   "tonemap": "toneMapping",
   "haze": "haze",

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { TUNING } from '../data/tuning';
 import { DEG, clamp } from '../sim/math';
 import type { SkyFrame } from './atmosphere';
+import { WORLD_FROM_EYE, chainCompile } from './materialChain';
 
 /**
  * Haze that takes the sun's colour toward the sun (issue #550): the far sea, land and ground fade
@@ -77,10 +78,7 @@ export const sunHazeUniforms = () => SUN_HAZE;
 
 /** A Lambert material's fog warmed toward the sun; chains any `onBeforeCompile` it already has. */
 export function withSunHaze<M extends THREE.MeshLambertMaterial>(material: M): M {
-  const before = material.onBeforeCompile.bind(material);
-  const key = material.customProgramCacheKey();
-  material.onBeforeCompile = (shader, renderer) => {
-    before(shader, renderer);
+  return chainCompile(material, 'sunHaze', (shader) => {
     Object.assign(shader.uniforms, SUN_HAZE);
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <fog_pars_fragment>', `#include <fog_pars_fragment>\n${sunHazeFunctions}`)
@@ -88,14 +86,10 @@ export function withSunHaze<M extends THREE.MeshLambertMaterial>(material: M): M
         '#include <fog_fragment>',
         `#ifdef USE_FOG
   float fogFactor = smoothstep(fogNear, fogFar, vFogDepth);
-  // View space back to world space: the view matrix's rotation is orthonormal.
-  vec3 hazeDir = (vec4(-vViewPosition, 0.0) * viewMatrix).xyz;
-  gl_FragColor.rgb = mix(gl_FragColor.rgb, sunHazed(fogColor, hazeDir), fogFactor);
+  gl_FragColor.rgb = mix(gl_FragColor.rgb, sunHazed(fogColor, ${WORLD_FROM_EYE}), fogFactor);
 #endif`,
       );
-  };
-  material.customProgramCacheKey = () => `${key}+sunHaze`;
-  return material;
+  });
 }
 
 /** This frame's haze from the drawn sky's sun or moon; `on` false (or `haze` 0) turns it off. */

@@ -37,6 +37,8 @@ export interface GraphicsEffects {
   glitter?: boolean;
   /** Sun through the sails and haze toward the sun; on unless `?off=sunlight` (issue #550). */
   sunlight?: boolean;
+  /** Lamplight pools round the lanterns at night; on unless `?off=pools` (issue #547). */
+  pools?: boolean;
 }
 
 /** Every effect on: the view's default before Settings are applied. */

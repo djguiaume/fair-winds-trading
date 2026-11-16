@@ -12,8 +12,13 @@ import { TUNING } from '../data/tuning';
 export const glitterUniforms = () => ({
   /** x: strength, y: the lobe's sharpness, z: points per unit, w: share of points lit. */
   uGlitter: { value: new THREE.Vector4() },
-  /** x, y: view heights (sines) between which a steep view loses it; z: twinkle speed. */
-  uGlitterFade: { value: new THREE.Vector3(0.8, 1, 6) },
+  /**
+   * x, y: view heights (sines) between which a steep view loses it; z: twinkle speed; w: the far
+   * path's light against its lit share.
+   */
+  uGlitterFade: { value: new THREE.Vector4(0.8, 1, 6, 0.5) },
+  /** How much of the path the haze hides far off (1: as much as the sea). */
+  uGlitterHaze: { value: 0.2 },
 });
 
 /**
@@ -22,7 +27,8 @@ export const glitterUniforms = () => ({
  */
 export const glitterFunctions = /* glsl */ `
 uniform vec4 uGlitter;
-uniform vec3 uGlitterFade;
+uniform vec4 uGlitterFade;
+uniform float uGlitterHaze;
 float glitterHash(vec2 p) {
   return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -39,7 +45,7 @@ float seaGlitter(vec3 world, vec3 n, vec3 toEye) {
     * (0.5 + 0.5 * sin(uTime * uGlitterFade.z + h * 40.0));
   // A point under two pixels shimmers: there the path is its average light instead.
   float pixels = 1.0 / max(length(fwidth(p)), 1e-4);
-  float mean = uGlitter.w * 0.15;
+  float mean = uGlitter.w * uGlitterFade.w;
   return lobe * mix(mean, point, smoothstep(1.5, 4.0, pixels));
 }
 `;
@@ -48,11 +54,14 @@ type GlitterUniforms = Partial<ReturnType<typeof glitterUniforms>>;
 
 /**
  * This frame's glitter: the data's while the sun or moon stands over the horizon (`shown`, 0..1),
- * none when the reflections are switched off.
+ * brighter under the moon (`night`, 0..1) so its faint light still draws a path (issue #547), none
+ * when the reflections are switched off.
  */
-export function writeGlitter(uniforms: GlitterUniforms, on: boolean, shown: number) {
+export function writeGlitter(uniforms: GlitterUniforms, on: boolean, shown: number, night: number) {
   if (!uniforms.uGlitter) return;
   const g = TUNING.graphics.water.glitter;
-  uniforms.uGlitter.value.set(on ? g.strength * shown : 0, g.lobe, g.points, g.share);
-  uniforms.uGlitterFade!.value.set(g.fadeFrom, g.fadeTo, g.twinkle);
+  const strength = g.strength * shown * (1 + (g.moon - 1) * night);
+  uniforms.uGlitter.value.set(on ? strength : 0, g.lobe, g.points, g.share);
+  uniforms.uGlitterFade!.value.set(g.fadeFrom, g.fadeTo, g.twinkle, g.far);
+  uniforms.uGlitterHaze!.value = g.haze;
 }
