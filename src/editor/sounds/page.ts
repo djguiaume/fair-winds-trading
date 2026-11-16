@@ -13,6 +13,7 @@ import { DESK_SEA, type DeskSea, LiveSea, playEffect, renderJob } from '../../au
 import { formatQuestJson } from '../../data/jsonFormat';
 import { History } from '../model';
 import { h, numberInput, row, select } from '../quest/form';
+import { aboardRows } from './aboard';
 import './sounds.css';
 
 /**
@@ -328,6 +329,7 @@ function listenPanel(sea: string): HTMLElement {
     slider('wind kn', here.windKn, 35, (v) => (here.windKn = v)),
     slider('speed kn', here.speedKn, 12, (v) => (here.speedKn = v)),
     slider('rain %', Math.round(here.rain * 100), 100, (v) => (here.rain = v / 100)),
+    tick('follow cam (aboard)', !!here.aboard, (v) => (here.aboard = v ? 1 : 0)),
     tick('luffing in irons', here.luffing, (v) => (here.luffing = v)),
     tick('docked', here.docked, (v) => (here.docked = v)),
     tick('every place near', listen.near, (v) => (listen.near = v)),
@@ -429,52 +431,37 @@ function placeText(p: CallPlace) {
   return `${what} (${p.range})`;
 }
 
+/** A numbered row for one field of a boat sound. */
+function field<T extends object>(label: string, of: T, key: keyof T & string) {
+  return row(
+    label,
+    num(of[key] as number, (v) => ((of[key] as number) = v)),
+  );
+}
+
 function drawBoat(): HTMLElement[] {
-  const { wash, luff, rain } = doc.boat;
+  const { wash, luff, rain, aboard } = doc.boat;
   return [
     heading(
       'The boat',
       'Her own sounds in every sea: the wash along the hull (full at fullKn), the sails luffing in irons (style, and rate: flutters a second; play again after changing the style), rain on deck.',
     ),
     listenPanel(RING),
-    row(
-      'wash level',
-      num(wash.level, (v) => (wash.level = v)),
-    ),
-    row(
-      'wash tone',
-      num(wash.tone, (v) => (wash.tone = v)),
-    ),
-    row(
-      'wash full kn',
-      num(wash.fullKn, (v) => (wash.fullKn = v)),
-    ),
+    field('wash level', wash, 'level'),
+    field('wash tone', wash, 'tone'),
+    field('wash full kn', wash, 'fullKn'),
     row(
       'luff style',
       select([...LUFF_STYLES], luff.style ?? 'gusty', (v) =>
         edit(() => (luff.style = v as LuffStyle)),
       ),
     ),
-    row(
-      'luff level',
-      num(luff.level, (v) => (luff.level = v)),
-    ),
-    row(
-      'luff tone',
-      num(luff.tone, (v) => (luff.tone = v)),
-    ),
-    row(
-      'luff rate',
-      num(luff.rate, (v) => (luff.rate = v)),
-    ),
-    row(
-      'rain level',
-      num(rain.level, (v) => (rain.level = v)),
-    ),
-    row(
-      'rain tone',
-      num(rain.tone, (v) => (rain.tone = v)),
-    ),
+    field('luff level', luff, 'level'),
+    field('luff tone', luff, 'tone'),
+    field('luff rate', luff, 'rate'),
+    field('rain level', rain, 'level'),
+    field('rain tone', rain, 'tone'),
+    ...aboardRows(aboard, Object.keys(doc.effects), { num, edit, play, playButton, heading }),
   ];
 }
 
