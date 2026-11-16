@@ -1,13 +1,14 @@
 import * as THREE from 'three';
 import { TUNING } from '../data/tuning';
 import { type Wind, windTo } from '../sim/wind';
+import { cloudAmount } from './skyWeather';
 
 /**
  * Cloud shadows on the sea (issue #546): soft darker patches, a few hundred units across, that
  * drift downwind so the open sea seen from above has sun, scale and movement. Colour only, in the
  * ocean's fragment shader (`oceanShader.ts`) on the levels that draw the moving foam (Medium and
- * up) with the waves on; none at night or under a full overcast, where no sun casts them. Numbers
- * in `waves.json › clouds`.
+ * up) with the waves on; as many as the sky shows, none at night or under a full overcast, where no
+ * sun casts them. Numbers in `waves.json › clouds`.
  */
 
 /** The uniforms of a sea with cloud shadows, before the first `SeaClouds.write`. */
@@ -21,13 +22,14 @@ export const cloudUniforms = () => ({
 export type CloudUniforms = { [K in keyof ReturnType<typeof cloudUniforms>]: { value: unknown } };
 
 /**
- * How dark the shadows are now: `day` is the light's share (1 by day, 0 at night), `gloom` the
- * sky's overcast (0 clear … 1 the darkest storm), which takes the sun and so the shadows away.
+ * How dark the shadows are now: as many as the sky shows low clouds in this wind (`skyWeather.ts`),
+ * in the sun only. `day` is the light's share (1 by day, 0 at night), `gloom` the sky's overcast
+ * (0 clear … 1 the darkest storm), which takes the sun and so the shadows away.
  */
-export function cloudShade(day: number, gloom: number): number {
+export function cloudShade(day: number, gloom: number, windKn: number): number {
   const { shade, gloomGone } = TUNING.waves.clouds;
   const sun = Math.min(1, Math.max(0, day)) * Math.max(0, 1 - gloom / Math.max(1e-6, gloomGone));
-  return shade * sun;
+  return shade * sun * cloudAmount(TUNING.graphics.sky.clouds.amount, windKn, gloom);
 }
 
 /** Top level, after `foamNoise` (`seaFoam.ts`): `cloudAt`, 0 in the sun to 1 under a cloud. */
@@ -72,7 +74,7 @@ export class SeaClouds {
     this.drift.y -= Math.cos(to) * speed;
     (uniforms.uCloudAt.value as THREE.Vector3).set(this.drift.x, this.drift.y, 1 / c.size);
     const [from, full] = c.cover as [number, number];
-    const shade = on ? cloudShade(day, gloom) : 0;
+    const shade = on ? cloudShade(day, gloom, wind.speedKn) : 0;
     (uniforms.uCloudLook.value as THREE.Vector3).set(from, full, shade);
   }
 }

@@ -21,7 +21,7 @@ export const OPEN_SEA_META: Readonly<Record<string, TuningMeta>> = {
     0.4,
     0.01,
     undefined,
-    'How much darker the sea is under a cloud, in full sun.',
+    "How much darker the sea is under a cloud, in full sun with the sky full of clouds (it follows the sky's low cloud amount).",
   ),
   'waves.clouds.gloomGone': num(
     'Gone in gloom',

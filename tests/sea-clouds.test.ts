@@ -34,11 +34,16 @@ describe('cloud shadows on the sea (issue #546)', () => {
   });
 
   it('show in the sun only: none at night, fading out under an overcast', () => {
-    const { shade, gloomGone } = TUNING.waves.clouds;
-    expect(cloudShade(1, 0)).toBeCloseTo(shade, 6);
-    expect(cloudShade(0, 0)).toBe(0);
-    expect(cloudShade(1, gloomGone / 2)).toBeCloseTo(shade / 2, 6);
-    expect(cloudShade(1, 1)).toBe(0);
+    const { shade } = TUNING.waves.clouds;
+    const clear = TUNING.graphics.sky.clouds.amount.clear;
+    expect(cloudShade(1, 0, 0)).toBeCloseTo(shade * clear, 6);
+    expect(cloudShade(0, 0, 0)).toBe(0);
+    expect(cloudShade(1, 1, 0)).toBe(0);
+  });
+
+  it('follow the sky: more wind, more clouds overhead, more shade on the sea', () => {
+    expect(cloudShade(1, 0, 14)).toBeGreaterThan(cloudShade(1, 0, 3));
+    expect(cloudShade(1, 0, 40)).toBeLessThanOrEqual(TUNING.waves.clouds.shade);
   });
 });
 

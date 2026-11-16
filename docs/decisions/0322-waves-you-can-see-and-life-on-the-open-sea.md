@@ -14,12 +14,12 @@ From the v1.9 whole-game review: from the follow cam at 8 to 12 kn the sea was a
 - **The coast keeps some waves** (`coast.keep`: ripple 0.6, chop 0.15) in both `bandCalm` and the shader's `coastCalm`.
 - **Glint fades earlier** with a steep view (`water.glintFadeFrom/To` 0.4 / 0.6): taller facets near the camera made a glare blob behind the boat facing the sun.
 - **Swell lines** (`look.swellTone`): the vertex shader keeps the swell's own height; its troughs shade darker.
-- **Cloud shadows** (`src/render/seaClouds.ts`, `waves.json › clouds`): value noise drifting downwind, colour only, in the ocean shader on Medium and up (define `CLOUDS`); none at night or under overcast (`gloomGone`). `?off=clouds` device switch. No new pass.
+- **Cloud shadows** (`src/render/seaClouds.ts`, `waves.json › clouds`): value noise drifting downwind, colour only, in the ocean shader on Medium and up (define `CLOUDS`); as dark as the sky's low cloud amount (`skyWeather.cloudAmount`, #552) allows, none at night or under overcast (`gloomGone`). `?off=clouds` device switch. No new pass.
 - **No finer mesh ring.** The issue proposed one; with taller waves the existing grid's facets read as the low-poly style, so the triangle budget stays.
 
 ## Consequences
 
-- Sheets and numbers: [docs/reviews/v1.12/water](../reviews/v1.12/water/README.md). One-atmosphere pairs are unchanged within about ΔE 2; the top view moves by at most ΔE 2.5 at the open sea.
+- Sheets and numbers: [docs/reviews/v1.12/water](../reviews/v1.12/water/README.md). One-atmosphere: 8 of 10 open-sea pairs pass as before; golden hour, #573's known exception, goes 5.0 → 6.4 (the top view darker by 2.4 under a low sun).
 - Boats sit up to a quarter of the sea's height off the water at her middle in a 20 kn sea (test relative now); a storm sea stands up to `highestWaves()` (about 6.5 u).
 - Clouds on the sea only: an island under a passing shadow stays lit. Matching ground shadows would need the ground shader (follow-up if the art director wants it).
 - Shader cost: a normalize, two noise taps and a varying; headless frame time within noise on Medium and High. Real-device `?bench` joins #377.
