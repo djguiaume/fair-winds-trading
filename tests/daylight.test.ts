@@ -52,4 +52,24 @@ describe('day and night (0068)', () => {
     expect(at(16).lightBearing).toBeGreaterThan(Math.PI);
     for (let t = 0; t < DAY_SECONDS; t += 7) expect(daylightAt(t).lightHeight).toBeGreaterThan(0.1);
   });
+
+  it('keeps the golden light in the west and swings it round smoothly to the moon (#550)', () => {
+    const dir = (t: number) => {
+      const d = daylightAt(t);
+      return [Math.sin(d.lightBearing), d.lightHeight, -Math.cos(d.lightBearing)];
+    };
+    let prev = dir(0);
+    for (let t = 0.5; t <= DAY_SECONDS; t += 0.5) {
+      const now = dir(t);
+      expect(Math.hypot(...now.map((v, i) => v - prev[i]!))).toBeLessThan(0.05);
+      prev = now;
+      const d = daylightAt(t);
+      // A disc in the sky while the light is warm stands in the west, never the east.
+      if (d.warm > 0.3 && d.skyHeight > 0 && t > DAY_SECONDS / 2 && t < DUSK_END)
+        expect(Math.sin(d.lightBearing)).toBeLessThan(0);
+    }
+    const golden = daylightAt(TUNING.weather.daylight.dayEnd);
+    expect(golden.skyHeight).toBeLessThanOrEqual(0);
+    expect(Math.sin(golden.lightBearing)).toBeCloseTo(-1, 5);
+  });
 });

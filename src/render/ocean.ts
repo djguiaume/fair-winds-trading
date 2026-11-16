@@ -12,8 +12,8 @@ import { oceanVertexShader as vertexShader, waveSag } from './oceanWaves';
 import { oceanFragmentShader as fragmentShader } from './oceanShader';
 import { type SeaWaves, gerstnerDefines, gerstnerUniforms } from './seaWaves';
 import { type GustUniforms, gustUniforms } from './seaGusts';
-import { seaShadowUniforms } from './seaShadow';
 import type { CloudUniforms } from './seaClouds';
+import { seaLightUniforms } from './seaLight';
 import { SHORE_WASH_UNIFORMS, shoreWashOff } from './shoreWash';
 
 /** Conservative displacement bound: the classic waves' three amplitudes, or every band's cap. */
@@ -203,7 +203,7 @@ export class Ocean {
             : {}),
           ...(look.gerstner ? { ...gerstnerUniforms(), ...SHORE_WASH_UNIFORMS } : {}),
           ...(look.gusts ? gustUniforms() : {}),
-          ...(look.reflect ? seaShadowUniforms() : {}),
+          ...seaLightUniforms(!!look.reflect),
         },
       });
     // The ring's colours until the first update places the camera.

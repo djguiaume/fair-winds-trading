@@ -7,6 +7,13 @@ import type { Ocean } from './ocean';
 import type { GraphicsEffects } from './ultraPipeline';
 import { setContactShade } from './models/contactShade';
 import { writeSeaShadow } from './seaShadow';
+import { writeGlitter } from './seaGlitter';
+import { setSunThrough } from './sunThrough';
+import { setSunHaze } from './sunHaze';
+import type { SkyFrame } from './atmosphere';
+
+/** The sun's height (sine) over which its glitter path is whole; under the horizon, none. */
+const GLITTER_RISE = 0.05;
 
 /** One level's shadow numbers (`graphics.json` › `shadows.high`, `ultra.shadows`). */
 export type ShadowData = typeof TUNING.graphics.shadows.high;
@@ -166,6 +173,9 @@ export class SunShadows {
   private drawn = false;
   private ultra = false;
   private contact = false;
+  /** The level draws the sunlight's extras (High and Ultra): glitter, sails, haze. */
+  private rich = false;
+  private reflect = false;
 
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
@@ -191,6 +201,8 @@ export class SunShadows {
   ): Readonly<SunShape> {
     this.drawn = level.shadows && effects.shadows;
     this.contact = level.shadows && effects.contact;
+    this.rich = level.shadows && effects.sunlight !== false;
+    this.reflect = effects.reflection && effects.glitter !== false;
     this.ultra = level.ultra;
     const data = this.data;
     if (!data) {
@@ -203,15 +215,19 @@ export class SunShadows {
 
   /**
    * After the atmosphere has placed the light: the box snapped to whole texels, the shade
-   * deepened, High's map set, the sea's shade and the contact shade, and the boat's shadow laid
-   * away from the light.
+   * deepened, High's map set, the sea's shade and glitter, the contact shade, the sun through the
+   * sails and the haze toward it, and the boat's shadow laid away from the light.
    */
-  settle(night: number, ocean: Ocean) {
+  settle(night: number, ocean: Ocean, sky: Readonly<SkyFrame>) {
     const light = this.light;
     const look = TUNING.graphics.shadows;
     this.toLight.subVectors(light.position, light.target.position).normalize();
     blobOffset(this.toLight, look.blobLift, this.blob);
     setContactShade(this.contact);
+    setSunThrough(this.rich);
+    setSunHaze(sky, this.rich);
+    const shown = Math.min(1, Math.max(0, sky.disc.y / GLITTER_RISE));
+    writeGlitter(ocean.mesh.material.uniforms, this.reflect, shown);
     if (!this.ultra) this.cast(this.drawn);
     const data = this.data;
     const seaShade = data ? look.sea * (1 + (data.nightStrength - 1) * night) : 0;

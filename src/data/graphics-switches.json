@@ -1,5 +1,8 @@
 {
   "shadows": "shadows",
+  "contact": "contact",
+  "glitter": "glitter",
+  "sunlight": "sunlight",
   "ao": "occlusion",
   "tonemap": "toneMapping",
   "haze": "haze",

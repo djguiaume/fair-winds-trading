@@ -6,6 +6,8 @@ import { surfFunctions, surfLinesShader } from './shoreWash';
 import { gustFunctions, gustShader } from './seaGusts';
 import { seaShadowFunctions } from './seaShadow';
 import { cloudFunctions, cloudShader } from './seaClouds';
+import { glitterFunctions } from './seaGlitter';
+import { sunHazeFunctions } from './sunHaze';
 
 /**
  * The ocean's colours (`ocean.ts`): flat shaded, by the seabed's depth or the classic shallow
@@ -38,6 +40,7 @@ uniform vec3 uFoam;
 uniform vec3 uFogColor;
 uniform float uFogNear;
 uniform float uFogFar;
+${sunHazeFunctions}
 // The sky's Fresnel tint: on every faceted depth-coloured sea too, so Low and Medium match High's
 // colour (issue #282); the glint stays High and Ultra's.
 #if defined(REFLECT) || (defined(DEPTH) && !defined(PLAIN))
@@ -60,6 +63,7 @@ uniform vec4 uMirrorSoft;
 #endif
 #ifdef REFLECT
 ${seaShadowFunctions}
+${glitterFunctions}
 uniform vec3 uSunColor;
 uniform float uGlint;
 uniform float uGlintSharpness;
@@ -251,12 +255,14 @@ void main() {
   float glint = pow(max(dot(n, normalize(uSunDir + toEye)), 0.0), uGlintSharpness);
   glint *= 1.0 - smoothstep(uGlintFade.x, uGlintFade.y, toEye.y);
   col += uSunColor * min(glint * uGlint, uGlintFade.z) * sunLit;
+  // The glitter path toward the sun or the moon, broken by the shade.
+  col += uSunColor * uGlitter.x * seaGlitter(vWorld, n, toEye) * sunLit;
 #endif
 #ifdef CLOUDS
   // Cloud shadows drifting downwind (issue #546), on the reflections and the glint too.
   ${cloudShader}
 #endif
-  col = mix(col, uFogColor, smoothstep(uFogNear, uFogFar, vFogDepth));
+  col = mix(col, sunHazed(uFogColor, vWorld - cameraPosition), smoothstep(uFogNear, uFogFar, vFogDepth));
   gl_FragColor = vec4(col, 1.0);
   #include <colorspace_fragment>
 }

@@ -44,3 +44,31 @@ Real devices: `?bench&quality=high` against `&off=shadows` and `&off=contact` in
 
 `npm run shots -- --list <list> --both --quality high --sizes desktop` with the nine poses above
 (times 100, 250, 440); the sheet is three PNG pairs per row, scaled to 320 px.
+
+# Part 2: the sun on the sea, through the sails and in the haze
+
+Decision [0321](../../../decisions/0321-the-sun-on-the-sea-through-the-sails-and-in-the-haze-the-gol.md).
+
+[sun-high.jpg](sun-high.jpg) (High, desktop; columns: top before, top after, follow before, follow
+after; before = part 1): open sea looking into the sun at morning (60), noon (250), late (370),
+Saltmere late (375) and dusk (440).
+
+What to look for: a glittering path on the sea under the sun (points close by, a smooth bright
+path far off), sails lit warm at their edges when the sun is behind them, the haze warming toward
+the sun so the far sea runs into the sky's glow, and at dusk the light and the disc both in the
+west, then the moon's path.
+
+| Pose (heading into the sun) | sea ΔE top vs follow, part 1 → part 2 |
+|---|---|
+| Open sea morning | 1.3 → 2.0 ✓ |
+| Open sea noon | 4.4 → 3.9 ✓ |
+| Open sea late | 2.6 → 5.0 ✓ (the glitter path is in the follow view only, as it should be) |
+| Saltmere late | 16.8 → 17.7 (fails on main too: deep water from above, shallows from behind) |
+| Open sea dusk (440) | 3.7 → 4.0 ✓ |
+
+Cost (`npm run perf`, headless, against part 1): High sailing 31 draw calls, 155k triangles, 62 MB,
+all unchanged; Ultra at 4K 334 MB (budget 355). The glitter is a few lines in the sea shader on
+High and Ultra only; the haze and the sail light are a few lines in materials already drawn.
+
+Switches: `?off=glitter`, `?off=sunlight` (graphics-switches.json); numbers in `graphics.json` ›
+`water.glitter` and `sunlight`; the light path in `weather.json` › `daylight.moonRise`, `moonSet`.

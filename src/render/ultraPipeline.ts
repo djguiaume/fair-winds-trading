@@ -33,6 +33,10 @@ export interface GraphicsEffects {
   gusts?: boolean;
   /** Cloud shadows on the sea; on unless a `?off=clouds` device test says false (issue #546). */
   clouds?: boolean;
+  /** The sun's glitter path on the sea; on unless `?off=glitter` says false (issue #550). */
+  glitter?: boolean;
+  /** Sun through the sails and haze toward the sun; on unless `?off=sunlight` (issue #550). */
+  sunlight?: boolean;
 }
 
 /** Every effect on: the view's default before Settings are applied. */

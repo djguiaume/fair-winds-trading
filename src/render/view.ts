@@ -560,7 +560,7 @@ export class GameView {
     const shadows = this.sunShadows;
     const sunShape = shadows.frame(this.profile, this.effects, this.target, this.rig.seaCentre);
     this.atmosphere.update(dt, day, shownWeather, this.ocean, shadows.centre, haze, sunShape);
-    shadows.settle(day.night, this.ocean);
+    shadows.settle(day.night, this.ocean, this.atmosphere.drawnSky);
     const gloom = this.atmosphere.gloom;
     this.atmosphere.closeFog(dist, day, haze);
     this.veil.update(haze, this.atmosphere.hazeColor);
@@ -775,7 +775,7 @@ export class GameView {
     const sun = this.sunShadows.frame(this.profile, this.effects, aim, aim);
     this.atmosphere.setView(0, 0);
     this.atmosphere.update(0, day, this.world.weather, this.ocean, aim, tint, sun);
-    this.sunShadows.settle(day.night, this.ocean);
+    this.sunShadows.settle(day.night, this.ocean, this.atmosphere.drawnSky);
     this.atmosphere.gloom = gloom;
     const fog = this.scene.fog as THREE.Fog;
     const { near, far } = fog;
