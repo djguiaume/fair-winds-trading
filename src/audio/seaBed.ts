@@ -36,6 +36,8 @@ export interface SoundsHere {
   docked: boolean;
   /** Calmer water (Sunreach's lagoon), the waves' share 0 to 1 (1 = none). */
   calm: number;
+  /** How far the follow cam is on, 0 (the sea camera) to 1; absent is 0 (issue #555). */
+  aboard?: number;
 }
 
 /** Every layer's loudness and filter, before the Sounds volume. */
@@ -46,6 +48,7 @@ export interface LayerMix {
   wind: number;
   windTone: number;
   wash: number;
+  washTone: number;
   luff: number;
   rain: number;
 }
@@ -58,14 +61,24 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
  */
 export function layerMix(bed: SeaBed, boat: BoatSounds, here: SoundsHere): LayerMix {
   const wind = clamp(here.windKn, 0, 40);
+  const { aboard } = boat;
+  /** A layer's multiplier at this much follow cam: 1 at the sea camera, `at` aboard. */
+  const view = (at: number) => 1 + (at - 1) * clamp(here.aboard ?? 0, 0, 1);
   return {
-    waves: bed.waves.level * (0.65 + 0.35 * clamp(wind / 20, 0, 1.3)) * here.calm,
+    waves:
+      bed.waves.level * (0.65 + 0.35 * clamp(wind / 20, 0, 1.3)) * here.calm * view(aboard.waves),
     wavesTone: bed.waves.tone * (0.85 + 0.3 * clamp(wind / 25, 0, 1.2)),
     swellHz: 1 / bed.waves.swellSec,
-    wind: bed.wind.level * clamp((wind - 2) / 20, 0.06, 1.25),
+    wind: bed.wind.level * clamp((wind - 2) / 20, 0.06, 1.25) * view(aboard.wind),
     windTone: bed.wind.tone * (0.7 + 0.6 * clamp(wind / 30, 0, 1)),
-    wash: here.docked ? 0 : boat.wash.level * clamp(here.speedKn / boat.wash.fullKn, 0, 1.2),
-    luff: here.luffing && !here.docked ? boat.luff.level * clamp(wind / 12, 0.4, 1.2) : 0,
+    wash: here.docked
+      ? 0
+      : boat.wash.level * clamp(here.speedKn / boat.wash.fullKn, 0, 1.2) * view(aboard.wash),
+    washTone: view(aboard.washTone),
+    luff:
+      here.luffing && !here.docked
+        ? boat.luff.level * clamp(wind / 12, 0.4, 1.2) * view(aboard.luff)
+        : 0,
     rain: boat.rain.level * clamp(here.rain, 0, 1),
   };
 }

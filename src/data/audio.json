@@ -27,6 +27,8 @@
     "thunder": { "synth": "thunder", "volume": 1.2 },
     "lava-hiss": { "synth": "hiss", "volume": 0.62 },
     "surf": { "synth": "surf", "volume": 0.85 },
+    "rig-creak": { "synth": "creak", "volume": 0.45, "pitch": 1.5 },
+    "block-rattle": { "synth": "rattle", "volume": 1.2 },
     "palms": { "synth": "rustle", "volume": 0.33 },
     "sheep": { "synth": "baa", "volume": 0.47 },
     "fogwatch-horn": { "synth": "foghorn", "volume": 0.87, "pitch": 0.8 },
@@ -45,7 +47,16 @@
   "boat": {
     "wash": { "level": 0.16, "tone": 1100, "fullKn": 8 },
     "luff": { "level": 0.3, "tone": 750, "rate": 9, "style": "gusty" },
-    "rain": { "level": 0.22, "tone": 2600 }
+    "rain": { "level": 0.22, "tone": 2600 },
+    "aboard": {
+      "wash": 2.4,
+      "washTone": 1.25,
+      "waves": 0.65,
+      "wind": 0.85,
+      "luff": 1.4,
+      "creak": { "effect": "rig-creak", "level": 0.5, "gustKn": 1.5, "every": 6 },
+      "rattle": { "effect": "block-rattle", "level": 0.8 }
+    }
   },
   "seas": {
     "ring": {

@@ -55,3 +55,24 @@ export function flagGeometry(flag: FlagDef): THREE.BufferGeometry {
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   return g;
 }
+
+/**
+ * The masthead flag's geometry and material: a regatta pennant won flies instead of the stock
+ * pennant in the class band colour (decision 0217).
+ */
+export function pennant(flag: FlagDef | undefined, band: string) {
+  const geometry = flag
+    ? flagGeometry(flag)
+    : new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, -0.5, 0),
+        new THREE.Vector3(0, -0.25, -1),
+      ]);
+  geometry.computeVertexNormals();
+  const material = new THREE.MeshBasicMaterial({
+    color: flag ? 0xffffff : band,
+    vertexColors: !!flag,
+    side: THREE.DoubleSide,
+  });
+  return { geometry, material };
+}

@@ -466,5 +466,29 @@
         "contrast": 0.1
       }
     }
+  },
+  "closeUp": {
+    "crewSize": 1.15,
+    "extraHands": 0,
+    "hands": {
+      "sloop": 0,
+      "cutter": 0,
+      "schooner": 1,
+      "clipper": 1,
+      "hoy": 1,
+      "fluyt": 1,
+      "indiaman": 2,
+      "tern": 0,
+      "tern-pilot": 0,
+      "tern-yawl": 0
+    },
+    "hikeShare": 0.8,
+    "hikeMaxDeg": 16,
+    "crossSeconds": 1.4,
+    "tillerDeg": 28,
+    "bellyCloseHauled": 1,
+    "bellyRunning": 1.5,
+    "boomSwingDegPerSec": 150,
+    "coils": true
   }
 }

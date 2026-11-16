@@ -16,6 +16,7 @@ export function rigOf(file: ShipFile): RefinedRig {
   const { hullColor, bandColor, sailBandColor, parts = [], ...model } = file.model;
   const { length, beam, depth, outline, rings } = file.hull;
   let rig: RefinedRig = {
+    id: file.id,
     name: file.name,
     length,
     beam,

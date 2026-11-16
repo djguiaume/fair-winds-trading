@@ -77,9 +77,27 @@ export type LuffStyle = (typeof LUFF_STYLES)[number];
 /** The boat's own sounds, wherever she sails: her wash, sails luffing in irons, rain on deck. */
 export interface BoatSounds {
   wash: { level: number; tone: number; fullKn: number };
+  /** What changes in the follow cam, where she sounds like being aboard (issue #555). */
+  aboard: Aboard;
   /** `rate` is how many times a second the canvas flutters. */
   luff: { level: number; tone: number; rate: number; style?: LuffStyle };
   rain: { level: number; tone: number };
+}
+
+/**
+ * The mix in the follow cam, eased in with the camera's blend. The five multipliers scale the
+ * layers of the sea camera's mix (1 = unchanged); `creak` is the rigging groaning when a gust
+ * lifts the wind `gustKn` over its slow average (at most once in `every` seconds); `rattle` the
+ * blocks clattering on a tack. Effect levels are 0 to 1.
+ */
+export interface Aboard {
+  wash: number;
+  washTone: number;
+  waves: number;
+  wind: number;
+  luff: number;
+  creak: { effect: string; level: number; gustKn: number; every: number };
+  rattle: { effect: string; level: number };
 }
 
 /** The interface's sound events (decision 0274), played by the moments and the components. */
@@ -190,6 +208,8 @@ export function audioProblems(
     problems.push('boat luff: rate 1 to 30');
   if (boat?.luff.style && !LUFF_STYLES.includes(boat.luff.style))
     problems.push(`boat luff: no style "${boat.luff.style}" (${LUFF_STYLES.join(', ')})`);
+  if (boat?.aboard) problems.push(...aboardProblems(boat.aboard, effects));
+  else if (boat) problems.push('boat aboard: missing (the follow cam mix)');
   for (const sea of seas) if (!data.seas?.[sea]) problems.push(`seas: no bed for sea "${sea}"`);
   for (const [id, bed] of Object.entries(data.seas ?? {})) {
     const where = `sea ${id}`;
@@ -284,5 +304,19 @@ function voiceProblems(id: string, voice: Voice): string[] {
     if (vowels !== undefined && !(typeof vowels === 'string' && /^[aeiou]+$/.test(vowels)))
       out.push(`${where}: vowels are letters from "${VOWELS}"`);
   }
+  return out;
+}
+
+/** What is wrong with the follow cam's mix. */
+function aboardProblems(a: Aboard, effects: Record<string, unknown>): string[] {
+  const out: string[] = [];
+  for (const k of ['wash', 'washTone', 'waves', 'wind', 'luff'] as const)
+    if (!(typeof a[k] === 'number' && a[k] >= 0 && a[k] <= 4)) out.push(`boat aboard ${k}: 0 to 4`);
+  for (const k of ['creak', 'rattle'] as const) {
+    if (!effects[a[k]?.effect]) out.push(`boat aboard ${k}: no effect "${a[k]?.effect}"`);
+    if (!(a[k]?.level >= 0 && a[k].level <= 1)) out.push(`boat aboard ${k}: level 0 to 1`);
+  }
+  if (!(a.creak?.gustKn > 0)) out.push('boat aboard creak: gustKn above 0');
+  if (!(a.creak?.every > 0)) out.push('boat aboard creak: every above 0');
   return out;
 }

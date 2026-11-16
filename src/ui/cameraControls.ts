@@ -131,5 +131,6 @@ export class CameraControls {
     this.orbit.autoReturn = this.settings.cameraReturns;
     this.motion.gentle = this.settings.gentleMotion;
     this.motion.cameraBob = this.settings.cameraBob;
+    this.motion.steady = this.settings.motion !== 'full';
   }
 }
