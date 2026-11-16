@@ -121,4 +121,3 @@ export function nearestLanterns(
   nearest.fill(0, found);
   return found;
 }
-
