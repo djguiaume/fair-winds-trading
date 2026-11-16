@@ -1,0 +1,5 @@
+[
+  { "name": "before-follow-7kn", "chase": true, "sail": 2, "heading": 330, "speed": 7 },
+  { "name": "before-top-7kn", "sail": 2, "heading": 330, "speed": 7, "zoom": 0.6 },
+  { "name": "before-side", "chase": true, "sail": 2, "heading": 330, "speed": 7, "pad": "rx=1:2200" }
+]

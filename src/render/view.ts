@@ -32,7 +32,7 @@ import { SeaWaves } from './seaWaves';
 import { toScene } from './sceneSpace';
 import { HazeVeil } from './hazeVeil';
 import { Wake } from './wake';
-import { ImpactDebris } from './impactDebris';
+import { BoatSplashes } from './boatSplashes';
 import { WindStreaks } from './windStreaks';
 import { type GraphicsEffects, allEffects } from './graphicsEffects';
 import { ShaderWarmUp } from './shaderWarmUp';
@@ -139,8 +139,8 @@ export class GameView {
   /** The sun's shadows on High and Ultra: box, light shape, shade (issue #550). */
   private readonly sunShadows: SunShadows;
   private readonly wake = new Wake(this.sea.heightAt);
-  /** Splash and planks from crashes and reef strikes (decision 0208). */
-  private readonly debris = new ImpactDebris();
+  /** Crash splashes and planks (decision 0208), and her spray (issue #554). */
+  private readonly splashes = new BoatSplashes();
   private readonly buoy = new BuoyMarker();
   /** Where a course to the quest's place or her own mark leads (decision 0212). */
   private readonly courseSpar = new CourseSpar();
@@ -232,8 +232,7 @@ export class GameView {
       this.boat.root,
       this.boatShadow,
       this.wake.mesh,
-      this.debris.planks,
-      this.debris.splash,
+      ...this.splashes.meshes,
       this.buoy.root,
       this.courseSpar.root,
       this.edgeBuoys.mesh,
@@ -337,7 +336,10 @@ export class GameView {
   private refreshBoat() {
     if (!this.player.stale(this.world.trade, this.pennant, this.world.dockHeld)) return;
     // Only a new ship starts a fresh wake; a damage step keeps her trail.
-    if (!this.player.isShip(this.world.trade.captain.activeShip)) this.wake.reset();
+    if (!this.player.isShip(this.world.trade.captain.activeShip)) {
+      this.wake.reset();
+      this.splashes.reset();
+    }
     this.scene.remove(this.boat.root);
     this.boat.dispose();
     this.boat = this.buildBoat();
@@ -358,16 +360,7 @@ export class GameView {
   /** A crash or a reef strike (decision 0208): a splash at her bow and planks floating off. */
   impact() {
     const { boat } = this.world;
-    const dir = bearingVector(boat.heading);
-    const pos = toScene(boat.x, boat.y, this.tmp);
-    const { length, beam } = this.boat.wakeHull;
-    this.debris.spawn(
-      pos.x + dir.x * length * 0.35,
-      pos.z - dir.y * length * 0.35,
-      dir.x,
-      -dir.y,
-      beam,
-    );
+    this.splashes.impact(boat, toScene(boat.x, boat.y, this.tmp), this.boat.wakeHull);
   }
 
   /** The Gerstner waves are drawn now (Settings › Waves or the level's default, 0250). */
@@ -408,6 +401,7 @@ export class GameView {
     this.renderer.shadowMap.enabled = profile.shadows;
     this.sun.castShadow = profile.shadows;
     this.boat.setLowDetail?.(profile.lowDetail);
+    this.splashes.setQuality(profile);
     this.profile = profile;
     if (profile.ultra) this.loadUltra();
     if (profile.mirror) this.mirror.load(this.renderer, this.scene, this.camera);
@@ -545,6 +539,8 @@ export class GameView {
     const aspect = this.width / this.height;
     const dist = this.rig.place(dt, aspect, pos, dir, boat.speedKn, this.rigPose.lean);
     this.camera.position.y += this.motion.cameraRise(dt, this.sea.heightAt(pos.x, pos.z));
+    // The follow cam rolls a little with her heel (issue #554); Settings › Motion steadies it.
+    this.camera.rotateZ(this.motion.cameraLean(dt, this.rigPose.lean) * this.rig.chase.eased);
     const fog = this.scene.fog as THREE.Fog;
     const day = shownDaylightAt(this.dayNight, time);
     setNightPaper(day.night);
@@ -576,6 +572,7 @@ export class GameView {
 
     // Boat pose from the simulation.
     this.refreshBoat();
+    this.boat.setCloseUp?.(this.rig.chase.eased > 0.5);
     this.boat.update(
       this.rigPose.update(boat, wind, ship, time, dt, this.profile.lowDetail, this.motion.share),
     );
@@ -599,7 +596,7 @@ export class GameView {
     this.boatShadow.rotation.y = -boat.heading;
 
     this.wake.update(dt, time, pos, dir.x, -dir.y, boat.speedKn, this.boat.wakeHull);
-    this.debris.update(dt, this.sea.heightAt);
+    this.splashes.update(dt, boat, pos, this.boat.wakeHull, this.rigPose.lean, this.sea.heightAt);
 
     const to = bearingVector(windTo(wind));
     this.streaks.update(
@@ -830,7 +827,7 @@ export class GameView {
     this.volcanoes.dispose();
     this.lanterns.dispose();
     this.wake.dispose();
-    this.debris.dispose();
+    this.splashes.dispose();
     this.currentWater?.dispose();
     this.bergs.dispose();
     this.traffic.dispose();

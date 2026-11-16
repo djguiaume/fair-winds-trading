@@ -12,30 +12,7 @@ import { FILE_METAS } from './tuning-meta-files';
 export type { NumberMeta, PolarMeta, TextMeta, ToggleMeta, TuningMeta } from './tuning-meta-types';
 
 export { TUNING_GROUPS } from './tuning-meta-groups';
-
-/** Objects whose keys are ids: their children are written `*` in meta paths. */
-export const ID_COLLECTIONS: readonly string[] = [
-  'ships',
-  'goods',
-  'difficulty.levels',
-  'weather.default.kinds',
-  'weather.zones.kinds',
-  'economy.towns.growthToLevel',
-  'upgrades.homePortLevel',
-  'seamanship.traffic.kinds',
-  'waves.bands',
-  'waves.previews',
-  'graphics.quality',
-];
-
-/** The meta path of a value: `['ships', 'cutter', 'hold']` → `ships.*.hold`. */
-export function metaPath(path: readonly string[]): string {
-  const out: string[] = [];
-  for (const key of path) {
-    out.push(ID_COLLECTIONS.includes(out.join('.')) ? '*' : key);
-  }
-  return out.join('.');
-}
+export { ID_COLLECTIONS, metaPath } from './tuning-meta-paths';
 
 export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
   ...FILE_METAS,

@@ -43,11 +43,12 @@ export function wearFromSearch(search: string): Partial<Appearance> {
 
 /**
  * The model sheet's look (models.html): `&wear=` item ids, `&look=` raw colour channels on top
- * (e.g. {"sailBand":"#602080"}, decision 0259), `&number=K 7` a racing number on the mainsail.
+ * (e.g. {"sailBand":"#602080"}, decision 0259), `&number=K 7` a racing number on the mainsail,
+ * `&closeup` the player's boat up close (issue #553: her crew and working tiller).
  */
 export function sheetLook(search: string, shipClass: string): BoatModelOptions {
   const params = new URLSearchParams(search);
   const raw = JSON.parse(params.get('look') ?? '{}') as Partial<BoatLook>;
   const look = { ...wornLook(wearFromSearch(search), shipClass).look, ...raw };
-  return { look, sailNumber: params.get('number') ?? '' };
+  return { look, sailNumber: params.get('number') ?? '', closeUp: params.has('closeup') };
 }
