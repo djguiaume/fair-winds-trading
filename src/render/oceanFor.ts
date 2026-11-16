@@ -5,6 +5,9 @@ import type { SeabedTexture } from './seabedTexture';
 import type { SeaWaves } from './seaWaves';
 import { OCEAN_SIZE, Ocean, type WaterLook } from './ocean';
 
+/** The game's ocean, for a caller that only builds one through `oceanFor`. */
+export type { Ocean } from './ocean';
+
 /**
  * The ocean of a quality level. The shader depends on the water look, not the grid resolution:
  * it shares the material of another level's ocean that draws the same water and waves, so
