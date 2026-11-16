@@ -134,6 +134,11 @@
       "nightStrength": 0.45
     }
   },
+  "sunlight": {
+    "sailThrough": 0.6,
+    "sailFocus": 3,
+    "haze": 1
+  },
   "ultra": {
     "exposure": 1.1,
     "nightExposure": 1.15,
@@ -189,6 +194,15 @@
     "glintFadeFrom": 0.4,
     "glintFadeTo": 0.6,
     "glintMax": 0.5,
+    "glitter": {
+      "strength": 0.9,
+      "lobe": 24,
+      "points": 2.5,
+      "share": 0.3,
+      "fadeFrom": 0.8,
+      "fadeTo": 0.98,
+      "twinkle": 6
+    },
     "foamInner": 0.5,
     "foamWidth": 3.6,
     "foamStrength": 0.8,

@@ -6,6 +6,7 @@ import type { SkyFrame } from './atmosphere';
 import { buildClouds, emptyCloudMesh } from './skyClouds';
 import { DataColor } from './skyLight';
 import { SKY_FRAGMENT, SKY_VERTEX } from './skyShader';
+import { type SunGlow, sunGlow, sunLowness } from './sunHaze';
 import { buildStreaks } from './skyStreaks';
 import { SQUALLS_SHOWN, blankSquall, cloudAmount, pickSqualls } from './skyWeather';
 
@@ -82,6 +83,7 @@ export class SkyDome {
   private streaks: Shape;
   private cloudTurn = 0;
   private streakTurn = 0;
+  private readonly glow: SunGlow = { strength: 0, width: 1, band: 0, bandWidth: 1 };
   private readonly lit = new THREE.Color();
   private readonly shade = new THREE.Color();
   private readonly squalls = Array.from({ length: SQUALLS_SHOWN }, blankSquall);
@@ -178,20 +180,13 @@ export class SkyDome {
     const u = this.mesh.material.uniforms;
     (u.uSunDir!.value as THREE.Vector3).copy(sky.disc);
     (u.uSunColor!.value as THREE.Color).copy(sky.discColor);
-    const toMoon = (day: number, night: number) => day + (night - day) * sky.night;
     // Low on the horizon the sun (and moon) looks larger, as a painter would draw it.
-    const elevation = Math.asin(clamp(sky.disc.y, -1, 1)) / DEG;
-    const lowness = 1 - clamp(elevation / sun.lowDeg, 0, 1);
-    const size = toMoon(sun.sizeDeg, sun.moonSizeDeg) * (1 + sun.lowGrow * lowness);
-    // A storm hides the sun; its glow goes a little slower.
-    (u.uSun!.value as THREE.Vector4).set(
-      size * DEG,
-      toMoon(sun.glow, sun.moonGlow) * (1 - 0.8 * sky.gloom),
-      toMoon(sun.glowDeg, sun.moonGlowDeg) * DEG,
-      1 - sky.gloom,
-    );
-    const warmBand = sun.horizonGlow * lowness * (1 - sky.night) * (1 - sky.gloom);
-    (u.uSunHorizon!.value as THREE.Vector2).set(warmBand, Math.max(sun.horizonGlowDeg, 1) * DEG);
+    const moonSize = sun.sizeDeg + (sun.moonSizeDeg - sun.sizeDeg) * sky.night;
+    const size = moonSize * (1 + sun.lowGrow * sunLowness(sky));
+    // The glow is shared with the haze toward the sun on the sea and land (issue #550).
+    const glow = sunGlow(sky, this.glow);
+    (u.uSun!.value as THREE.Vector4).set(size * DEG, glow.strength, glow.width, 1 - sky.gloom);
+    (u.uSunHorizon!.value as THREE.Vector2).set(glow.band, glow.bandWidth);
     const flat = Math.hypot(sky.disc.x, sky.disc.z);
     const side = flat > 1e-4 ? (1 - clamp(sky.disc.y, 0, 1)) / flat : 0;
     (u.uSunFlat!.value as THREE.Vector2).set(sky.disc.x * side, sky.disc.z * side);

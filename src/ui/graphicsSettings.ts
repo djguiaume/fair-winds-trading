@@ -42,12 +42,12 @@ export interface GraphicsView {
   setWaves(choice: boolean | null): void;
 }
 
+/** The effects only a `?off=` device test switches off (issue #377), with no Settings row. */
+const TEST_ONLY = ['msaa', 'gusts', 'clouds', 'glitter', 'sunlight'] as const;
+
 /** Pushes the saved graphics choices to the view: the effects, MSAA and the waves. */
 export function applyGraphics(view: GraphicsView, settings: Settings) {
-  view.effects.msaa = settings.effects.msaa !== false;
-  view.effects.gusts = settings.effects.gusts !== false;
-  view.effects.clouds = settings.effects.clouds !== false;
-  for (const id of EFFECTS) view.effects[id] = settings.effects[id] !== false;
+  for (const id of [...EFFECTS, ...TEST_ONLY]) view.effects[id] = settings.effects[id] !== false;
   setGroundCover({ switchedOn: view.effects.groundCover });
 }
 
