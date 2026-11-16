@@ -5,7 +5,8 @@ Decision [0327](../../../decisions/0327-soft-surface-patterns-near-the-camera-an
 ## Final (for Guillaume's end-of-release review)
 
 - [final-town.jpg](final-town.jpg) and [final-sail.jpg](final-sail.jpg): before (High) against
-  after on High and on Medium (patterns, flat hulls), same poses as the variants sheet.
+  after on High and on Medium (patterns, flat hulls), same poses as the variants sheet. The
+  crew and spray in the after rows are #553/#554 (merged meanwhile), not this part.
 - Art director's pick (2026-11-16): A's soft edges, walls, roofs and land wood (quays, signs,
   sheds) at ±6 %, hull planks, decks and sail seams at ±10 %; fade ranges as below.
 
