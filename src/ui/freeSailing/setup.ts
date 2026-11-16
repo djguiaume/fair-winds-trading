@@ -88,7 +88,11 @@ export class FreeSetupScreen {
     if (this.isOpen) return;
     this.root.innerHTML = shellHtml();
     this.root.showModal();
-    this.preview = new BoatPreview(this.root.querySelector('.bl-canvas')!, this.host.quality());
+    this.preview = new BoatPreview(
+      this.root.querySelector('.bl-canvas')!,
+      this.host.quality(),
+      this.root.querySelector<HTMLElement>('.bl-ship-line'),
+    );
     this.preview.setView('whole', true);
     this.render();
     this.preview.resize();
@@ -123,12 +127,8 @@ export class FreeSetupScreen {
     $('.fs-upgrades').innerHTML = upgradesHtml(this.setup);
     const night = daylightAt(secondsAtHour(this.preset.hour)).night >= 0.5;
     this.root.toggleAttribute('data-night', night);
-    this.preview?.setNight(night);
-    const backdrop = this.preview?.backdrop;
-    if (backdrop) {
-      $('.bl-stage').style.setProperty('--bl-sky', backdrop.sky);
-      $('.bl-stage').style.setProperty('--bl-sea', backdrop.sea);
-    }
+    // Her sea and sky at the preset's hour and in its weather (issue #629).
+    this.preview?.setConditions(this.preset.hour, this.preset.weather);
     this.showBoat();
   }
 

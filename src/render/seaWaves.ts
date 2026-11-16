@@ -3,8 +3,7 @@ import { TUNING } from '../data/tuning';
 import type { CoastGrid } from '../sim/coastWaves';
 import { WAVE_BANDS, createSeaState, seaStateAt, steadySeaState } from '../sim/seaState';
 import { createWaveField, setWaveField, waveCount, waveHeightAt } from '../sim/waves';
-import type { LocalWeather } from '../sim/wind';
-import type { World } from '../sim/world';
+import type { LocalWeather, WindConfig } from '../sim/wind';
 import { waveHeight } from './oceanWaves';
 import { ShoreWash } from './shoreWash';
 import { type GustUniforms, SeaGusts } from './seaGusts';
@@ -21,11 +20,28 @@ export function wavesForced(search: string): boolean | null {
   return waves === 'v2' || (waves ?? '') in TUNING.waves.previews ? true : null;
 }
 
+/** A steady wind (knots) and storm (0..1) the sea lies in, whatever the world's weather. */
+export interface SteadySea {
+  speedKn: number;
+  storm: number;
+}
+
 /** A review's fixed sea state (`?waves=calm|wind|storm`, `waves.json` › `previews`), or null. */
-const previewOf = (search: string) => {
+const previewOf = (search: string): SteadySea | null => {
   const name = new URLSearchParams(search).get('waves') ?? '';
-  return name in TUNING.waves.previews ? (name as keyof typeof TUNING.waves.previews) : null;
+  return name in TUNING.waves.previews
+    ? TUNING.waves.previews[name as keyof typeof TUNING.waves.previews]
+    : null;
 };
+
+/** What the waves read of the world: the game's `World`, or the boat preview's open sea. */
+export interface SeaSource {
+  readonly time: number;
+  readonly wind: { readonly from: number; readonly speedKn: number };
+  readonly boat: { readonly x: number; readonly y: number };
+  readonly map: { readonly seed: number };
+  readonly windConfig: WindConfig | null;
+}
 
 /** Where each band's components end in the field (swell first), for the shader's calm. */
 const bandEnd = (band: number) =>
@@ -97,7 +113,8 @@ export class SeaWaves {
   gerstner: boolean;
   /** `?waves=…` holds the switch for tests and reviews; null leaves it to `setOn`. */
   private readonly forced: boolean | null;
-  private readonly preview: ReturnType<typeof previewOf>;
+  /** A review's (`?waves=…`) or the boat preview's steady sea; null: the world's own. */
+  private steady: SteadySea | null;
   private readonly sea = createSeaState();
   readonly field = createWaveField();
   private time = Number.NaN;
@@ -113,12 +130,18 @@ export class SeaWaves {
   private readonly clouds = new SeaClouds();
 
   constructor(
-    private readonly world: () => World,
+    private readonly world: () => SeaSource,
     search = location.search,
   ) {
     this.forced = wavesForced(search);
     this.gerstner = this.forced ?? true;
-    this.preview = previewOf(search);
+    this.steady = previewOf(search);
+  }
+
+  /** The sea a steady wind raises, whatever the world's weather (the boat preview, issue #629). */
+  holdSteady(sea: SteadySea) {
+    this.steady = sea;
+    this.time = Number.NaN;
   }
 
   /** Settings › Waves for the level in use (a `?waves` switch wins); true if they changed. */
@@ -142,7 +165,7 @@ export class SeaWaves {
    * its gloom too, as a real storm would, so `?waves=storm` shows the whole storm look.
    */
   shownWeather(weather: LocalWeather): LocalWeather {
-    const storm = this.preview ? TUNING.waves.previews[this.preview].storm : 0;
+    const storm = this.steady?.storm ?? 0;
     if (storm <= weather.storm) return weather;
     Object.assign(this.shown, weather).storm = storm;
     return this.shown;
@@ -154,8 +177,8 @@ export class SeaWaves {
     if (!this.gerstner || world.time === this.time) return;
     this.time = world.time;
     const { boat, map, time, windConfig } = world;
-    if (this.preview) {
-      const { speedKn, storm } = TUNING.waves.previews[this.preview];
+    if (this.steady) {
+      const { speedKn, storm } = this.steady;
       steadySeaState(world.wind.from, speedKn, storm, this.sea);
     } else seaStateAt(windConfig, map.seed, time, boat.x, boat.y, this.sea);
     setWaveField(this.field, this.sea, map.seed, time);
@@ -197,9 +220,7 @@ export class SeaWaves {
   private shownWind() {
     const { wind } = this.world();
     this.gustWind.from = wind.from;
-    this.gustWind.speedKn = this.preview
-      ? TUNING.waves.previews[this.preview].speedKn
-      : wind.speedKn;
+    this.gustWind.speedKn = this.steady?.speedKn ?? wind.speedKn;
     return this.gustWind;
   }
 
