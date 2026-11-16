@@ -36,3 +36,4 @@ worth remembering.
 | [v1.9.411](v1.9.411.md) | merge of the 1.9 PR | 1.9 Believable towns: town rules and check, 16 towns rebuilt, smooth frames, look fixes |
 | [v1.10.74](v1.10.74.md) | merge of the 1.10 PR | 1.10 Villages: organic village rules, 16 towns redone, night and follow-cam fixes, classic look and Kids mode retired |
 | [v1.11.440](v1.11.440.md) | merge of the 1.11 PR | 1.11 Welcome aboard: one click to sailing, six-step first voyage, same HUD in both views, follow-cam framing and look-around, compact phone HUD |
+| [v1.12.456](v1.12.456.md) | merge of the 1.12 PR | 1.12 Light and water: one atmosphere in both views, shadows and sun glitter, night light, follow-cam waves, richer sky, budgets and Auto quality |
