@@ -15,7 +15,7 @@
     },
     "dockingChase": {
       "calls": 58,
-      "triangles": 230000
+      "triangles": 262000
     }
   },
   "frameWork": {
@@ -37,7 +37,7 @@
   "levels": {
     "low": {
       "sailing": {
-        "calls": 17,
+        "calls": 21,
         "triangles": 41000
       },
       "sailingChase": {
