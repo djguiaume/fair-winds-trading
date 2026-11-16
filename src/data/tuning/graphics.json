@@ -282,7 +282,7 @@
     "gradientDeg": 24,
     "gradientCurve": 0.6,
     "bands": 0,
-    "reflection": 0.25,
+    "reflection": 0.45,
     "reflectZenith": 0.3,
     "sun": {
       "sizeDeg": 2.4,
