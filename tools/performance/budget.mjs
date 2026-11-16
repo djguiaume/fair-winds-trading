@@ -2,9 +2,10 @@
 // `node tools/performance/budget.mjs report.json`: fails when a scenario's draw calls or
 // triangles in a `npm run perf` report go past budget.json, its worst frame work goes past the
 // hitch budget (issue #516), or its graphics memory goes past the limit for the report's level
-// (decision 0246). Frame intervals are not checked: the headless software renderer says nothing
+// (decision 0246). Counts are held at every level and from both cameras (issue #558); the bytes
+// and requests before the title menu are held too (issue #557). Frame intervals are not checked: the headless software renderer says nothing
 // about a tablet (decision 0006); counts and the game's own work per frame do carry over.
-import { readFileSync } from 'node:fs';
+import { appendFileSync, readFileSync } from 'node:fs';
 
 const METRICS = ['calls', 'triangles'];
 
@@ -17,6 +18,10 @@ export function overBudget(report, budget) {
         problems.push(
           `${r.scenario}: graphics memory ${r.gpuMemory.totalMB} MB over budget ${budget.gpuMemoryMB} MB`,
         );
+  for (const r of report.runs.filter((run) => run.firstLoad))
+    for (const [key, limit] of Object.entries(budget.firstLoad ?? {}))
+      if (r.firstLoad[key] > limit)
+        problems.push(`firstLoad: ${key} ${r.firstLoad[key]} over budget ${limit}`);
   for (const [scenario, limit] of Object.entries(budget.frameWorkMs ?? {}))
     for (const r of report.runs.filter((run) => run.scenario === scenario))
       if (r.worstWorkMs > limit)
@@ -36,22 +41,56 @@ export function overBudget(report, budget) {
 }
 
 /**
- * The count limits are set at High, like the frame work limits; a report at another level is held to its
- * graphics memory limit only.
+ * The limits for a report's level: counts from `scenarios` at High and from `levels` elsewhere,
+ * the hitch budget at every level but Ultra (its software-rendered frames are seconds long), the
+ * first load at High, graphics memory where a limit is set.
  */
 export function budgetFor(report, budgets) {
   const quality = report.config.settings.quality;
+  const high = quality === 'high';
   return {
-    scenarios: quality === 'high' ? budgets.scenarios : {},
-    frameWorkMs: quality === 'high' ? budgets.frameWork.limitsMs : {},
+    scenarios: high ? budgets.scenarios : (budgets.levels[quality] ?? {}),
+    frameWorkMs: quality === 'ultra' ? {} : budgets.frameWork.limitsMs,
+    firstLoad: high ? budgets.firstLoad.limits : {},
     gpuMemoryMB: budgets.gpuMemory.limitsMB[quality],
   };
+}
+
+/** Markdown table of one report's counts by view against their limits, for the run's summary. */
+export function table(report, limits) {
+  const quality = report.config.settings.quality;
+  const rows = [
+    `### ${quality}`,
+    '',
+    '| View | Calls | Triangles | Past the fog |',
+    '|---|---|---|---|',
+  ];
+  for (const [scenario, max] of Object.entries(limits.scenarios)) {
+    const runs = report.runs.filter((r) => r.scenario === scenario);
+    if (!runs.length) continue;
+    const calls = Math.max(...runs.map((r) => r.metrics.calls.median));
+    const triangles = Math.max(...runs.map((r) => r.metrics.triangles.median));
+    const meshes = Math.max(...runs.map((r) => r.beyondFog?.meshes ?? 0));
+    rows.push(
+      `| ${scenario} | ${calls} / ${max.calls} | ${triangles} / ${max.triangles} | ${meshes} meshes |`,
+    );
+  }
+  for (const r of report.runs.filter((run) => run.firstLoad))
+    rows.push(
+      `| firstLoad | ${r.firstLoad.requests} / ${limits.firstLoad.requests} requests | ${r.firstLoad.bytes} / ${limits.firstLoad.bytes} bytes | |`,
+    );
+  return rows.join('\n');
 }
 
 export function run(reportFile) {
   const report = JSON.parse(readFileSync(reportFile, 'utf8'));
   const budgets = JSON.parse(readFileSync(new URL('./budget.json', import.meta.url), 'utf8'));
-  const problems = overBudget(report, budgetFor(report, budgets));
+  const limits = budgetFor(report, budgets);
+  const problems = overBudget(report, limits);
+  const summary = `${table(report, limits)}\n`;
+  console.log(summary);
+  if (process.env.GITHUB_STEP_SUMMARY)
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${summary}\n`);
   for (const p of problems) console.log(`::error::${p}`);
   console.log(problems.length ? `${problems.length} over budget.` : 'Render budget: all good.');
   return problems.length ? 1 : 0;

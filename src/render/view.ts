@@ -34,7 +34,7 @@ import { HazeVeil } from './hazeVeil';
 import { Wake } from './wake';
 import { ImpactDebris } from './impactDebris';
 import { WindStreaks } from './windStreaks';
-import { type GraphicsEffects, type UltraPipeline, allEffects } from './ultraPipeline';
+import { type GraphicsEffects, allEffects } from './graphicsEffects';
 import { ShaderWarmUp } from './shaderWarmUp';
 import { HarbourPictures } from './harbourPictures';
 import { QualityEffectsCache } from './qualityEffects';
@@ -159,7 +159,7 @@ export class GameView {
   private streaks!: WindStreaks;
   private profile!: QualityProfile;
   /** The Ultra pipeline (decision 0221), loaded the first time Ultra is picked. */
-  private ultra?: UltraPipeline;
+  private ultra?: import('./ultraPipeline').UltraPipeline;
   private ultraLoading: Promise<void> | null = null;
   private readonly shaders = new ShaderWarmUp();
   private readonly mirror = new ViewMirror(() => ({

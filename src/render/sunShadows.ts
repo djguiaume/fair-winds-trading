@@ -4,7 +4,7 @@ import { DEG, clamp } from '../sim/math';
 import type { SunShape } from './atmosphere';
 import { leanShadowMap } from './shadowTarget';
 import type { Ocean } from './ocean';
-import type { GraphicsEffects } from './ultraPipeline';
+import type { GraphicsEffects } from './graphicsEffects';
 import { setContactShade } from './models/contactShade';
 import { writeSeaShadow } from './seaShadow';
 import { writeGlitter } from './seaGlitter';

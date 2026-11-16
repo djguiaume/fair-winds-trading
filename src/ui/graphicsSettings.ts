@@ -2,7 +2,7 @@ import { t } from '../i18n';
 import { QUALITY, QUALITY_LEVELS, type QualityLevel } from '../render/quality';
 import { coverOn, setGroundCover } from '../render/models/fieldGroundCover';
 import { switchLampPools } from '../render/lampPools';
-import type { GraphicsEffects } from '../render/ultraPipeline';
+import type { GraphicsEffects } from '../render/graphicsEffects';
 import type { SwitchSpec } from './screens/settings/rows';
 import type { Settings } from './settings';
 

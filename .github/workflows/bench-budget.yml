@@ -1,7 +1,9 @@
 name: Render budget
 
-# A headless run of the sailing and docking scenarios on rendering PRs: fails when draw calls or
-# triangles pass tools/performance/budget.json. Counts carry over to old tablets; frame times do
+# A headless run of the sailing and docking scenarios, from the sea camera and the follow cam, on
+# Low, Medium, High and Ultra, on rendering PRs: fails when draw calls or triangles pass
+# tools/performance/budget.json, or the first load (bytes, requests before the title menu) grows.
+# The summary shows a table of each level by view (issues #557, #558). Counts carry over to old tablets; frame times do
 # not, so those stay with ?bench on a real device (decision 0006, ADR 0154). Ultra's graphics
 # memory is held to its own limit too (decision 0246). The game's own work per frame is held to
 # the hitch budget, a town growing included (issue #516).
@@ -42,12 +44,17 @@ jobs:
           npx vite preview --host 127.0.0.1 --port 5180 --strictPort > preview.log 2>&1 &
           curl --retry 15 --retry-connrefused --retry-delay 2 -sf http://127.0.0.1:5180/ >/dev/null \
             || { cat preview.log; exit 1; }
-          PERF_SCENARIOS=sailing,docking,townGrowth PERF_TIMEOUT_MS=120000 npm run perf -- http://127.0.0.1:5180/ output/performance/ci.json
+          PERF_SCENARIOS=firstLoad,sailing,sailingChase,docking,dockingChase,townGrowth PERF_TIMEOUT_MS=120000 npm run perf -- http://127.0.0.1:5180/ output/performance/ci.json
+          for level in low medium; do
+            PERF_QUALITY=$level PERF_SCENARIOS=sailing,sailingChase PERF_TIMEOUT_MS=120000 npm run perf -- http://127.0.0.1:5180/ output/performance/ci-$level.json
+          done
           # Ultra's graphics memory on a 4K TV screen (decision 0246: the Xbox crashed past its share);
           # its frames take seconds in the software renderer, more with the waves (0250).
-          PERF_QUALITY=ultra PERF_SCREEN=1920x1080@2 PERF_SCENARIOS=sailing PERF_TIMEOUT_MS=180000 PERF_DURATION_MS=12000 \
+          PERF_QUALITY=ultra PERF_SCREEN=1920x1080@2 PERF_SCENARIOS=sailing,sailingChase PERF_TIMEOUT_MS=180000 PERF_DURATION_MS=12000 \
             npm run perf -- http://127.0.0.1:5180/ output/performance/ci-ultra.json
       - name: Check the budget
         run: |
           node tools/performance/budget.mjs output/performance/ci.json
+          node tools/performance/budget.mjs output/performance/ci-low.json
+          node tools/performance/budget.mjs output/performance/ci-medium.json
           node tools/performance/budget.mjs output/performance/ci-ultra.json

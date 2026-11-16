@@ -12,6 +12,8 @@ export interface PerfFrameInput {
   counting: boolean;
   level: string;
   qualitySetting: string;
+  /** Auto's drawing resolution inside the level, 1 when not on Auto (issue #549). */
+  autoScale: number;
   renderer: WebGLRenderer;
 }
 
@@ -62,6 +64,9 @@ export class PerfReadout {
   private liveFps = 0;
   private lastLevel = '';
   private drops: string[] = [];
+  /** Auto's resolution changes inside a level (issue #549). */
+  private scaleMoves: string[] = [];
+  private lastScale = 1;
   private last: PerfFrame | null = null;
   /** `?bench` (decision 0154): finished passes, the running one, and a status line. */
   private passes: {
@@ -112,6 +117,12 @@ export class PerfReadout {
       );
     }
     this.lastLevel = f.level;
+    if (f.autoScale !== this.lastScale) {
+      this.scaleMoves.push(
+        `×${fixed(f.autoScale, 1)} at ${clock(this.stats.summary()?.seconds ?? 0)}`,
+      );
+    }
+    this.lastScale = f.autoScale;
     if (f.counting) this.stats.add(f.ms);
     this.liveMs += f.ms;
     this.liveFrames++;
@@ -127,6 +138,7 @@ export class PerfReadout {
   reset() {
     this.stats.reset();
     this.drops = [];
+    this.scaleMoves = [];
     this.draw();
   }
 
@@ -136,6 +148,7 @@ export class PerfReadout {
     this.passLabel = label;
     this.stats.reset();
     this.drops = [];
+    this.scaleMoves = [];
   }
 
   /** The benchmark is over: keep the last pass and show the results until Copy. */
@@ -179,7 +192,9 @@ export class PerfReadout {
         ? `avg ${fixed(s.avgFps)} · 1% low ${fixed(s.lowFps)} · ${clock(s.seconds)}`
         : `warming up (${this.config.warmupSec} s of sailing)…`,
       s ? `ms p50 ${fixed(s.p50Ms)} · p95 ${fixed(s.p95Ms)} · worst ${fixed(s.worstMs)}` : '',
-      s ? `slow ${s.slow} · hitches ${s.hitches} · drops ${this.drops.length}` : '',
+      s
+        ? `slow ${s.slow} · hitches ${s.hitches} · drops ${this.drops.length} · scale ×${fixed(f.autoScale, 1)} (${this.scaleMoves.length} moves)`
+        : '',
       `${f.drawCalls} draws · ${fixed(f.triangles / 1000)}k tris`,
     ];
     this.body.textContent = lines.filter(Boolean).join('\n');
@@ -224,6 +239,9 @@ export class PerfReadout {
       );
     } else lines.push('Not enough sailing yet');
     lines.push(`Quality drops: ${this.drops.length ? this.drops.join(', ') : 'none'}`);
+    lines.push(
+      `Auto resolution: ${this.scaleMoves.length ? this.scaleMoves.join(', ') : 'unchanged'}`,
+    );
     return lines.join('\n');
   }
 

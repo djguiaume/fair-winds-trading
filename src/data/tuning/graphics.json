@@ -108,7 +108,13 @@
     "minFps": 40,
     "windowSec": 1.5,
     "firstSec": 2,
-    "cooldownSec": 4
+    "cooldownSec": 4,
+    "scaleFloor": 0.6,
+    "scaleStep": 0.1,
+    "floorHoldSec": 8,
+    "calmFps": 52,
+    "calmSec": 20,
+    "climbSec": 90
   },
   "shadows": {
     "lead": 0.6,

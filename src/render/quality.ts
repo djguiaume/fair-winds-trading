@@ -3,7 +3,7 @@ import { TUNING } from '../data/tuning';
 
 /**
  * Quality levels (decision 0005's mobile budget). "auto" starts from a guess based on the device
- * and steps down while the frame time is too long, down to Ultra-low (decision 0247).
+ * and lowers the resolution, then the level, while the frames are slow (`autoQuality.ts`).
  */
 export type QualityLevel = 'ultralow' | 'low' | 'medium' | 'high' | 'ultra';
 export type QualitySetting = QualityLevel | 'auto';
@@ -130,36 +130,12 @@ export function guessQuality(): QualityLevel {
   return ultraCapable(gpuName(), cores) ? 'ultra' : 'high';
 }
 
+/** One level up; the highest stays where it is. */
+export function raiseQuality(q: QualityLevel): QualityLevel {
+  return QUALITY_LEVELS[Math.min(QUALITY_LEVELS.length - 1, QUALITY_LEVELS.indexOf(q) + 1)]!;
+}
+
 /** One level down; the lowest stays where it is. */
 export function lowerQuality(q: QualityLevel): QualityLevel {
   return QUALITY_LEVELS[Math.max(0, QUALITY_LEVELS.indexOf(q) - 1)]!;
-}
-
-/**
- * Watches frame times. Returns true from `sample` when the average over a window is below the
- * frame budget (`graphics.json › auto`), at most once per cooldown, so "auto" quality can step
- * down. The game ignores it on the lowest level and during the benchmark.
- */
-export class FrameMonitor {
-  private sum = 0;
-  private count = 0;
-  private cooldown = TUNING.graphics.auto.firstSec;
-  fps = 60;
-
-  sample(dt: number): boolean {
-    const auto = TUNING.graphics.auto;
-    this.cooldown -= dt;
-    this.sum += dt;
-    this.count++;
-    if (this.sum < auto.windowSec) return false;
-    const avg = this.sum / this.count;
-    this.fps = 1 / avg;
-    this.sum = 0;
-    this.count = 0;
-    if (this.cooldown <= 0 && this.fps < auto.minFps) {
-      this.cooldown = auto.cooldownSec;
-      return true;
-    }
-    return false;
-  }
 }
