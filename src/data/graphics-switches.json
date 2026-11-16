@@ -15,5 +15,6 @@
   "mirror": "mirror",
   "gusts": "gusts",
   "clouds": "clouds",
-  "cover": "groundCover"
+  "cover": "groundCover",
+  "surface": "surface"
 }

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Rng } from '../../sim/rng';
+import { bakeSurfaces } from '../surfaceDetail';
 
 /**
  * Helpers to build flat-shaded, vertex-colored low-poly meshes and merge them into one draw call.
@@ -155,7 +156,9 @@ export function jitterRadial(geometry: THREE.BufferGeometry, jitter: number[]) {
   return geometry;
 }
 
+/** One geometry of all the parts; their surface patterns (issue #572) baked per vertex first. */
 export function mergeAll(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
+  bakeSurfaces(parts);
   const merged = mergeGeometries(parts, false);
   if (!merged) throw new Error('mergeGeometries failed: attribute mismatch');
   for (const p of parts) p.dispose();

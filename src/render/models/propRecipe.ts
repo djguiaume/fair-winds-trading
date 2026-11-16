@@ -10,6 +10,8 @@ import {
 import { CODE_PARTS, boatHull } from './propCodeParts';
 import { chimneyCapTone, leanToTone } from './roofTones';
 import { glowing, paint, paintFaces, triangleCount, windowPanes } from './geometry';
+import { surfaceOfPart } from './surfaceNames';
+import { withSurface } from '../surfaceDetail';
 
 /**
  * Builds props from their recipe files (decision 0135). A recipe is a list of primitive parts
@@ -327,6 +329,7 @@ export function prepareProp(id: string, args: PropBuildArgs): () => Parts {
           colorOf(p.color, style, s),
           colorOf(p.band ?? p.color, style, s),
         );
+        withSurface(g, surfaceOfPart(p, style));
         transform(g, p, s);
         out.push(g);
         return;
@@ -364,6 +367,7 @@ export function prepareProp(id: string, args: PropBuildArgs): () => Parts {
         ? paintFaces(g, colorsOf(p.color, style, s))
         : paint(g, colorOf(p.color, style, s));
       if (p.glow) glowing(g);
+      else withSurface(g, surfaceOfPart(p, style));
       if (p.tag) Object.assign(g.userData, p.tag);
       out.push(g);
     };

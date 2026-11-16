@@ -19,6 +19,7 @@ const PART_KEYS = new Set([
     'color',
     'band',
     'glow',
+    'surface',
     'faces',
     'tag',
     'if',

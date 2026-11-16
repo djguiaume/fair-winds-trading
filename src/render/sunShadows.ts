@@ -9,6 +9,7 @@ import { setContactShade } from './models/contactShade';
 import { writeSeaShadow } from './seaShadow';
 import { writeGlitter } from './seaGlitter';
 import { setSunThrough } from './sunThrough';
+import { setSurfaceDetail } from './surfaceDetail';
 import { setSunHaze } from './sunHaze';
 import type { SkyFrame } from './atmosphere';
 
@@ -194,7 +195,7 @@ export class SunShadows {
    * where the box centres and how the light stands. Returns the light's shape for the atmosphere.
    */
   frame(
-    level: { shadows: boolean; ultra: boolean },
+    level: { shadows: boolean; ultra: boolean; surfacePatterns: boolean; softEdges: boolean },
     effects: Readonly<GraphicsEffects>,
     target: Readonly<THREE.Vector3>,
     seaCentre: Readonly<THREE.Vector3>,
@@ -204,6 +205,12 @@ export class SunShadows {
     this.rich = level.shadows && effects.sunlight !== false;
     this.reflect = effects.reflection && effects.glitter !== false;
     this.ultra = level.ultra;
+    const surface = effects.surface !== false;
+    setSurfaceDetail(
+      level.surfacePatterns && surface,
+      level.softEdges && surface,
+      level.ultra && effects.toneMapping,
+    );
     const data = this.data;
     if (!data) {
       this.centre.copy(target);

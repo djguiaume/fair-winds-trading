@@ -32,6 +32,8 @@ export interface GraphicsEffects {
   sunlight?: boolean;
   /** Lamplight pools round the lanterns at night; on unless `?off=pools` (issue #547). */
   pools?: boolean;
+  /** Surface patterns near the camera; on unless `?off=surface` says false (issue #572). */
+  surface?: boolean;
 }
 
 /** Every effect on: the view's default before Settings are applied. */

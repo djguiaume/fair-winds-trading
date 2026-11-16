@@ -8,14 +8,14 @@ import { deckFittings, rudderHead, stowCargo } from './deckFittings';
 import { figureheadParts } from './figurehead';
 import { pennant } from './flag';
 import { buildGaffSail, gaffPlans, type GaffSail } from './gaffSails';
-import { isGlowing, mergeAll, triangleCount, vertexColorMaterial } from './geometry';
+import { isGlowing, mergeAll, triangleCount } from './geometry';
 import { buildHeadsails, type Headsail } from './headsails';
 import { hullGeometry } from './hullGeometry';
 import { resolveBoatLook, strakeColour } from './boatLook';
 import { V, deckHeight, deckOutline, spar, type RefinedRig } from './refinedRig';
 import type { ClothWear } from './sailCloth';
 import { mainsailMarks } from './sailMarks';
-import { sailCanvasMaterial } from './sailCanvas';
+import { boatSailMaterial, boatWoodMaterial } from './boatSurfaces';
 import {
   SQUARE_BELLY,
   SQUARE_FORWARD,
@@ -105,8 +105,8 @@ export class RefinedBoat implements BoatModel {
     const look = resolveBoatLook({ bandColor: BAND, sailBandColor: rig.sailBand }, options.look);
     const sailMarks = mainsailMarks(look, options.sailNumber, !!rig.squareMasts?.length);
     this.riggingEnabled = options.rigging ?? true;
-    const wood = vertexColorMaterial();
-    const canvas = sailCanvasMaterial();
+    const wood = boatWoodMaterial();
+    const canvas = boatSailMaterial();
     this.disposables.push(wood, canvas);
     const mesh = (g: THREE.BufferGeometry, material: THREE.Material, name: string) => {
       this.disposables.push(g);

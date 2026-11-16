@@ -21,7 +21,9 @@
       "mirror": false,
       "gusts": false,
       "richHouses": false,
-      "liveTitle": false
+      "liveTitle": false,
+      "surfacePatterns": false,
+      "softEdges": false
     },
     "low": {
       "maxRenderPixels": 400000,
@@ -41,7 +43,9 @@
       "mirror": false,
       "gusts": false,
       "richHouses": false,
-      "liveTitle": false
+      "liveTitle": false,
+      "surfacePatterns": false,
+      "softEdges": false
     },
     "medium": {
       "maxRenderPixels": 1250000,
@@ -61,7 +65,9 @@
       "mirror": false,
       "gusts": false,
       "richHouses": false,
-      "liveTitle": true
+      "liveTitle": true,
+      "surfacePatterns": true,
+      "softEdges": false
     },
     "high": {
       "maxRenderPixels": 2500000,
@@ -81,7 +87,9 @@
       "mirror": false,
       "gusts": true,
       "richHouses": true,
-      "liveTitle": true
+      "liveTitle": true,
+      "surfacePatterns": true,
+      "softEdges": true
     },
     "ultra": {
       "maxRenderPixels": 3700000,
@@ -101,7 +109,9 @@
       "mirror": true,
       "gusts": true,
       "richHouses": true,
-      "liveTitle": true
+      "liveTitle": true,
+      "surfacePatterns": true,
+      "softEdges": true
     }
   },
   "auto": {
@@ -131,7 +141,7 @@
     },
     "high": {
       "mapSize": 2048,
-      "radius": 2,
+      "radius": 4,
       "bias": -0.0005,
       "normalBias": 0.04,
       "box": 80,
@@ -413,6 +423,49 @@
     "opacity": 0.5,
     "fade": 1.3,
     "edge": 1
+  },
+  "surface": {
+    "strength": 1,
+    "fadeFrom": 40,
+    "fadeTo": 70,
+    "levelFadeFrom": 50,
+    "levelFadeTo": 130,
+    "smoothHulls": true,
+    "hullCreaseDeg": 40,
+    "patterns": {
+      "planks": {
+        "size": 0.22,
+        "contrast": 0.1
+      },
+      "boards": {
+        "size": 0.22,
+        "contrast": 0.06
+      },
+      "stone": {
+        "size": 0.3,
+        "contrast": 0.06
+      },
+      "plaster": {
+        "size": 0.9,
+        "contrast": 0.06
+      },
+      "tiles": {
+        "size": 0.16,
+        "contrast": 0.06
+      },
+      "slate": {
+        "size": 0.14,
+        "contrast": 0.06
+      },
+      "thatch": {
+        "size": 0.3,
+        "contrast": 0.06
+      },
+      "canvas": {
+        "size": 0.55,
+        "contrast": 0.1
+      }
+    }
   },
   "closeUp": {
     "crewSize": 1.15,

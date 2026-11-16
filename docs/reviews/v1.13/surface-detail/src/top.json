@@ -1,0 +1,4 @@
+[
+ {"name":"top-town","at":"679,450","heading":39,"wait":2000,"town":"amber-strand:4","time":175,"look":"690,470","zoom":1},
+ {"name":"top-town-close","at":"679,450","heading":39,"wait":2000,"town":"amber-strand:4","time":175,"look":"690,470","zoom":0.6}
+]

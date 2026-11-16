@@ -30,6 +30,7 @@ import { type AudioData, audioProblems } from '../../src/audio/catalog';
 import { QUESTS, type QuestDef } from '../../src/sim/quests';
 import { sectorChecks } from '../../src/sim/seaSectors';
 import { forestProblems } from '../../src/data/forests';
+import { unknownSurfaces } from '../../src/render/models/surfaceNames';
 
 type Args = Record<string, string | boolean | undefined> & { _: string[] };
 
@@ -176,7 +177,10 @@ export function checkAll(opts: CheckOptions = {}) {
     // The new look's forests (decision 0236): tree kinds, biomes, quality shares.
     for (const message of forestProblems())
       problems.push({ area: 'islands', where: 'forests.json', severity: 'error', message });
-    counted.islands = `${ids.length} files, forests.json`;
+    // Surface patterns by colour name (issue #572).
+    for (const message of unknownSurfaces())
+      problems.push({ area: 'islands', where: 'palette.json', severity: 'error', message });
+    counted.islands = `${ids.length} files, forests.json, palette.json`;
   }
 
   if (want('quests')) {

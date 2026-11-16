@@ -44,7 +44,7 @@ export interface GraphicsView {
 }
 
 /** The effects only a `?off=` device test switches off (issue #377), with no Settings row. */
-const TEST_ONLY = ['msaa', 'gusts', 'clouds', 'glitter', 'sunlight', 'pools'] as const;
+const TEST_ONLY = ['msaa', 'gusts', 'clouds', 'glitter', 'sunlight', 'pools', 'surface'] as const;
 
 /** Pushes the saved graphics choices to the view: the effects, MSAA and the waves. */
 export function applyGraphics(view: GraphicsView, settings: Settings) {

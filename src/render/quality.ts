@@ -44,6 +44,10 @@ export interface QualityProfile {
   liveTitle: boolean;
   /** The wind's gusts on the sea (decision 0295); needs the waves on and `fancyWater`. */
   gusts: boolean;
+  /** Soft surface patterns near the camera: planks, stone, tiles, sail seams (issue #572). */
+  surfacePatterns: boolean;
+  /** Boat hulls shaded round between their strakes (issue #572). */
+  softEdges: boolean;
 }
 
 /** The levels' numbers live in `graphics.json › quality` (decision 0093). */

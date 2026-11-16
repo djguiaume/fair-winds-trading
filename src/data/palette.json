@@ -145,6 +145,10 @@
         "grass": "downs",
         "rock": "sandstone",
         "sand": "ringsand"
+      },
+      "surfaces": {
+        "walls": "boards",
+        "roofs": "thatch"
       }
     },
     "grain": {
@@ -155,6 +159,9 @@
         "grass": "downs",
         "rock": "sandstone",
         "sand": "ringsand"
+      },
+      "surfaces": {
+        "roofs": "thatch"
       }
     },
     "stone": {
@@ -165,6 +172,10 @@
         "grass": "downs",
         "rock": "cut",
         "sand": "ringsand"
+      },
+      "surfaces": {
+        "walls": "stone",
+        "roofs": "slate"
       }
     },
     "tropic": {
@@ -179,6 +190,9 @@
       "colors": {
         "path": "#dccb9c",
         "boatBand": ["#2a8f6e", "#2f8a8a"]
+      },
+      "surfaces": {
+        "roofs": "thatch"
       }
     },
     "yard": {
@@ -201,6 +215,10 @@
         "boulder2": "#808690",
         "path": "#d4dbe2",
         "boatBand": ["#a8403a", "#3f6a9a"]
+      },
+      "surfaces": {
+        "walls": "boards",
+        "roofs": "slate"
       }
     },
     "fire": {
@@ -255,6 +273,9 @@
         "boatBand": ["#2f3035", "#8a3a32"],
         "boatSail": "#a5603f",
         "sailCloth": ["#a5603f", "#9a5838", "#a5603f", "#b06a46"]
+      },
+      "surfaces": {
+        "roofs": "thatch"
       }
     },
     "strand": {
@@ -274,6 +295,9 @@
         "boatBand": ["#2f3035", "#8a3a32"],
         "boatSail": "#a5603f",
         "sailCloth": ["#a5603f", "#9a5838", "#a5603f", "#b06a46"]
+      },
+      "surfaces": {
+        "roofs": "thatch"
       }
     }
   },
@@ -497,5 +521,32 @@
       "side": ["#a8603a", "#b8703f", "#9a5838"],
       "trees": false
     }
+  },
+  "surfaces": {
+    "walls": "plaster",
+    "roofs": "tiles",
+    "plank": "boards",
+    "wood": "boards",
+    "post": "boards",
+    "dark": "boards",
+    "boatDeck": "planks",
+    "boatHull": "planks",
+    "fishHull": "planks",
+    "fishCabin": "planks",
+    "cargo": "boards",
+    "hatch": "boards",
+    "stone": "stone",
+    "stoneDark": "stone",
+    "stoneBlock": "stone",
+    "cut": "stone",
+    "chimney": "stone",
+    "lighthouse": "plaster",
+    "hay": "thatch",
+    "teaRoof": "tiles",
+    "lighthouseRoof": "slate",
+    "sail": "canvas",
+    "boatSail": "canvas",
+    "sailCloth": "canvas",
+    "tarp": "canvas"
   }
 }
