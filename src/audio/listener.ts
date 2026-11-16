@@ -17,6 +17,8 @@ export interface HeardView {
   volcanoSounds(x: number, y: number): { eruptions: number[]; vent: number };
   /** From a sim point to the nearest bird of these kinds (issue #476; 0 while none are drawn). */
   seaLife: { birdDistance(kinds: string[], x: number, y: number): number };
+  /** How far the follow cam is on, 0 (the sea camera) to 1 (issue #555). */
+  rig: { chase: { eased: number } };
 }
 
 /** How often the sea's sound is worked out, seconds: the layers glide between. */
@@ -42,8 +44,6 @@ export class SeaListener {
     private readonly view: HeardView,
     /** Haze switches off in Settings: `ash` off mutes the rumble with the plume (decision 0169). */
     private readonly ashOff: () => boolean,
-    /** How far the follow cam is on, 0 (the sea camera) to 1 (issue #555). */
-    private readonly aboard: () => number = () => 0,
   ) {}
 
   /** Each frame at sea. */
@@ -59,7 +59,8 @@ export class SeaListener {
       if (this.sinceFlap > 1.5 && boat.speedKn > 0.3) {
         this.player.effectNamed(SOUND_EVENTS.tack.effect);
         const { effect, level } = BOAT_SOUNDS.aboard.rattle;
-        if (this.aboard() > 0) this.player.effectNamed(effect, level * this.aboard());
+        if (this.view.rig.chase.eased > 0)
+          this.player.effectNamed(effect, level * this.view.rig.chase.eased);
         this.sinceFlap = 0;
       }
     }
@@ -70,7 +71,7 @@ export class SeaListener {
     const step = this.since;
     this.since = 0;
 
-    const aboard = this.aboard();
+    const aboard = this.view.rig.chase.eased;
     const { creak } = BOAT_SOUNDS.aboard;
     // The rig groans as a gust fills the sail, only heard from on board.
     if (this.gusts.step(step, wind.speedKn, creak.gustKn, creak.every) && sailsUp && !docked)
