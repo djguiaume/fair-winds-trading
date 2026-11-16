@@ -19,6 +19,8 @@ export class Ambience {
   private readonly wind: GainNode;
   private readonly windFilter: BiquadFilterNode;
   private readonly wash: GainNode;
+  private readonly washFilter: BiquadFilterNode;
+  private readonly washTone: number;
   private readonly luff: GainNode;
   private readonly rain: GainNode;
 
@@ -66,7 +68,9 @@ export class Ambience {
 
     // Her wash along the hull: brighter noise, following her speed.
     this.wash = this.level(destination);
-    sea.connect(this.filter('bandpass', washTone, 2.5)).connect(this.wash);
+    this.washTone = washTone;
+    this.washFilter = this.filter('bandpass', washTone, 2.5);
+    sea.connect(this.washFilter).connect(this.wash);
 
     // Luffing: the canvas shaking in irons, in the data's `style`.
     this.luff = this.level(destination);
@@ -223,6 +227,7 @@ export class Ambience {
     to(this.wind.gain, mix.wind);
     to(this.windFilter.frequency, mix.windTone);
     to(this.wash.gain, mix.wash, 0.6);
+    to(this.washFilter.frequency, this.washTone * mix.washTone, 0.6);
     to(this.luff.gain, mix.luff, 0.15);
     to(this.rain.gain, mix.rain, 2);
   }

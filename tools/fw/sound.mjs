@@ -12,6 +12,7 @@ const HELP = `npm run sound -- <what> [options]
   check                        the sound list's checks (also in npm run check)
   effect <id> [--pitch 1.2]    one effect (also: bell <port|island>, the dock bell at its pitch)
   sea <id> [--secs 30]         a sea's bed: --wind 12 --speed 5 --luff --rain 0.8 --storm --docked
+                               --aboard (the follow cam's mix: louder wash, softer sea, bright rig)
                                --far (no call's place is near: only the calls heard anywhere)
                                --only luff,wind (just these layers, no calls: one sound alone)
   mix <sea> [--secs 40]        a sea with its theme over it, at the default Sounds and Music volumes
@@ -34,6 +35,7 @@ function plan(args, data) {
       rain: num(args.rain === true ? 0.8 : args.rain, 0),
       docked: !!args.docked,
       calm: 1,
+      aboard: args.aboard ? 1 : 0,
     },
     near: !args.far,
     storm: !!args.storm,
