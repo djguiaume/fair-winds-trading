@@ -1,6 +1,30 @@
-# Softness, detail and texture (#572): variants sheet
+# Softness, detail and texture (#572)
 
-v1.13 part 1. The art director picks (conditions in `docs/reviews/art-direction/v1.13/README.md`).
+Decision [0327](../../../decisions/0327-soft-surface-patterns-near-the-camera-and-smooth-hulls.md).
+
+## Final (for Guillaume's end-of-release review)
+
+- [final-town.jpg](final-town.jpg) and [final-sail.jpg](final-sail.jpg): before (High) against
+  after on High and on Medium (patterns, flat hulls), same poses as the variants sheet.
+- Art director's pick (2026-11-16): A's soft edges, walls, roofs and land wood (quays, signs,
+  sheds) at ±6 %, hull planks, decks and sail seams at ±10 %; fade ranges as below.
+
+## Cost (`npm run perf`, headless 1280×800, medians of three runs, main → this branch)
+
+| | draw calls | triangles | graphics memory |
+|---|---|---|---|
+| High, sailing chase | 31 → 32 | 143k → 143k | 62 → 63 MB |
+| High, docking chase | 56 → 56 | 238k → 238k | 63 → 63 MB |
+| High, sailing (top) | 26 → 31 | 156k → 155k | 63 → 62 MB |
+| Medium, sailing chase | 23 → 23 | 42k → 42k | 17 → 18 MB |
+
+The patch adds no mesh, triangle or download; the +5 calls on top-view sailing come from what
+was in view in that run (boats and folk move), not from the patterns (not checked further). The software renderer's frame times say nothing about a GPU's pixel cost; on real
+devices compare `?bench&quality=high` against `&off=surface` in the device round (#377).
+
+# The variants sheet
+
+v1.13 part 1. The art director picked (conditions in `docs/reviews/art-direction/v1.13/README.md`).
 High, desktop, rows today / A / B / C.
 
 - [sheet-town.jpg](sheet-town.jpg): Amber Strand from the follow cam (house, sign, quay, sloop),

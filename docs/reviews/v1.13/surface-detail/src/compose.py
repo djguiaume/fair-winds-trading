@@ -5,6 +5,8 @@ from PIL import Image, ImageDraw, ImageFont
 D = '/tmp/claude-0/sheet'
 OUT = sys.argv[1]
 VARIANTS = [('today', 'Today'), ('A', 'A soft edges'), ('B', 'B soft + patterns ±6%'), ('C', 'C soft + patterns ±10%')]
+if len(sys.argv) > 3:
+    VARIANTS = [tuple(v.split(':')) for v in sys.argv[3].split(',')]
 CW, CH = 440, 275
 LABEL = 150
 try:
