@@ -6,6 +6,7 @@ import type { TrafficKind } from '../sim/traffic';
 import { mergeAll, vertexColorMaterial } from './models/geometry';
 import { buildProp } from './models/propRecipe';
 import type { WakeHull } from './wake';
+import { sunlitSail } from './sunThrough';
 
 /** A drawn kind in one home style and colour: one instanced hull, one instanced mesh per sail. */
 export interface Batch {
@@ -28,13 +29,7 @@ const UP = new THREE.Vector3(0, 1, 0);
 export function trafficMaterials() {
   return {
     hull: vertexColorMaterial(),
-    sail: new THREE.MeshLambertMaterial({
-      vertexColors: true,
-      side: THREE.DoubleSide,
-      flatShading: true,
-      emissive: '#ffffff',
-      emissiveIntensity: 0.25,
-    }),
+    sail: sunlitSail(0.25, 'traffic-sail'),
   };
 }
 

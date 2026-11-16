@@ -3,17 +3,26 @@ import type { Daylight } from '../sim/daylight';
 import { TUNING } from '../data/tuning';
 import { blendLooks, type LookSet } from './lookBlend';
 
-/** The drawn sky's two colours (issue #470): just above the sea, and higher up. */
+/**
+ * The drawn sky's two colours (issue #470): just above the sea, and higher up; and how high the
+ * fog's haze reaches before the sky's own colour shows, which changes with the hour (issue #552).
+ */
 export interface SkyLook {
   horizon: THREE.Color;
   zenith: THREE.Color;
+  hazeDeg: number;
 }
 
-const blankSky = (): SkyLook => ({ horizon: new THREE.Color(), zenith: new THREE.Color() });
+const blankSky = (): SkyLook => ({
+  horizon: new THREE.Color(),
+  zenith: new THREE.Color(),
+  hazeDeg: 0,
+});
 
 function mixSky(out: SkyLook, a: SkyLook, b: SkyLook, k: number): SkyLook {
   out.horizon.copy(a.horizon).lerp(b.horizon, k);
   out.zenith.copy(a.zenith).lerp(b.zenith, k);
+  out.hazeDeg = a.hazeDeg + (b.hazeDeg - a.hazeDeg) * k;
   return out;
 }
 
@@ -21,7 +30,7 @@ function mixSky(out: SkyLook, a: SkyLook, b: SkyLook, k: number): SkyLook {
  * A `#rrggbb` colour from the tuning files, parsed again only when the text changes, so a `?tune`
  * edit shows at once without parsing (and allocating) every frame.
  */
-class DataColor {
+export class DataColor {
   readonly color = new THREE.Color();
   private text = '';
 
@@ -40,11 +49,12 @@ type SkyData = typeof TUNING.graphics.sky.looks.day;
 class DataSky {
   private readonly horizon = new DataColor();
   private readonly zenith = new DataColor();
-  readonly look: SkyLook = { horizon: this.horizon.color, zenith: this.zenith.color };
+  readonly look: SkyLook = { horizon: this.horizon.color, zenith: this.zenith.color, hazeDeg: 0 };
 
   read(data: SkyData): SkyLook {
     this.horizon.read(data.horizon);
     this.zenith.read(data.zenith);
+    this.look.hazeDeg = data.hazeDeg;
     return this.look;
   }
 }
@@ -86,8 +96,10 @@ export class SkyColors {
 
   /**
    * The sky the sea mirrors at `low` (0 = sea camera … 1 = chase camera), written into `out` from
-   * the sea camera's `skyLight`, and the reflection's strength against the shipped one. Night and
-   * storms keep their own reflection (issue #469): only a clear day turns bluer.
+   * the sea camera's `skyLight`, and the reflection's strength against the shipped one. By a clear
+   * day the low view mirrors the drawn sky; night and storms keep their own colour (issue #469).
+   * The strength drops in every light: seen this low the Fresnel mirror would bleach the sea that
+   * the sea camera shows deep and blue (issue #573).
    */
   reflection(out: THREE.Color, skyLight: THREE.Color, low: number, night: number, gloom: number) {
     const sky = TUNING.graphics.sky;
@@ -95,6 +107,6 @@ export class SkyColors {
     const { horizon, zenith } = this.look;
     out.copy(horizon).lerp(zenith, sky.reflectZenith);
     out.lerp(skyLight, 1 - k);
-    return 1 - (1 - sky.reflection) * k;
+    return 1 - (1 - sky.reflection) * low;
   }
 }

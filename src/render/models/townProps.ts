@@ -13,6 +13,7 @@ import { isGlowing, paint } from './geometry';
 import { PROP_TYPES, WOODLAND_TREES, put, type Parts } from './props';
 import { lanePieces } from './townLanes';
 import type { Steps } from '../../sim/steps';
+import { bakeContact } from './contactShade';
 
 /** The height a prop stands at over a point of its island (reference units, harbour toward +Z). */
 export type Stand = (x: number, z: number) => number;
@@ -137,6 +138,7 @@ export function* townProps(
     const size = prop.size ?? 1;
     const clear = prop.clear ?? (extent(parts) * size) / R + 0.1;
     const y = prop.y !== undefined ? prop.y * R : standAt(prop.x, prop.z);
+    bakeContact(parts, type.sizedInModel ? 1 : size);
     put(
       into,
       parts,

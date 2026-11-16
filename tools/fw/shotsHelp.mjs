@@ -38,6 +38,9 @@ Where
                                 point; the new look (v2, decision 0222) is the default
   --yaw deg --tilt deg          a turned camera (0223): the bearing it looks to, degrees down
   --chase                       the close chase camera behind the boat (0272), already switched
+  --both                        each shot from above and from the follow cam (<name>-top, -follow),
+                                and the sea, land and sky colour of each, with their distance (ΔE,
+                                about 2 just visible); printed and written to colors.json (#573)
   --tune file.json              tuning changes first: a ?tune export or { "graphics.sky.bands": 4 }
   --menu                        the title menu, before Set sail (the scene options are ignored)
   --chart                       the sea chart open (--pad and --click then play on it); --chart-zoom n, --chart-pan Key:n,

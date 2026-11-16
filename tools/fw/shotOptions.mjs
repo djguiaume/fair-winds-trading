@@ -16,6 +16,17 @@ export function nightTime() {
   return Math.round((duskEnd + nightEnd) / 2);
 }
 
+/** The follow cam's first framing in the camera button's cycle (`camera.json` › `chase`). */
+export function followView() {
+  const c = JSON.parse(readFileSync(resolve(ROOT, 'src/data/tuning/camera.json'), 'utf8')).chase;
+  return (
+    c.cycle
+      .split(',')
+      .map((id) => id.trim())
+      .find((id) => id in c.framings) ?? 'b'
+  );
+}
+
 /** `--tune`: a `?tune` export or a plain { "path.in.TUNING": value } object, from a JSON file. */
 export function tuneChanges(file) {
   const json = JSON.parse(readFileSync(resolve(ROOT, file), 'utf8'));

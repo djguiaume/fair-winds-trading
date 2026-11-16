@@ -87,7 +87,9 @@
     "daySeconds": 720,
     "dayEnd": 420,
     "duskEnd": 480,
-    "nightEnd": 660
+    "nightEnd": 660,
+    "moonRise": 21,
+    "moonSet": 3.5
   },
   "bergs": {
     "driftKn": 0.35,
@@ -238,7 +240,7 @@
     }
   },
   "sight": {
-    "near": 1.3,
+    "near": 1.9,
     "far": 2.4,
     "gloomNear": 0.45,
     "gloomFar": 0.6,

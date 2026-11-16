@@ -1,6 +1,7 @@
 import { t } from '../i18n';
 import { QUALITY, QUALITY_LEVELS, type QualityLevel } from '../render/quality';
 import { coverOn, setGroundCover } from '../render/models/fieldGroundCover';
+import { switchLampPools } from '../render/lampPools';
 import type { GraphicsEffects } from '../render/ultraPipeline';
 import type { SwitchSpec } from './screens/settings/rows';
 import type { Settings } from './settings';
@@ -13,9 +14,10 @@ export function qualityOptions() {
   ] as const;
 }
 
-/** The effects the switches cover; the water's reflection also shows on High. */
+/** The effects the switches cover; the shadows and the water's reflection also show on High. */
 const EFFECTS: readonly (keyof GraphicsEffects)[] = [
   'shadows',
+  'contact',
   'occlusion',
   'toneMapping',
   'haze',
@@ -31,6 +33,7 @@ function drawn(id: keyof GraphicsEffects, level: QualityLevel): boolean {
   if (id === 'reflection') return profile.waterReflection;
   if (id === 'mirror') return profile.mirror;
   if (id === 'groundCover') return coverOn(level);
+  if (id === 'shadows' || id === 'contact') return profile.shadows;
   return profile.ultra;
 }
 
@@ -40,12 +43,14 @@ export interface GraphicsView {
   setWaves(choice: boolean | null): void;
 }
 
+/** The effects only a `?off=` device test switches off (issue #377), with no Settings row. */
+const TEST_ONLY = ['msaa', 'gusts', 'clouds', 'glitter', 'sunlight', 'pools'] as const;
+
 /** Pushes the saved graphics choices to the view: the effects, MSAA and the waves. */
 export function applyGraphics(view: GraphicsView, settings: Settings) {
-  view.effects.msaa = settings.effects.msaa !== false;
-  view.effects.gusts = settings.effects.gusts !== false;
-  for (const id of EFFECTS) view.effects[id] = settings.effects[id] !== false;
+  for (const id of [...EFFECTS, ...TEST_ONLY]) view.effects[id] = settings.effects[id] !== false;
   setGroundCover({ switchedOn: view.effects.groundCover });
+  switchLampPools(view.effects.pools !== false);
 }
 
 /**

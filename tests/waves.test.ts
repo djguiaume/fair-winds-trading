@@ -9,6 +9,7 @@ import {
   waveHeightAt,
   waveNormalAt,
   waveOffsetAt,
+  highestWaves,
 } from '../src/sim/waves';
 
 const seed = 11;
@@ -25,7 +26,6 @@ const fieldOf = (config: WindConfig | null, t: number, x = 0, y = 0) => {
   setWaveField(field, sea(config, t, x, y), seed, t);
   return field;
 };
-const highest = () => WAVE_BANDS.reduce((h, b) => h + TUNING.waves.bands[b].max, 0);
 /** The heaviest sea the tuning allows: every band at its highest. */
 const stormField = (t = 0) => {
   const state = createSeaState();
@@ -139,7 +139,7 @@ describe('wave field (0245)', () => {
         y = ((i * 53) % 900) - 450;
       const h = waveHeightAt(field, x, y);
       expect(Number.isFinite(h)).toBe(true);
-      expect(Math.abs(h)).toBeLessThanOrEqual(highest());
+      expect(Math.abs(h)).toBeLessThanOrEqual(highestWaves());
       waveNormalAt(field, x, y, normal);
       expect(normal.z).toBeGreaterThan(0);
     }

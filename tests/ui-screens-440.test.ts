@@ -184,6 +184,7 @@ describe('settings applier', () => {
     const view = {
       effects: {
         shadows: true,
+        contact: true,
         occlusion: true,
         toneMapping: true,
         haze: true,

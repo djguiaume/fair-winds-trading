@@ -30,7 +30,7 @@ export interface OceanControl {
   effect: OceanEffect;
 }
 
-const DRAWING = ['drawCells', 'shadeCells', 'foam', 'surf', 'wash', 'look', 'gusts'];
+const DRAWING = ['drawCells', 'shadeCells', 'foam', 'surf', 'wash', 'look', 'gusts', 'clouds'];
 /** A level's switches that belong to the ocean: the waves and the wind's gusts on them. */
 const LEVEL = ['waves', 'gusts'];
 

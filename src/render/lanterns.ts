@@ -3,6 +3,7 @@ import { PALETTE } from '../data/props';
 import { TUNING } from '../data/tuning';
 import type { IslandDef, PortDef } from '../sim/map';
 import { glowTexture } from './lampGlow';
+import { placeLampPools } from './lampPools';
 import { toScene } from './sceneSpace';
 
 /**
@@ -65,14 +66,19 @@ export class Lanterns {
 
   /**
    * `glow` 0..1 (night, a little in storms); `boat` is the stern lantern's scene position; `size`
-   * scales the glow (Ultra draws smaller, crisper lamps, decision 0221).
+   * scales the glow (Ultra draws smaller, crisper lamps, decision 0221). Lights the pools under the
+   * nearest lanterns (issue #547).
    */
   update(glow: number, boat: THREE.Vector3, time: number, size = 1) {
     this.points.visible = glow > 0.02;
+    const at = this.positions.length - 3;
+    this.positions[at] = boat.x;
+    this.positions[at + 1] = boat.y;
+    this.positions[at + 2] = boat.z;
+    placeLampPools(this.positions, boat, this.points.visible ? glow : 0);
     if (!this.points.visible) return;
     this.material.size = TUNING.graphics.lamps.lanternSize * size;
     this.material.opacity = Math.min(1, glow) * (0.92 + 0.08 * Math.sin(time * 7.3));
-    this.positions.set([boat.x, boat.y, boat.z], this.positions.length - 3);
     this.geometry.attributes.position!.needsUpdate = true;
   }
 

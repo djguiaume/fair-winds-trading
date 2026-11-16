@@ -9,7 +9,7 @@ type Args = Record<string, string | boolean | undefined> & { _: string[] };
 
 const HELP = `npm run tune -- <command>   (the ?tune panel edits the same numbers)
   list <file> [--json]           every value of src/data/tuning/<file>.json: path, value, range
-  set <file.path> <value>        one number (checked against its range) or a toggle (true/false), e.g. set hud.idleFadeSec 8, set graphics.title.live true
+  set <file.path> <value>        one number (checked against its range), a toggle (true/false) or text, e.g. set hud.idleFadeSec 8, set graphics.title.live true, set graphics.sky.looks.day.horizon '#7fc0e6'
 Add --dry to only print the check.`;
 
 const fileOf = (name: string) => `src/data/tuning/${name}.json`;

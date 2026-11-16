@@ -7,7 +7,7 @@ import type { Ocean } from './ocean';
 import { PALETTE } from './palette';
 import { TUNING } from '../data/tuning';
 import { blendLooks } from './lookBlend';
-import { SkyColors, lightDirection } from './skyLight';
+import { SkyColors, type SkyLook, lightDirection } from './skyLight';
 import { SkyDome } from './skyDome';
 
 /** One look of the sea and the light: background/fog, water, sun and sky light. */
@@ -134,10 +134,14 @@ const LOOKS = { day: DAY, golden: GOLDEN, night: NIGHT, storm: STORM };
 
 /** What the drawn sky of the low views needs this frame (issue #470). */
 export interface SkyFrame {
-  /** The sky just above the sea: the fog's colour, so the far sea melts into it. */
+  /** The air at the horizon: the fog's colour, the same in both views (issue #573). */
   readonly horizon: THREE.Color;
+  /** The sky just above the haze line, where the drawn sky's own gradient starts. */
+  readonly skyline: THREE.Color;
   /** The sky higher up. */
   readonly zenith: THREE.Color;
+  /** How high the fog's haze reaches before the sky's own colour, degrees (issue #552). */
+  hazeDeg: number;
   /** Toward the sun (or moon), scene space, at its true height: it sets on the horizon. */
   readonly disc: THREE.Vector3;
   /** The sun's (or moon's) colour as seen in the sky. */
@@ -170,10 +174,14 @@ export class Atmosphere {
   private low = 0;
   private windKn = 0;
   private readonly reflected = new THREE.Color();
+  /** The camera's target (the boat) in sim coordinates, for the storms on the horizon. */
+  private readonly boatAt = { x: 0, y: 0 };
   /** The drawn sky's inputs, written by `update`. */
   readonly drawnSky: SkyFrame = {
     horizon: new THREE.Color(),
+    skyline: new THREE.Color(),
     zenith: new THREE.Color(),
+    hazeDeg: 1,
     disc: new THREE.Vector3(0, 1, 0),
     discColor: new THREE.Color(),
     low: 0,
@@ -197,7 +205,8 @@ export class Atmosphere {
 
   /**
    * `low` (0..1) is how low the camera looks: the chase camera (issue #469) sees the sky, so the
-   * fog turns the drawn sky's horizon colour, the sea mirrors a bluer sky and the dome shows.
+   * dome shows and the sea mirrors it. The fog, the light and the water stay the sea camera's: the
+   * view changes the camera, not the weather (issue #573).
    */
   setView(low: number, windKn: number) {
     this.low = low;
@@ -242,7 +251,9 @@ export class Atmosphere {
     ocean.setDaylight(l, this.gloom);
     this.tintHorizon(l, day, ocean);
     const skyLook = this.skyColors.update(day, this.gloom);
-    l.sky.lerp(skyLook.horizon, low);
+    // One air for both views (issue #573): the haze leans toward the drawn sky's horizon by
+    // `sky.air`, whichever camera looks, so the view never changes the weather.
+    l.sky.lerp(skyLook.horizon, TUNING.graphics.sky.air);
     // A fog bank or ash cloud (decision 0169) turns the sky and the fog its colour, darkened at
     // night like the sky, and dims the sun a little.
     const h = haze?.kind ? haze.haze : 0;
@@ -288,8 +299,10 @@ export class Atmosphere {
     this.sun.target.position.copy(target);
     lightDirection(this.skyLightDir, day.lightBearing, day.lightHeight);
     ocean.setSun(this.skyLightDir, this.sun.color, this.sun.intensity);
-    this.updateSky(l, skyLook.zenith, day, low, h);
-    this.dome.update(Math.max(0, dt), this.drawnSky, this.windKn);
+    this.updateSky(l, skyLook, day, low, h);
+    this.boatAt.x = target.x;
+    this.boatAt.y = -target.z;
+    this.dome.update(Math.max(0, dt), this.drawnSky, this.windKn, weather.storms, this.boatAt);
   }
 
   /**
@@ -313,10 +326,12 @@ export class Atmosphere {
     this.dome.dispose();
   }
 
-  private updateSky(l: Look, zenith: THREE.Color, day: Daylight, low: number, haze: number) {
+  private updateSky(l: Look, skyLook: SkyLook, day: Daylight, low: number, haze: number) {
     const sky = this.drawnSky;
     sky.horizon.copy(l.sky);
-    sky.zenith.copy(zenith);
+    sky.skyline.copy(skyLook.horizon);
+    sky.zenith.copy(skyLook.zenith);
+    sky.hazeDeg = skyLook.hazeDeg;
     lightDirection(sky.disc, day.lightBearing, day.skyHeight);
     sky.discColor.copy(l.sun);
     sky.low = low;
