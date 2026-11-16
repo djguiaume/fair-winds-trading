@@ -140,15 +140,9 @@ html[data-layout='phone'] .bl-use {
     bottom: 0;
     background: var(--ui-surface);
   }
-  .bl-canvas,
   .bl-ship-line {
     right: 0;
     left: 0;
-  }
-  .bl-canvas {
-    width: 100%;
-  }
-  .bl-ship-line {
     padding-inline: var(--bl-gap);
   }
 }

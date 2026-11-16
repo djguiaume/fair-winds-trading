@@ -1,22 +1,18 @@
 {
-  "about": "The turntable boat of the Boat looks screen and Free Sailing (issue #299): camera, turn speed, the speed her laid wake shows (`wakeKnots`), the soft water disc under her, the backdrop's sky and sea by day and night (the disc takes the sea's colour), and the camera views: `at` is the point looked at as shares of her half beam, height above the water and waterline's half length (-1 the stem), `yaw` her turn in degrees (null: she keeps turning), `zoom` how much closer than the whole boat, `tilt` the camera's degrees down. `slotViews`: the view a Boat looks slot turns to.",
-  "fov": 28,
-  "margin": 0.72,
+  "about": "The turntable boat of the Boat looks screen and Free Sailing (issues #299, #629): camera, turn speed, the speed her laid wake shows (`wakeKnots`), the game's own sea and sky round her (`sea`), and the camera views: `at` is the point looked at as shares of her half beam, height above the water and waterline's half length (-1 the stem), `yaw` her turn in degrees (null: she keeps turning), `zoom` how much closer than the whole boat, `tilt` the camera's degrees down. `slotViews`: the view a Boat looks slot turns to.",
+  "fov": 30,
+  "margin": 0.8,
   "startYaw": -125,
   "spinDegPerSecond": 9,
   "wakeKnots": 6,
   "stepDeg": 45,
-  "discScale": 1.15,
-  "discSolid": 0.55,
-  "backdrop": {
-    "day": {
-      "sky": "#bfe0ea",
-      "sea": "#5aa8bd"
-    },
-    "night": {
-      "sky": "#0f2740",
-      "sea": "#1f4a70"
-    }
+  "sea": {
+    "about": "The open sea round her, drawn by the game's own ocean, sky and light (issue #629). Boat looks shows `dayHour` or `nightHour` in `weather`; Free Sailing its preset's hour and weather. The wind is `windKn` times the weather kind's mean strength (weather.json), blowing from `windFromDeg` (compass, she heads north).",
+    "dayHour": 10,
+    "nightHour": 23,
+    "weather": "breeze",
+    "windKn": 12,
+    "windFromDeg": 60
   },
   "maxPixelRatio": 2,
   "ease": 4,
@@ -25,8 +21,8 @@
       "about": "The whole boat, turning slowly.",
       "yaw": null,
       "zoom": 1,
-      "at": [0, 0.35, 0],
-      "tilt": 24
+      "at": [0, 0.4, 0],
+      "tilt": 10
     },
     "bow": {
       "about": "Three-quarter bow, close: the figurehead hung under the bowsprit.",

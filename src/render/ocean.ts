@@ -3,7 +3,6 @@ import type { IslandDef, TerrainDef } from '../sim/map';
 import { PALETTE } from './palette';
 import { highestWaves } from '../sim/waves';
 import { TUNING } from '../data/tuning';
-import type { QualityProfile } from './quality';
 import { DAY, NIGHT, type Look } from './atmosphere';
 import { type ShoreTexture, shoreTexture } from './shoreTexture';
 import type { SeabedTexture } from './seabedTexture';
@@ -21,45 +20,6 @@ export const maxWaveHeight = () => Math.max(0.32 + 0.24 + 0.12, highestWaves());
 
 /** The side of the game's ocean grid, which follows the camera (units). */
 export const OCEAN_SIZE = 480;
-
-/**
- * The ocean of a quality level. The shader depends on the water look, not the grid resolution:
- * it shares the material of another level's ocean that draws the same water and waves, so
- * switching between High and Medium never releases or relinks the same program.
- */
-export function oceanFor(
-  profile: QualityProfile,
-  others: readonly Ocean[],
-  land: { islands: readonly IslandDef[]; terrain: readonly TerrainDef[] },
-  shore: ShoreTexture,
-  seabed?: SeabedTexture,
-  waves?: Pick<SeaWaves, 'gerstner'>,
-): Ocean {
-  const gerstner = !!waves?.gerstner;
-  const gusts = gerstner && profile.fancyWater && profile.gusts;
-  const material = others.find(
-    ({ mesh }) =>
-      'FANCY' in mesh.material.defines === profile.fancyWater &&
-      'REFLECT' in mesh.material.defines === profile.waterReflection &&
-      'MIRROR' in mesh.material.defines === profile.mirror &&
-      'PLAIN' in mesh.material.defines === profile.plain &&
-      'GERSTNER' in mesh.material.defines === gerstner &&
-      'GUSTS' in mesh.material.defines === gusts,
-  )?.mesh.material;
-  const look = {
-    fancy: profile.fancyWater,
-    reflect: profile.waterReflection,
-    mirror: profile.mirror,
-    plain: profile.plain,
-    ultra: profile.ultra,
-    seabed,
-    gerstner,
-    gusts,
-    coast: gerstner ? seabed : undefined,
-  };
-  const { oceanSegments } = profile;
-  return new Ocean(land.islands, oceanSegments, look, OCEAN_SIZE, land.terrain, shore, material);
-}
 
 /** The view's switches the ocean reads each frame (`GraphicsEffects`). */
 export type OceanSwitches = { reflection?: boolean; gusts?: boolean; clouds?: boolean };

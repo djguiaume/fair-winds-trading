@@ -105,7 +105,8 @@ export class BoatLooksScreen {
     this.night = this.host.night();
     this.compare = 'yours';
     const canvas = this.root.querySelector<HTMLCanvasElement>('.bl-canvas')!;
-    this.preview = new BoatPreview(canvas, this.host.quality());
+    const frame = this.root.querySelector<HTMLElement>('.bl-ship-line');
+    this.preview = new BoatPreview(canvas, this.host.quality(), frame);
     this.preview.setNight(this.night);
     this.slot = 'sailColour';
     this.selectShip(shipId ?? this.host.ships()[0]!.id);
@@ -173,12 +174,6 @@ export class BoatLooksScreen {
     nightBtn.setAttribute('aria-label', nightLabel);
     nightBtn.setAttribute('aria-pressed', String(this.night));
     this.root.toggleAttribute('data-night', this.night);
-    const stage = $('.bl-stage');
-    const backdrop = this.preview?.backdrop;
-    if (backdrop) {
-      stage.style.setProperty('--bl-sky', backdrop.sky);
-      stage.style.setProperty('--bl-sea', backdrop.sea);
-    }
     this.showBoat();
   }
 

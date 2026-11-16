@@ -10,7 +10,7 @@ import { PlayerBoat } from './playerBoat';
 import { RigPose } from './boatPose';
 import { SeaMotion } from './seaMotion';
 import { BoatRide, type RideConditions } from './boatRide';
-import { type Ocean, oceanFor } from './ocean';
+import { type Ocean, oceanFor } from './oceanFor';
 import { ShoreTextureCache } from './shoreTexture';
 import { SeabedTextureCache, drawnLand } from './seabedTexture';
 import { CalmWater } from './calmWater';

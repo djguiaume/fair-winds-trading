@@ -12,11 +12,11 @@ const views: string[] = [];
 vi.mock('../src/render/boatPreview', () => ({
   SLOT_VIEWS: { 'sail-logo': 'side', figurehead: 'bow', flag: 'masthead', wake: 'stern' },
   BoatPreview: class {
-    backdrop = { sky: '#fff', sea: '#00f' };
     show(boat: unknown) {
       shown.push(boat);
     }
     setNight() {}
+    setConditions() {}
     resize() {}
     start() {}
     turn() {}
