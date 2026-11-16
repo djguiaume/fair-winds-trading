@@ -31,13 +31,15 @@ import {
 } from './input/gamepad';
 import { PadFocus, type PadScreen } from './ui/padFocus';
 import { Input } from './input/input';
+import { AutoQuality, type AutoStep } from './render/autoQuality';
 import {
-  FrameMonitor,
   QUALITY,
+  QUALITY_LEVELS,
   type QualityLevel,
   forceAntialias,
   guessQuality,
   lowerQuality,
+  raiseQuality,
 } from './render/quality';
 import { GameView } from './render/view';
 import { SAIL_STEPS, createBoat, knotToUnits } from './sim/boat';
@@ -55,7 +57,7 @@ import { hazeSwitches } from './sim/windZones';
 import { QuestBook, roundStep, useEditedQuests } from './sim/quests';
 import { questTestFrom, sailableHeading, testBerth } from './sim/questTest';
 import { QuestTestBar } from './ui/questTestBar';
-import { type StepEffects, type StepWind, syncSea } from './sim/stepEffects';
+import { syncSea } from './sim/stepEffects';
 import { QuestCard } from './ui/questCard';
 import { QuestNote } from './ui/questNote';
 import {
@@ -114,7 +116,8 @@ import { SOUND_EVENTS } from './audio/catalog';
 import { Music } from './audio/music';
 import { SeaListener } from './audio/listener';
 import { wordCount } from './audio/babble';
-import { SeaChart, questCourse } from './ui/seaChart';
+import { SeaChart } from './ui/seaChart';
+import { followQuestCourse, seaGoal, seaStep } from './ui/seaQuest';
 import {
   browserLanguages,
   detectLanguage,
@@ -821,7 +824,9 @@ chart.quests = {
     autosave();
   },
 };
-const monitor = new FrameMonitor();
+const autoQuality = new AutoQuality();
+/** Auto never climbs above the level it started on. */
+const autoCeiling = level;
 /** The `?perf` readout, once its chunk has loaded (decision 0148). */
 let perf: PerfReadout | null = null;
 let sailStep = world.boat.sailStep;
@@ -1521,6 +1526,19 @@ async function newGame() {
   }
 }
 
+/** Auto's resolution inside the level (issue #549); a `?perf&scale=` aid multiplies it. */
+function applyAutoScale() {
+  view.renderScale = aids.perfScale * (settings.quality === 'auto' ? autoQuality.scale : 1);
+  resize();
+}
+
+function applyAutoStep(step: AutoStep) {
+  if (typeof step === 'object') return applyAutoScale();
+  view.renderScale = aids.perfScale * autoQuality.scale;
+  setLevel(step === 'lower' ? lowerQuality(level) : raiseQuality(level));
+  resize();
+}
+
 function setLevel(next: QualityLevel) {
   if (next === level) return;
   level = next;
@@ -1643,37 +1661,6 @@ function handleEvents(events: WorldEvent[]) {
 }
 window.addEventListener('pagehide', autosave);
 
-/**
- * Where to head when no course is set (decision 0139): the tracked quest's place, at sea only; a
- * running lesson is the tracked quest (decision 0151), so the wreck while a lesson is about it.
- */
-function seaGoal(): { x: number; y: number; label: string } | null {
-  if (world.trade.dockedAt) return null;
-  return questGoal(quests, world.map, view.harbours);
-}
-
-/**
- * A course set for the quest's place follows it to the step's next place, and ends with the quest
- * or when another quest is tracked away to nowhere (decision 0212).
- */
-function followQuestCourse() {
-  const course = world.destination;
-  if (course?.kind !== 'quest') return;
-  const goal = questGoal(quests, world.map, view.harbours);
-  if (goal) world.destination = questCourse(goal);
-  else world.destination = null;
-}
-
-/**
- * The tracked quest's step, whose `wind` and `sound` the sea plays (decision 0139): the same step
- * data for the tutorial (always tracked while it runs, decision 0151) and every quest.
- */
-function seaStep(): { key: string; step: StepEffects; wind: StepWind | undefined } | null {
-  const step = quests.trackedStep;
-  // A quest's own breeze holds over its steps that have none (decision 0164).
-  return step ? { key: `${quests.tracked}:${step.id}`, step, wind: quests.trackedWind } : null;
-}
-
 // --- Main loop: fixed-step simulation, render once per frame ----------------------------------
 let accumulator = 0;
 let last = performance.now();
@@ -1702,7 +1689,7 @@ function tick(now: number) {
     let steps = 0;
     while (!paused && accumulator >= SIM_STEP && steps < 6) {
       const controls = { steer: input.steer, sailStep };
-      const sea = seaStep();
+      const sea = seaStep(quests);
       syncSea(world, sea?.wind, quests.race());
       // No storms while a quest that holds them runs: the tutorial (decision 0072).
       holdStorms(world, 'quest', quests.holdsStorms);
@@ -1721,7 +1708,7 @@ function tick(now: number) {
       const sound = sea?.step.sound;
       if (sound && (soundIn -= SIM_STEP) <= 0) {
         music.effectNamed(sound.effect);
-        const place = seaGoal();
+        const place = seaGoal(quests, world, view.harbours);
         if (place) hud.stepSound(sound.effect, bearingTo(world.boat, place));
         soundIn = sound.everySec;
       }
@@ -1740,8 +1727,8 @@ function tick(now: number) {
   hud.mark = quests.compassOf(quests.trackedStep);
   // Rook waits on the wreck while a step points at it (decision 0127).
   view.castawayWaiting = compass === 'wreck';
-  hud.goal = seaGoal();
-  followQuestCourse();
+  hud.goal = seaGoal(quests, world, view.harbours);
+  followQuestCourse(quests, world, view.harbours);
   hud.update(dt, (x, y) => view.project(x, y), size, !paused, hudVisible);
   title.stage(camera.stage, mode === 'menu' && !started, QUALITY[level].liveTitle);
   camera.update(dt, world.boat.sailStep > 0);
@@ -1754,14 +1741,19 @@ function tick(now: number) {
   if (++coachTick % 6 === 0) coach.place();
 
   // The benchmark keeps one level throughout so its passes compare (decision 0154).
-  if (monitor.sample(dt) && !benchMode && settings.quality === 'auto')
-    setLevel(lowerQuality(level));
-  hud.setFps(settings.showFps ? monitor.fps : null, hudVisible);
+  const autoStep = autoQuality.sample(
+    dt,
+    level !== QUALITY_LEVELS[0],
+    QUALITY_LEVELS.indexOf(level) < QUALITY_LEVELS.indexOf(autoCeiling),
+  );
+  if (autoStep && !benchMode && settings.quality === 'auto') applyAutoStep(autoStep);
+  hud.setFps(settings.showFps ? autoQuality.fps : null, hudVisible);
   perf?.frame({
     ms: rawMs,
     counting: mode === 'play' && !paused && hudVisible,
     level,
     qualitySetting: settings.quality,
+    autoScale: settings.quality === 'auto' ? autoQuality.scale : 1,
     renderer: view.renderer,
   });
 }

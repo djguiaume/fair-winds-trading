@@ -10,7 +10,7 @@ import { QUALITY, QUALITY_LEVELS } from '../src/render/quality';
 import { SeaClouds, cloudShade, cloudUniforms } from '../src/render/seaClouds';
 import { SeaWaves } from '../src/render/seaWaves';
 import { shoreTexture } from '../src/render/shoreTexture';
-import { allEffects } from '../src/render/ultraPipeline';
+import { allEffects } from '../src/render/graphicsEffects';
 import { SLOOP } from '../src/sim/ship';
 import { createWorld } from '../src/sim/world';
 

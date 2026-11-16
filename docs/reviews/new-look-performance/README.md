@@ -99,3 +99,17 @@ Windows, Chrome 156, Core i7-1065G7, Intel Iris Plus Graphics, 32 GB, canvas 248
 - Next phase (the waves milestone): the sea is drawn per pixel, so test it first on the phone at Medium and on the Xbox at High. Budget in `budget.json › newLook` is counts only, and waves will mostly cost fill rate, which the counts do not show. Re-read the same three devices, then update this section.
 - High holds 60 fps on all three devices, so the new look fits without changing engine; Ultra is the level that does not scale down.
 - Open: Low on a weak device, Ultra on a discrete card, Ultra on the Xbox again after #374 (decision 0246: Ultra ran out of graphics memory, cut from 711 to 428 MB on a 4K TV with the same picture). Decision 0289 cut it again to 349 MB (lean shadow map). Xbox re-test: `?quality=ultra&perf`; if it still crashes (restart the console), `&scale=0.7` then `&scale=0.5` draw fewer pixels and find the share.
+
+## Device round (issue #377), what to run
+
+Pick the level with `&quality=`, so Auto does not move it. Paste each `?bench` table (Copy) into the table below.
+
+| Device | URL | What it answers |
+|---|---|---|
+| Phone | `?bench&quality=low`, then `&quality=medium`, then `&quality=high` | Does Low give headroom over Medium; the phone's real level |
+| Phone | `?bench&quality=high&off=gusts`, `&off=cover`, `&off=folk` near a port | Cost of each part, as ms from the avg frame time |
+| Phone, tablet | `?bench` with Settings on Auto | Auto's resolution moves and level changes (issue #549); fewer drops than before is the aim |
+| Tablet | `?bench&quality=low` | The weak-device number the budgets lack |
+| Surface, Xbox | `?bench&quality=ultra`, then `&off=mirror`, `&off=bloom` | Cost per Ultra pass |
+
+Results: not run yet.
