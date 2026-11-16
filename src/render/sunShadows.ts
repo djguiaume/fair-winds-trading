@@ -3,6 +3,10 @@ import { TUNING } from '../data/tuning';
 import { DEG, clamp } from '../sim/math';
 import type { SunShape } from './atmosphere';
 import { leanShadowMap } from './shadowTarget';
+import type { Ocean } from './ocean';
+import type { GraphicsEffects } from './ultraPipeline';
+import { setContactShade } from './models/contactShade';
+import { writeSeaShadow } from './seaShadow';
 
 /** One level's shadow numbers (`graphics.json` › `shadows.high`, `ultra.shadows`). */
 export type ShadowData = typeof TUNING.graphics.shadows.high;
@@ -153,8 +157,6 @@ export class SunShadows {
   readonly centre = new THREE.Vector3();
   /** Where the boat's soft shadow lies from her, scene x and z. */
   readonly blob = new THREE.Vector2();
-  /** How dark the shade on the sea is now (`shadows.sea`, fainter under the moon); 0 = none. */
-  seaShade = 0;
   private readonly shape: SunShape = { height: 1, turn: 0, distance: 60 };
   private readonly plain: SunShape = { height: 1, turn: 0, distance: 60 };
   private readonly settings = {} as ShadowSettings;
@@ -163,6 +165,7 @@ export class SunShadows {
   private readonly up = new THREE.Vector3();
   private drawn = false;
   private ultra = false;
+  private contact = false;
 
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
@@ -177,17 +180,18 @@ export class SunShadows {
   }
 
   /**
-   * Before the atmosphere: whether shadows are drawn (the level and Settings › Shadows), where the
-   * box centres and how the light stands. Returns the light's shape for the atmosphere.
+   * Before the atmosphere: whether shadows and contact shade are drawn (the level and Settings),
+   * where the box centres and how the light stands. Returns the light's shape for the atmosphere.
    */
   frame(
-    drawn: boolean,
-    ultra: boolean,
+    level: { shadows: boolean; ultra: boolean },
+    effects: Readonly<GraphicsEffects>,
     target: Readonly<THREE.Vector3>,
     seaCentre: Readonly<THREE.Vector3>,
   ): Readonly<SunShape> {
-    this.drawn = drawn;
-    this.ultra = ultra;
+    this.drawn = level.shadows && effects.shadows;
+    this.contact = level.shadows && effects.contact;
+    this.ultra = level.ultra;
     const data = this.data;
     if (!data) {
       this.centre.copy(target);
@@ -199,22 +203,25 @@ export class SunShadows {
 
   /**
    * After the atmosphere has placed the light: the box snapped to whole texels, the shade
-   * deepened, High's map set, and the boat's shadow laid away from the light.
+   * deepened, High's map set, the sea's shade and the contact shade, and the boat's shadow laid
+   * away from the light.
    */
-  settle(night: number) {
+  settle(night: number, ocean: Ocean) {
     const light = this.light;
+    const look = TUNING.graphics.shadows;
     this.toLight.subVectors(light.position, light.target.position).normalize();
-    blobOffset(this.toLight, TUNING.graphics.shadows.blobLift, this.blob);
+    blobOffset(this.toLight, look.blobLift, this.blob);
+    setContactShade(this.contact);
     if (!this.ultra) this.cast(this.drawn);
     const data = this.data;
-    this.seaShade = 0;
+    const seaShade = data ? look.sea * (1 + (data.nightStrength - 1) * night) : 0;
+    writeSeaShadow(ocean.mesh.material.uniforms, light.shadow, seaShade, look.seaSpread);
     if (!data) return;
-    this.seaShade = TUNING.graphics.shadows.sea * (1 + (data.nightStrength - 1) * night);
     const back = light.position.distanceTo(light.target.position);
     snapToTexels(this.centre, this.toLight, (2 * data.box) / data.mapSize, this.right, this.up);
     light.target.position.copy(this.centre);
     light.position.copy(this.centre).addScaledVector(this.toLight, back);
-    deepenShade(light, this.sky, TUNING.graphics.shadows.contrast, this.toLight.y);
+    deepenShade(light, this.sky, look.contrast, this.toLight.y);
     if (!this.ultra) applyShadow(light, this.renderer, shadowSettings(data, night, this.settings));
   }
 

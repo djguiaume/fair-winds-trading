@@ -20,7 +20,6 @@ import { ShallowsWater } from './shallowsWater';
 import { PALETTE } from './palette';
 import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
 import { SunShadows } from './sunShadows';
-import { setContactShade } from './models/contactShade';
 import { CourseSpar } from './courseSpar';
 import {
   gameRenderer,
@@ -559,15 +558,9 @@ export class GameView {
     const shownWeather = this.sea.shownWeather(this.world.weather);
     this.atmosphere.setView(this.rig.chase.eased, wind.speedKn);
     const shadows = this.sunShadows;
-    const sunShape = shadows.frame(
-      this.profile.shadows && this.effects.shadows,
-      this.profile.ultra,
-      this.target,
-      this.rig.seaCentre,
-    );
+    const sunShape = shadows.frame(this.profile, this.effects, this.target, this.rig.seaCentre);
     this.atmosphere.update(dt, day, shownWeather, this.ocean, shadows.centre, haze, sunShape);
-    shadows.settle(day.night);
-    setContactShade(this.profile.shadows && this.effects.contact);
+    shadows.settle(day.night, this.ocean);
     const gloom = this.atmosphere.gloom;
     this.atmosphere.closeFog(dist, day, haze);
     this.veil.update(haze, this.atmosphere.hazeColor);
@@ -657,8 +650,6 @@ export class GameView {
     lava?.color.multiplyScalar(1 + (TUNING.weather.volcano.eruptions.lavaGain - 1) * erupting);
     this.boat.setNightLighting?.(day.night);
     this.ocean.update(time, this.rig.seaCentre, this.effects, this.sea);
-    const seaShade = this.sunShadows.seaShade;
-    this.ocean.setShadow(this.sun.shadow, seaShade, TUNING.graphics.shadows.seaSpread);
     this.currentWater?.update(time, this.ocean, this.world.currentsOn);
     this.calmWater?.update(time, this.ocean, this.world.windZones);
     this.roughWater?.update(time, this.ocean, this.world.windZones);
@@ -781,11 +772,10 @@ export class GameView {
     tint.kind = null;
     const gloom = this.atmosphere.gloom;
     this.atmosphere.gloom = 0;
-    const shadows = this.sunShadows;
-    const sun = shadows.frame(this.sun.castShadow, this.profile.ultra, aim, aim);
+    const sun = this.sunShadows.frame(this.profile, this.effects, aim, aim);
     this.atmosphere.setView(0, 0);
-    this.atmosphere.update(0, day, this.world.weather, this.ocean, shadows.centre, tint, sun);
-    shadows.settle(day.night);
+    this.atmosphere.update(0, day, this.world.weather, this.ocean, aim, tint, sun);
+    this.sunShadows.settle(day.night, this.ocean);
     this.atmosphere.gloom = gloom;
     const fog = this.scene.fog as THREE.Fog;
     const { near, far } = fog;

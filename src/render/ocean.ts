@@ -11,7 +11,7 @@ import { oceanVertexShader as vertexShader, waveSag } from './oceanWaves';
 import { oceanFragmentShader as fragmentShader } from './oceanShader';
 import { type SeaWaves, gerstnerDefines, gerstnerUniforms } from './seaWaves';
 import { type GustUniforms, gustUniforms } from './seaGusts';
-import { seaShadowUniforms, writeSeaShadow } from './seaShadow';
+import { seaShadowUniforms } from './seaShadow';
 import { SHORE_WASH_UNIFORMS, shoreWashOff } from './shoreWash';
 
 /** Conservative displacement bound: the classic waves' three amplitudes, or every band's cap. */
@@ -316,11 +316,6 @@ export class Ocean {
     const u = this.mesh.material.uniforms;
     (u.uSunDir!.value as THREE.Vector3).copy(dir);
     (u.uSunColor!.value as THREE.Color).copy(color).multiplyScalar(intensity);
-  }
-
-  /** The sun's shadows on the water (issue #550): `shade` 0 = none; levels without glint skip. */
-  setShadow(shadow: THREE.DirectionalLightShadow, shade: number, spread: number): void {
-    writeSeaShadow(this.mesh.material.uniforms, shadow, shade, spread);
   }
 
   /**
