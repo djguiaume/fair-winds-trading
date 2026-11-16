@@ -9,7 +9,7 @@ Guillaume's condition for the follow cam to become the default (#573, 2026-11-12
 ## Decision
 
 - **One air.** Fog, background and the dome's horizon share one colour in both views: the sea's haze blended toward the sky look's horizon by `graphics.sky.air` (shipped 1). The dome draws the sky look above a haze line (`sky.hazeLineDeg`). The view only changes what geometry needs: how much sky is in frame and the mirror's angle.
-- **A softer mirror from behind.** `sky.reflection` 0.7 → 0.25, now at night and in storms too; the follow cam keeps the top view's sea blue.
+- **A softer mirror from behind.** `sky.reflection` 0.7 → 0.25 (0.45 since #624), now at night and in storms too; the follow cam keeps the top view's sea blue.
 - **Clearer mid-distance in both views.** `weather.sight.near` 1.3 → 1.9 camera distances; the far end stays 2.4, so nothing past it shows and `camera.far` is unchanged.
 - **Ultra's screen haze** fades out in the follow cam, whose top of screen is sky, not far sea.
 - **A bluer day sky** (option C): `sky.looks.day` horizon `#7fc0e6`, zenith `#3f8ed6`.

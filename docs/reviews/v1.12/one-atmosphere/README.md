@@ -60,3 +60,7 @@ Sea ΔE, top vs follow; "sun" = looking into the sun or moon (≤ 10). 17 of 18 
 **Known exception (art director, 2026-11-15):** the open sea at golden hour, sea ΔE 7.2. The low sun is 64° off the bow, past the 60° into-the-sun line (kept at 60° on purpose), and its wide glitter lightens the follow cam's sea. Owned by #550 (light) and #551 (water); #550 checks it again with `--both`.
 
 Run it: `npm run shots -- --at 285,-60 --heading 180 --time 175 --both --sizes desktop` (prints the table, writes `colors.json`).
+
+## Follow-up: Saltmere golden hour (#624)
+
+Docked at Saltmere at golden hour (`--time 1800`, phone landscape) the sea read ΔE 5.4 against the limit of 5: the follow cam was a little darker than the top view. `sky.reflection` 0.25 → 0.45 brings the follow cam's sea up (landscape 3.7, desktop 2.6); every other hour at Saltmere still passes (largest: 7.0 looking into the sun, limit 10). Sheet: [../saltmere-golden/before-after.jpg](../saltmere-golden/before-after.jpg) (top | follow cam, before above, after below).
