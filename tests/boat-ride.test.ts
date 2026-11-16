@@ -118,15 +118,17 @@ describe('boat ride (issue #283)', () => {
     const sea = windSea(20);
     const ride = new BoatRide();
     let worst = 0;
+    let highest = 0;
     for (let i = 0; i < 60 * 600; i++) {
       const t = 5000 + i / 60;
       const pose = ride.update((x, z) => sea(x, z, t), 0, 0, 0, sloop, t, atSea);
       expect(Number.isFinite(pose.lift + pose.pitch + pose.roll)).toBe(true);
+      highest = Math.max(highest, Math.abs(sea(0, 0, t)));
       if (i > 60) worst = Math.max(worst, Math.abs(pose.lift - sea(0, 0, t)));
     }
-    // Hull averaging and the short rise smoothing: the sloop's waterline stays within 0.35 units
-    // of the sea at her middle in a 20 kn sea about ±1.8 units high.
-    expect(worst).toBeLessThan(0.35);
+    // Hull averaging and the short rise smoothing: the sloop's waterline stays within a quarter of
+    // the sea's height of the sea at her middle (a 20 kn sea about ±3.5 units high, issue #551).
+    expect(worst).toBeLessThan(0.25 * highest);
     const nan = new BoatRide().update(() => Number.NaN, 0, 0, 0, sloop, 0, atSea);
     expect(nan).toEqual({ lift: 0, pitch: 0, roll: 0 });
   });

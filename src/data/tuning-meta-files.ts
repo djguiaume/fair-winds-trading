@@ -18,6 +18,7 @@ import { UI_META } from './tuning-meta-ui';
 import { SKY_META } from './tuning-meta-sky';
 import { REFLECTION_META } from './tuning-meta-reflection';
 import { GUSTS_META } from './tuning-meta-gusts';
+import { OPEN_SEA_META } from './tuning-meta-open-sea';
 import { SMOOTHNESS_META } from './tuning-meta-smoothness';
 import { FOLLOW_LOOK_META } from './tuning-meta-follow-look';
 import { SHADOWS_META } from './tuning-meta-shadows';
@@ -43,6 +44,7 @@ export const FILE_METAS: Readonly<Record<string, TuningMeta>> = {
   ...SKY_META,
   ...REFLECTION_META,
   ...GUSTS_META,
+  ...OPEN_SEA_META,
   ...SMOOTHNESS_META,
   ...FOLLOW_LOOK_META,
   ...SHADOWS_META,

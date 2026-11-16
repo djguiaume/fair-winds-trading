@@ -64,12 +64,16 @@ export function coastSample(grid: CoastGrid, x: number, z: number) {
   return sample;
 }
 
-/** Each band's share of its waves at `depth` and `exposure` (both 0..1), into `out`. */
+/**
+ * Each band's share of its waves at `depth` and `exposure` (both 0..1), into `out`; never under
+ * the band's `coast.keep`, so a closed harbour still ripples (issue #551).
+ */
 export function bandCalm(depth: number, exposure: number, out: BandCalm): BandCalm {
   const c = TUNING.waves.coast;
   const shelter = c.sheltered + (1 - c.sheltered) * smoothstep(c.shelteredAt, c.openAt, exposure);
   WAVE_BANDS.forEach((band, b) => {
-    out[b] = (c.floor + (1 - c.floor) * smoothstep(0, c.reach[band], depth)) * shelter;
+    const calm = (c.floor + (1 - c.floor) * smoothstep(0, c.reach[band], depth)) * shelter;
+    out[b] = Math.max(c.keep[band], calm);
   });
   return out;
 }

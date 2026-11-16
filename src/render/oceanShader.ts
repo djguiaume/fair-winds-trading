@@ -5,6 +5,7 @@ import { waveFineShader, waveShadingVaryings } from './oceanWaves';
 import { surfFunctions, surfLinesShader } from './shoreWash';
 import { gustFunctions, gustShader } from './seaGusts';
 import { seaShadowFunctions } from './seaShadow';
+import { cloudFunctions, cloudShader } from './seaClouds';
 
 /**
  * The ocean's colours (`ocean.ts`): flat shaded, by the seabed's depth or the classic shallow
@@ -69,11 +70,14 @@ uniform vec3 uGlintFade;
 // Soft shore foam: full strength out to x, fading over y, opacity z, outer line w.
 uniform vec4 uFoamLook;
 #endif
-#if defined(COAST) || defined(GUSTS)
+#if defined(COAST) || defined(GUSTS) || defined(CLOUDS)
 ${seaFoamFunctions}
 #endif
 #ifdef GUSTS
 ${gustFunctions}
+#endif
+#ifdef CLOUDS
+${cloudFunctions}
 #endif
 #ifdef COAST
 // The sea now (x: how rough, y: how wide the shore foam grows, z: surf, w: whitecaps), and per
@@ -129,6 +133,10 @@ void main() {
   // mirror and the glint keep the true ones.
   slope *= uWaveLook.w;
   vec3 shade = normalize(vec3(slope.x, 1.0, slope.y));
+  // A slope facing a low camera looks into the water, one turned away catches the sky: the
+  // waves read from the follow cam without changing the sea's mean colour (issue #551).
+  vec3 eye = normalize(cameraPosition - vWorld);
+  float facing = (dot(shade, eye) - eye.y) * near;
 #else
   // Low (issue #548): the coarse grid's flat facets read as square tiles, so the sea is one smooth
   // light and only the crest colour shows the swell.
@@ -156,7 +164,9 @@ void main() {
 #if defined(GERSTNER) && !defined(PLAIN)
   // Lit crest faces, darker troughs (issue #282), whatever the sea's height.
   col *= 1.0 + uWaveTone.y * (smoothstep(-0.8, 0.8, height / uWaveTone.z) - 0.5);
-  light = mix(1.0, light, uWaveTone.x);
+  // The swell's long lines, darker in its troughs, seen from above on the open sea (issue #546).
+  col *= 1.0 + uSwellLook.x * (smoothstep(-1.0, 1.0, vSwell) - 0.5);
+  light = mix(1.0, light, uWaveTone.x) * (1.0 - clamp(uWaveView.x * facing, -uWaveView.y, uWaveView.y));
 #else
   col *= 1.0 + uDepthLook.y * (smoothstep(-0.35, 0.45, height) - 0.5);
   light = mix(1.0, light, uDepthLook.z);
@@ -241,6 +251,10 @@ void main() {
   float glint = pow(max(dot(n, normalize(uSunDir + toEye)), 0.0), uGlintSharpness);
   glint *= 1.0 - smoothstep(uGlintFade.x, uGlintFade.y, toEye.y);
   col += uSunColor * min(glint * uGlint, uGlintFade.z) * sunLit;
+#endif
+#ifdef CLOUDS
+  // Cloud shadows drifting downwind (issue #546), on the reflections and the glint too.
+  ${cloudShader}
 #endif
   col = mix(col, uFogColor, smoothstep(uFogNear, uFogFar, vFogDepth));
   gl_FragColor = vec4(col, 1.0);
