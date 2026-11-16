@@ -72,6 +72,47 @@
   background: var(--ui-sage);
   color: var(--ui-on-sage);
 }
+/* The cards and the ship chips are wider than Boat looks' pages: no word of its own line, no overflow. */
+.free-setup {
+  --ui-harbour-looks-slots: max(300px, 26vw);
+  --ui-harbour-looks-items: max(380px, 28vw);
+}
+html[data-layout='phone'] .free-setup {
+  --ui-harbour-looks-slots: 252px;
+  --ui-harbour-looks-items: 268px;
+}
+.free-setup .fs-presets {
+  min-width: 0;
+}
+.fs-preset {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+html[data-layout='phone'] .fs-preset .ui-card-title {
+  font-size: var(--fs-head);
+}
+/* Equal chips in a grid: two a row; the longest name wraps inside its chip. */
+.free-setup .fs-ships {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ui-space-1);
+}
+.free-setup .fs-ships button {
+  min-width: 0;
+  padding: var(--ui-space-1) var(--ui-space-2);
+  border: 1px solid var(--ui-rule);
+  line-height: 1.1;
+  text-align: center;
+}
+.free-setup .fs-ships button[aria-pressed='true'] {
+  border-color: var(--ui-ink);
+}
+html[data-layout='phone'] .free-setup .fs-ships button {
+  min-height: 32px;
+  font-size: var(--fs-text);
+}
+
 /* Ship and upgrades scroll; Set sail stays pinned under them. */
 .free-setup .bl-items {
   overflow: hidden;
