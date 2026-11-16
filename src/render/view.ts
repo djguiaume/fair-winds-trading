@@ -19,6 +19,7 @@ import { CurrentWater } from './currentWater';
 import { ShallowsWater } from './shallowsWater';
 import { PALETTE } from './palette';
 import { BuoyMarker, EdgeBuoys, createBlobShadow } from './props';
+import { SunShadows } from './sunShadows';
 import { CourseSpar } from './courseSpar';
 import {
   gameRenderer,
@@ -135,6 +136,8 @@ export class GameView {
   private level: QualityLevel;
   private readonly rigPose = new RigPose();
   private readonly boatShadow = createBlobShadow(6.5, 14);
+  /** The sun's shadows on High and Ultra: box, light shape, shade (issue #550). */
+  private readonly sunShadows: SunShadows;
   private readonly wake = new Wake(this.sea.heightAt);
   /** Splash and planks from crashes and reef strikes (decision 0208). */
   private readonly debris = new ImpactDebris();
@@ -192,15 +195,8 @@ export class GameView {
     this.scene.background = new THREE.Color(PALETTE.deepWater);
     this.scene.fog = new THREE.Fog(PALETTE.deepWater, 120, 220);
     this.scene.add(this.hemi);
-    this.sun.shadow.mapSize.set(1024, 1024);
-    Object.assign(this.sun.shadow.camera, {
-      left: -70,
-      right: 70,
-      top: 70,
-      bottom: -70,
-      near: 1,
-      far: 160,
-    });
+    this.sun.shadow.camera.near = 1;
+    this.sunShadows = new SunShadows(this.renderer, this.sun, this.hemi);
     this.scene.add(this.sun, this.sun.target);
 
     this.levels = townLevels(world.map, world.trade);
@@ -561,7 +557,10 @@ export class GameView {
     const ultra = this.profile.ultra ? this.ultra : undefined;
     const shownWeather = this.sea.shownWeather(this.world.weather);
     this.atmosphere.setView(this.rig.chase.eased, wind.speedKn);
-    this.atmosphere.update(dt, day, shownWeather, this.ocean, this.target, haze, ultra?.sunShape);
+    const shadows = this.sunShadows;
+    const sunShape = shadows.frame(this.profile, this.effects, this.target, this.rig.seaCentre);
+    this.atmosphere.update(dt, day, shownWeather, this.ocean, shadows.centre, haze, sunShape);
+    shadows.settle(day.night, this.ocean);
     const gloom = this.atmosphere.gloom;
     this.atmosphere.closeFog(dist, day, haze);
     this.veil.update(haze, this.atmosphere.hazeColor);
@@ -596,7 +595,7 @@ export class GameView {
     );
     this.boat.root.position.set(pos.x, ride.lift, pos.z);
     this.boat.root.rotation.set(ride.pitch, -boat.heading, ride.roll, 'YXZ');
-    this.boatShadow.position.set(pos.x + 1.8, 0.55 + ride.lift, pos.z - 1);
+    this.boatShadow.position.set(pos.x + shadows.blob.x, 0.55 + ride.lift, pos.z + shadows.blob.y);
     this.boatShadow.rotation.y = -boat.heading;
 
     this.wake.update(dt, time, pos, dir.x, -dir.y, boat.speedKn, this.boat.wakeHull);
@@ -773,9 +772,10 @@ export class GameView {
     tint.kind = null;
     const gloom = this.atmosphere.gloom;
     this.atmosphere.gloom = 0;
-    const sun = this.profile.ultra ? this.ultra?.sunShape : undefined;
+    const sun = this.sunShadows.frame(this.profile, this.effects, aim, aim);
     this.atmosphere.setView(0, 0);
     this.atmosphere.update(0, day, this.world.weather, this.ocean, aim, tint, sun);
+    this.sunShadows.settle(day.night, this.ocean);
     this.atmosphere.gloom = gloom;
     const fog = this.scene.fog as THREE.Fog;
     const { near, far } = fog;

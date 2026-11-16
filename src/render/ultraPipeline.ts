@@ -2,17 +2,17 @@ import * as THREE from 'three';
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js';
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import { TUNING } from '../data/tuning';
-import { DEG } from '../sim/math';
 import { ShadowCasters } from './shadowCasters';
-import type { SunShape } from './atmosphere';
 import { GradeShader } from './gradeShader';
-import { leanShadowMap } from './shadowTarget';
+import { type ShadowSettings, applyShadow, shadowSettings } from './sunShadows';
 import { UltraBloom } from './ultraBloom';
 
 /** The effects the player can switch off one by one (Settings, decision 0221). */
 export interface GraphicsEffects {
-  /** Ultra's soft shadows on everything. */
+  /** The sun's shadows: on everything on Ultra, the land and the sea on High (issue #550). */
   shadows: boolean;
+  /** Houses, trees and quays darken toward their foot, on High and Ultra (issue #550). */
+  contact: boolean;
   /** Ultra's ambient occlusion. */
   occlusion: boolean;
   /** Ultra's tone mapping (Neutral, decision 0221). */
@@ -36,6 +36,7 @@ export interface GraphicsEffects {
 /** Every effect on: the view's default before Settings are applied. */
 export const allEffects = (): GraphicsEffects => ({
   shadows: true,
+  contact: true,
   occlusion: true,
   toneMapping: true,
   haze: true,
@@ -49,17 +50,6 @@ export const allEffects = (): GraphicsEffects => ({
 interface OcclusionInternals {
   _overrideVisibility(): void;
   _visibilityCache: THREE.Object3D[];
-}
-
-/** The shadow settings the other levels use, put back when Ultra is left. */
-interface ShadowSnapshot {
-  mapSize: number;
-  radius: number;
-  bias: number;
-  normalBias: number;
-  box: number;
-  far: number;
-  intensity: number;
 }
 
 /**
@@ -89,8 +79,7 @@ export class UltraPipeline {
   });
   private readonly screen = new FullScreenQuad(this.grade);
   private readonly casters = new ShadowCasters();
-  private readonly highShadow: ShadowSnapshot;
-  private readonly sun: SunShape = { height: 1, turn: 0, distance: 60 };
+  private readonly shadow = {} as ShadowSettings;
   private active = false;
   private samples = -1;
   /** The occlusion numbers last given to the pass, so its material is only rebuilt on a change. */
@@ -119,16 +108,6 @@ export class UltraPipeline {
     this.occlusion.output = GTAOPass.OUTPUT.Off;
     this.grade.uniforms.tOcclusion!.value = this.occlusion.pdRenderTarget.texture;
     this.hideFromOcclusion();
-    const s = light.shadow;
-    this.highShadow = {
-      mapSize: s.mapSize.x,
-      radius: s.radius,
-      bias: s.bias,
-      normalBias: s.normalBias,
-      box: s.camera.right,
-      far: s.camera.far,
-      intensity: s.intensity,
-    };
   }
 
   /**
@@ -153,23 +132,13 @@ export class UltraPipeline {
     return TUNING.graphics.ultra.night;
   }
 
-  /** Where the sun stands on Ultra: lower, and turned so noon shadows fall to the side. */
-  get sunShape(): SunShape {
-    const s = TUNING.graphics.ultra.shadows;
-    this.sun.height = s.sunHeight;
-    this.sun.turn = s.sunTurnDeg * DEG;
-    this.sun.distance = s.distance;
-    return this.sun;
-  }
-
   /** Turn the pipeline on (Ultra picked) or off (another level), and the soft shadows with it. */
   setActive(on: boolean) {
     if (on === this.active) return;
     this.active = on;
-    if (!on) {
-      this.casters.restore(this.scene);
-      this.applyShadow(this.highShadow);
-    } else this.casters.markDirty();
+    // Leaving Ultra, High's shadows (`SunShadows`) take the light back at the next frame.
+    if (!on) this.casters.restore(this.scene);
+    else this.casters.markDirty();
   }
 
   /** Something was added to or rebuilt in the scene: cast its shadows at the next frame. */
@@ -262,37 +231,10 @@ export class UltraPipeline {
 
   /** Soft shadows sized from the tuning; dimmer under the moon so the night is never black. */
   private followShadows(night: number) {
-    const s = TUNING.graphics.ultra.shadows;
     this.renderer.shadowMap.enabled = this.effects.shadows;
     this.light.castShadow = this.effects.shadows;
-    this.applyShadow({
-      mapSize: s.mapSize,
-      radius: s.radius,
-      bias: s.bias,
-      normalBias: s.normalBias,
-      box: s.box,
-      far: s.distance + s.box,
-      intensity: lerp(1, s.nightStrength, night),
-    });
-  }
-
-  private applyShadow(want: ShadowSnapshot) {
-    const shadow = this.light.shadow;
-    if (shadow.mapSize.x !== want.mapSize) {
-      shadow.mapSize.set(want.mapSize, want.mapSize);
-      shadow.map?.dispose();
-      shadow.map = leanShadowMap(want.mapSize, this.renderer.state.buffers.depth.getReversed());
-    }
-    shadow.radius = want.radius;
-    shadow.bias = want.bias;
-    shadow.normalBias = want.normalBias;
-    shadow.intensity = want.intensity;
-    const cam = shadow.camera;
-    if (cam.right !== want.box || cam.far !== want.far) {
-      Object.assign(cam, { left: -want.box, right: want.box, top: want.box, bottom: -want.box });
-      cam.far = want.far;
-      cam.updateProjectionMatrix();
-    }
+    const want = shadowSettings(TUNING.graphics.ultra.shadows, night, this.shadow);
+    applyShadow(this.light, this.renderer, want);
   }
 
   /** A new sample count needs a new scene target. */
