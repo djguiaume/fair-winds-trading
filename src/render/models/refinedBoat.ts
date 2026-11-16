@@ -1,7 +1,7 @@
 import { SLOOP_HULL, type HullShape } from '../../sim/hullShape';
 import * as THREE from 'three';
 import { BOAT_SCALE, STYLE_D as ST } from './boatStyle';
-import { isGlowing, mergeAll, paint, triangleCount, vertexColorMaterial } from './geometry';
+import { isGlowing, mergeAll, paint, triangleCount } from './geometry';
 import type { BoatCargo, BoatDetails } from './boatDetails';
 import { DEFAULT_DAMAGE, type FigureheadMount, type ShipDamageData } from '../../data/ships';
 import { DEG } from '../../sim/math';
@@ -10,7 +10,7 @@ import { Faces, hullGeometry } from './hullGeometry';
 import { resolveBoatLook, strakeColour } from './boatLook';
 import { cloth, type ClothDress, type ClothWear } from './sailCloth';
 import { mainsailMarks } from './sailMarks';
-import { sailCanvasMaterial } from './sailCanvas';
+import { boatSailMaterial, boatWoodMaterial } from './boatSurfaces';
 import { figureheadParts } from './figurehead';
 import {
   STOCK_UPGRADES,
@@ -297,8 +297,8 @@ export class RefinedBoat implements BoatModel {
     const look = resolveBoatLook({ bandColor: BAND, sailBandColor: rig.sailBand }, options.look);
     const sailMarks = mainsailMarks(look, options.sailNumber, !!rig.squareMasts?.length);
     this.riggingEnabled = options.rigging ?? true;
-    const wood = vertexColorMaterial();
-    const canvas = sailCanvasMaterial();
+    const wood = boatWoodMaterial();
+    const canvas = boatSailMaterial();
     this.disposables.push(wood, canvas);
     const mesh = (g: THREE.BufferGeometry, material: THREE.Material, name: string) => {
       this.disposables.push(g);

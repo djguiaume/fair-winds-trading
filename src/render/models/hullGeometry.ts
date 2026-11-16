@@ -3,6 +3,7 @@ import { DEFAULT_DAMAGE } from '../../data/ships';
 import { SLOOP_HULL } from '../../sim/hullShape';
 import { STYLE_D as ST } from './boatStyle';
 import type { RefinedRig } from './refinedBoat';
+import { plankedHull } from './boatSurfaces';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
@@ -157,7 +158,7 @@ export function hullGeometry(
       ] as const)
         f.quad(deck(u0, w0), deck(u0, w1), deck(u1, w1), deck(u1, w0), scuffed(ST.deck));
     }
-  return f.geometry();
+  return plankedHull(f.geometry());
 }
 
 /** A colour scuffed: mixed 40 % toward warm charcoal, never grey (decision 0208; a quarter was too faint). */

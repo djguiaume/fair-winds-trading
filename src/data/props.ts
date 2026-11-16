@@ -59,6 +59,8 @@ export interface RecipePart {
   color?: string | { pick: Num; of: string[] } | { leanTo: string } | { capOn: string };
   /** Lit glass: drawn by the window mesh that lights up at night. */
   glow?: boolean;
+  /** Its surface pattern near the camera (issue #572), else its colour name's; "none" for plain. */
+  surface?: string;
   /**
    * Each face takes a colour from the whole list `color` names (a style's list, decision 0182):
    * a moss fleck on a boulder. A single colour paints as without it.
@@ -129,7 +131,9 @@ export interface Palette {
   /** Named colours, and lists of them. */
   colors: Record<string, string | string[]>;
   /** Walls and roofs per island style. */
-  styles: Record<string, { walls: string[]; roofs: string[] }>;
+  styles: Record<string, { walls: string[]; roofs: string[]; surfaces?: Record<string, string> }>;
+  /** The surface pattern each colour name takes near the camera (issue #572). */
+  surfaces: Record<string, string>;
   /** The lean-to roof shift and the chimney cap contrast, in lightness (0 to 1). */
   roofTones: { leanToShift: number; leanToDarkUnder: number; capContrast: number };
 }

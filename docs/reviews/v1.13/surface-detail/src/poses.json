@@ -1,0 +1,6 @@
+[
+ {"name":"town-noon","at":"679,450","heading":39,"wait":2000,"town":"amber-strand:4","time":175},
+ {"name":"town-golden","at":"679,450","heading":39,"wait":2000,"town":"amber-strand:4","time":385},
+ {"name":"sail-noon","at":"-228.7,42.1","heading":283,"wait":5000,"town":"westholm:4","time":175},
+ {"name":"sail-golden","at":"-228.7,42.1","heading":283,"wait":5000,"town":"westholm:4","time":385}
+]
