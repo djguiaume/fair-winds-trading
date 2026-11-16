@@ -30,9 +30,11 @@ html[data-layout='phone'] #hud .hud-quest .icon {
 }
 
 /* The compass: dial a size smaller; the point of sail and the wind words on one plate under it. */
+/* The dial hugs the corner edge, so the view buttons beside it never land on it when the plate
+   under it is wider than the dial. */
 html[data-layout='phone'] .hud-wind {
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   gap: 0;
 }
 html[data-layout='phone'] .hud-dial {
@@ -161,6 +163,7 @@ html[data-layout='phone'][data-left-handed] .hud-actions {
 html[data-layout='phone'][data-left-handed] .hud-wind {
   right: auto;
   left: var(--left);
+  align-items: flex-start;
 }
 html[data-layout='phone'][data-left-handed] .hud-status {
   right: calc(var(--right) + var(--ui-space-2));
