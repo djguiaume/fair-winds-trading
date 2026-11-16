@@ -820,22 +820,6 @@ export const TUNING_META: Readonly<Record<string, TuningMeta>> = {
   'weather.daylight.dayEnd': num('Day ends', 0, 7200, 10, 's', 'Sunset begins.'),
   'weather.daylight.duskEnd': num('Dusk ends', 0, 7200, 10, 's', 'Full night.'),
   'weather.daylight.nightEnd': num('Night ends', 0, 7200, 10, 's', 'Dawn begins.'),
-  'weather.daylight.moonRise': num(
-    'Moonrise',
-    20,
-    23,
-    0.25,
-    'h',
-    'Clock hour the moon rises in the east; the twilight light swings round to it from the west.',
-  ),
-  'weather.daylight.moonSet': num(
-    'Moonset',
-    3,
-    5.75,
-    0.25,
-    'h',
-    'Clock hour the moon sets in the west; the light swings round to the sunrise in the east.',
-  ),
 
   // --- weather.json currents and wind zones (decision 0140) ---
   'weather.currents.smoothRounds': num(

@@ -1,4 +1,4 @@
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import { TUNING } from '../data/tuning';
 
 /**
@@ -25,8 +25,15 @@ export function addSunThrough(shader: THREE.WebGLProgramParametersWithUniforms) 
     );
 }
 
-/** A plain sail material with the glow. */
-export function withSunThrough<M extends THREE.MeshLambertMaterial>(material: M, key: string): M {
+/** A plain flat-shaded sail of vertex colours, lit a little from within (`glow`), with the glow. */
+export function sunlitSail(glow: number, key: string) {
+  const material = new THREE.MeshLambertMaterial({
+    vertexColors: true,
+    side: THREE.DoubleSide,
+    flatShading: true,
+    emissive: '#ffffff',
+    emissiveIntensity: glow,
+  });
   material.onBeforeCompile = addSunThrough;
   material.customProgramCacheKey = () => key;
   return material;

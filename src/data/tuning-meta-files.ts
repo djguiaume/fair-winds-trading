@@ -23,6 +23,7 @@ import { SMOOTHNESS_META } from './tuning-meta-smoothness';
 import { FOLLOW_LOOK_META } from './tuning-meta-follow-look';
 import { SHADOWS_META } from './tuning-meta-shadows';
 import { GLITTER_META } from './tuning-meta-glitter';
+import { DAYLIGHT_META } from './tuning-meta-daylight';
 
 /** The meta entries kept in their own files, one subject each, so tuning-meta.ts stays readable. */
 export const FILE_METAS: Readonly<Record<string, TuningMeta>> = {
@@ -50,4 +51,5 @@ export const FILE_METAS: Readonly<Record<string, TuningMeta>> = {
   ...FOLLOW_LOOK_META,
   ...SHADOWS_META,
   ...GLITTER_META,
+  ...DAYLIGHT_META,
 };
