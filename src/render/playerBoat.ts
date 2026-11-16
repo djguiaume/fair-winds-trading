@@ -72,6 +72,7 @@ export class PlayerBoat {
       upgrades,
       damage: this.damage as 0 | 1 | 2 | 3,
       look: this.worn.look,
+      closeUp: true,
       ...(flag ? { flag } : {}),
       ...(racing ? { sailNumber: BOAT_LOOK_FILE.marks.player } : {}),
     });

@@ -24,6 +24,8 @@ export interface BoatPose {
   /** Direction the wind blows toward, relative to the bow (radians, for flags/pennants). */
   windRelative: number;
   time: number;
+  /** The helm, -1 (turning to port) .. 1 (to starboard): a close-up boat's tiller turns with it. */
+  rudder?: number;
 }
 
 export interface BoatModel {
@@ -37,6 +39,8 @@ export interface BoatModel {
   setNightLighting?(night: number): void;
   /** Optional: drop fine details (rigging lines) at the low quality setting. */
   setLowDetail?(low: boolean): void;
+  /** Optional: show the close-up details (the crew aboard, issue #553) while the camera is near. */
+  setCloseUp?(near: boolean): void;
   dispose(): void;
 }
 
@@ -69,6 +73,9 @@ export interface BoatModelOptions {
   sailNumber?: string;
   /** Cosmetic colours and figurehead (decision 0259); left out, the class's stock look. */
   look?: Partial<BoatLook>;
+  /** The player's boat seen up close (issue #553): crew aboard, a tiller that turns with the
+   * helm, sails that belly with the point of sail (`graphics.json › closeUp`). */
+  closeUp?: boolean;
 }
 
 export type BoatModelFactory = (shipClassId: string, options?: BoatModelOptions) => BoatModel;

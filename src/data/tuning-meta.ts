@@ -16,6 +16,7 @@ export { TUNING_GROUPS } from './tuning-meta-groups';
 /** Objects whose keys are ids: their children are written `*` in meta paths. */
 export const ID_COLLECTIONS: readonly string[] = [
   'ships',
+  'graphics.closeUp.hands',
   'goods',
   'difficulty.levels',
   'weather.default.kinds',

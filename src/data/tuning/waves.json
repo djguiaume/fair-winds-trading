@@ -180,7 +180,10 @@
       },
       "storm": 0.5,
       "dockSec": 2
-    }
+    },
+    "cameraLean": 0.3,
+    "cameraLeanMaxDeg": 3,
+    "cameraLeanEase": 0.8
   },
   "drag": {
     "perUnit": 0.05,
@@ -200,5 +203,22 @@
     "max": 0.1,
     "sampleSec": 2,
     "hudAt": 0.02
+  },
+  "spray": {
+    "colour": "#dbe9ee",
+    "minKn": 3,
+    "fullKn": 7,
+    "bowRate": 70,
+    "life": 1.1,
+    "sizeMin": 0.18,
+    "sizeMax": 0.6,
+    "rise": 5,
+    "outward": 3.5,
+    "gravity": 12,
+    "headBoost": 2,
+    "headRise": 0.6,
+    "heelRateDeg": 10,
+    "heelBurst": 10,
+    "bumpBurst": 14
   }
 }
