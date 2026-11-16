@@ -1,10 +1,10 @@
-# Storyteller handover to v1.12 (2026-11-15, after v1.11)
+# Storyteller handover to v1.13 (2026-11-16, after v1.12)
 
-From "Storyteller (v1.11)" to the next storyteller thread. Format: [roles.md](../roles.md). Voice, cast and rulings live in the [storyteller brief](storyteller-brief.md); this file says what is open.
+From "Storyteller (v1.12)" to the next storyteller thread. Format: [roles.md](../roles.md). Voice, cast and rulings live in the [storyteller brief](storyteller-brief.md); this file says what is open.
 
 ## Open decisions
 
-Nothing waits on Guillaume. v1.11 "Welcome aboard" (v1.11.440) asked once; answers are in [v1.11-rulings.md](v1.11-rulings.md): the opening line, the six-step first voyage, the first-market trading hints, the opening place and hour. v1.12 (light and water) and v1.13 (softness) need no new words unless a build thread asks.
+Nothing waits on Guillaume. v1.11 "Welcome aboard" (v1.11.440) asked once; answers are in [v1.11-rulings.md](v1.11-rulings.md): the opening line, the six-step first voyage, the first-market trading hints, the opening place and hour. v1.12 "Light and water" (v1.12.456) needed no story work and asked nothing. v1.13 (softness) needs no new words unless a build thread asks.
 
 Not checked since: the built French of the market hints against the rulings, and the Settings/menu wording for where the sailing lessons live (`lesson.done.copy` vs `market.done.copy`).
 
