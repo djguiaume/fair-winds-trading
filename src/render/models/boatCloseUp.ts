@@ -138,7 +138,7 @@ function sailor(look: BoatLook): THREE.BufferGeometry[] {
     variant: 0,
     shape: 0.5,
     size: 1,
-    colors: { coat: look.hullBand, cap: look.sailBand },
+    colors: { coats: [look.hullBand], cap: look.sailBand },
   });
   const size = TUNING.graphics.closeUp.crewSize;
   for (const g of parts) g.scale(size, size, size);

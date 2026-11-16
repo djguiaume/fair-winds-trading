@@ -1,0 +1,15 @@
+[
+  { "name": "follow-3kn", "chase": true, "sail": 1, "heading": 12, "speed": 3 },
+  { "name": "follow-5kn", "chase": true, "sail": 2, "heading": 15, "speed": 5 },
+  { "name": "follow-7kn", "chase": true, "sail": 2, "heading": 330, "speed": 7 },
+  { "name": "top-3kn", "sail": 1, "heading": 12, "speed": 3, "zoom": 0.6 },
+  { "name": "top-5kn", "sail": 2, "heading": 15, "speed": 5, "zoom": 0.6 },
+  { "name": "top-7kn", "sail": 2, "heading": 330, "speed": 7, "zoom": 0.6 },
+  { "name": "side-a", "chase": true, "sail": 2, "heading": 330, "speed": 7, "pad": "rx=1:2200" },
+  { "name": "side-b", "chase": true, "sail": 2, "heading": 330, "speed": 7, "pad": "rx=1:2200", "tune": "docs/reviews/v1.13/boat-up-close/src/option-b.json" },
+  { "name": "follow-b", "chase": true, "sail": 2, "heading": 330, "speed": 7, "tune": "docs/reviews/v1.13/boat-up-close/src/option-b.json" },
+  { "name": "tack", "chase": true, "sail": 2, "heading": 330, "speed": 6, "script": "docs/reviews/v1.13/boat-up-close/src/turn-tack.js,docs/reviews/v1.13/boat-up-close/src/turn.js" },
+  { "name": "gybe", "chase": true, "sail": 2, "heading": 330, "speed": 6, "script": "docs/reviews/v1.13/boat-up-close/src/turn-gybe.js,docs/reviews/v1.13/boat-up-close/src/turn.js" },
+  { "name": "luff", "chase": true, "sail": 2, "heading": 330, "speed": 5, "script": "docs/reviews/v1.13/boat-up-close/src/turn-luff.js,docs/reviews/v1.13/boat-up-close/src/turn.js" },
+  { "name": "reef", "chase": true, "sail": 1, "heading": 330, "speed": 5 }
+]

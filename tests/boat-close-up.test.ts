@@ -88,6 +88,8 @@ describe('the boat up close', () => {
   });
 
   it('carries the hands each class is given, and option B adds one to every ship', () => {
+    const hands = TUNING.graphics.closeUp.hands as Record<string, number>;
+    expect(Object.keys(hands).sort()).toEqual(SHIP_FILES.map((f) => f.id).sort());
     expect(handsAboard('sloop')).toBe(0);
     expect(handsAboard('indiaman')).toBe(2);
     TUNING.graphics.closeUp.extraHands = 1;

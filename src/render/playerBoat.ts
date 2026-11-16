@@ -7,13 +7,15 @@ import type { TradeState } from '../sim/trade';
 import BOAT_LOOK_FILE from '../data/boat-look.json';
 import { wearFromSearch, wornLook, type WornLook } from './boatAppearance';
 import { type BoatModel, type ShipUpgrades, type UpgradeLevel, createBoatModel } from './models';
+import { handsAboard } from './models/boatCloseUp';
 
 const level = (n: number | undefined) => clamp(Math.round(n ?? 1), 1, 3) as UpgradeLevel;
 
 /**
  * What the player's boat shows, and when it must be rebuilt: her class and upgrade levels
  * (decision 0016), damage step (0208), the pennant won (0217), her look (decision 0263, issue
- * #418) and the racing number while a race runs (the number hides the logo). `stale` compares
+ * #418), the racing number while a race runs (the number hides the logo) and her crew up close
+ * (0326). `stale` compares
  * plain values each frame without allocating; `build` makes the model.
  */
 export class PlayerBoat {
@@ -23,6 +25,8 @@ export class PlayerBoat {
   private flag: FlagDef | undefined;
   private racing = false;
   private lookRef: unknown = null;
+  /** Her hands aboard up close (issue #553): a `?tune` change rebuilds her at once. */
+  private hands = -1;
   /** `?wear=` item ids for screenshots: they replace the stored look while set. */
   private readonly wear = wearFromSearch(typeof location === 'undefined' ? '' : location.search);
   /** The look the boat was last built with: its wake style and chosen flag. */
@@ -39,7 +43,8 @@ export class PlayerBoat {
       damageStage(hullCondition(trade)) !== this.damage ||
       (pennant ?? shipPennant(id)) !== this.flag ||
       racing !== this.racing ||
-      captain.looks?.[id] !== this.lookRef
+      captain.looks?.[id] !== this.lookRef ||
+      handsAboard(id) !== this.hands
     );
   }
 
@@ -63,6 +68,7 @@ export class PlayerBoat {
     this.flag = pennant ?? shipPennant(id);
     this.racing = racing;
     this.lookRef = captain.looks?.[id];
+    this.hands = handsAboard(id);
     const stored = lookOf(captain.looks, id);
     const wear = { ...stored, ...cleanLook(SHIPPED_CATALOGUE, this.wear, id) };
     this.worn = wornLook(wear, id);
