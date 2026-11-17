@@ -37,3 +37,4 @@ worth remembering.
 | [v1.10.74](v1.10.74.md) | merge of the 1.10 PR | 1.10 Villages: organic village rules, 16 towns redone, night and follow-cam fixes, classic look and Kids mode retired |
 | [v1.11.440](v1.11.440.md) | merge of the 1.11 PR | 1.11 Welcome aboard: one click to sailing, six-step first voyage, same HUD in both views, follow-cam framing and look-around, compact phone HUD |
 | [v1.12.456](v1.12.456.md) | merge of the 1.12 PR | 1.12 Light and water: one atmosphere in both views, shadows and sun glitter, night light, follow-cam waves, richer sky, budgets and Auto quality |
+| [v1.13.466](v1.13.466.md) | merge of the 1.13 PR | 1.13 Soft and rich: soft textures near the camera, a helmsman and spray, follow cam sound, real sea and sky in boat previews, setup and phone fixes |
