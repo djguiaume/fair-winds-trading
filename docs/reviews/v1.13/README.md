@@ -1,6 +1,6 @@
 # v1.13 "Soft and rich": final review
 
-One review at the end (Guillaume, 2026-11-16). Merge rule as v1.10 to v1.12.
+One review at the end (Guillaume, 2026-11-16, validated "ok"; released as v1.13.466 in PR #640). Merge rule as v1.10 to v1.12.
 
 Sheets: [surface detail](surface-detail/) (final-town.jpg, final-sail.jpg, variants, cost table), [boat up close and spray](boat-up-close/README.md), [boat previews](boat-previews/), [Free Sailing setup](630-free-setup-desktop-fr.jpg) (phone: [FR](630-free-setup-phone-fr.jpg), [EN](630-free-setup-phone-en.jpg), [before](630-free-setup-phone-before.jpg)), wind icon on phone ([before](wind-compass-before-phone.jpg), [after](wind-compass-after-phone.jpg)).
 
