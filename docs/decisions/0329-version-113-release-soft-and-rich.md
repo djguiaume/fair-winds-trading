@@ -14,5 +14,5 @@ Every part of the [v1.13 brief](../v1.13/brief.md) is merged on `main`: soft sur
 
 ## Consequences
 
-- Budget: High docking follow-cam draw calls 58 to 61; Medium and High sailing follow cam are at their limits, so the next follow-cam draw needs an argued raise.
+- Budget: Ultra sailing calls 63 to 64 and sailingChase 84 to 88 (measured by CI on the release PR; the same boat-up-close draws on Ultra), High docking follow-cam draw calls 58 to 61; Medium and High sailing follow cam are at their limits, so the next follow-cam draw needs an argued raise.
 - Open for later: device `?bench` (#377, add `&quality=high` against `&off=surface`), live title (#531), #545, #492.
